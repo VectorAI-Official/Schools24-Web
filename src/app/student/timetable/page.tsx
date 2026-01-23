@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Download, Printer, Calendar, ArrowLeft, Clock, BookOpen, User, MapPin } from 'lucide-react'
-import { mockTimetable } from '@/lib/mockData'
+import { useTimetable } from '@/lib/useTimetable'
 import { toast } from 'sonner'
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -13,6 +13,7 @@ const timeSlots = ['08:00 - 08:45', '08:45 - 09:30', '09:45 - 10:30', '10:30 - 1
 
 export default function StudentTimetablePage() {
     const router = useRouter()
+    const { timetable } = useTimetable('student')
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
 
     const handlePrint = () => {
@@ -116,7 +117,7 @@ export default function StudentTimetablePage() {
                                             {slot}
                                         </td>
                                         {days.map((day) => {
-                                            const entry = mockTimetable.find(t => t.day === day && t.startTime === slot.split(' - ')[0])
+                                            const entry = timetable.find(t => t.day === day && t.startTime === slot.split(' - ')[0])
 
                                             if (slot === '12:15 - 01:00') {
                                                 return (
@@ -192,7 +193,7 @@ export default function StudentTimetablePage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-3">
-                        {mockTimetable.filter(t => t.day === 'Monday').slice(0, 5).map((slot, index) => (
+                        {timetable.filter(t => t.day === 'Monday').slice(0, 5).map((slot, index) => (
                             <div
                                 key={slot.id}
                                 className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg stagger-${index + 1} animate-slide-up ${index === 2 ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50' : 'border-transparent bg-muted/30 hover:border-blue-200'

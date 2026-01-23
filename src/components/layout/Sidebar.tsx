@@ -76,7 +76,6 @@ const teacherNavItems: NavItem[] = [
     { title: 'Question Generator', href: '/teacher/question-generator', icon: <FileQuestion className="h-5 w-5" />, category: 'Resources' },
     { title: 'Students Timetable', href: '/teacher/students-timetable', icon: <Calendar className="h-5 w-5" />, category: 'Schedule' },
     { title: 'Teachers Timetable', href: '/teacher/teachers-timetable', icon: <CalendarDays className="h-5 w-5" />, category: 'Schedule' },
-    { title: 'Exam Scheduler', href: '/teacher/exam-scheduler', icon: <Clock className="h-5 w-5" />, category: 'Schedule' },
     { title: 'Attendance Upload', href: '/teacher/attendance-upload', icon: <Upload className="h-5 w-5" />, category: 'Admin' },
     { title: 'My Rank', href: '/teacher/leaderboard', icon: <Trophy className="h-5 w-5" />, category: 'Performance' },
     { title: 'Teachers Leaderboard', href: '/teacher/teachers-leaderboard', icon: <BarChart3 className="h-5 w-5" />, category: 'Performance' },

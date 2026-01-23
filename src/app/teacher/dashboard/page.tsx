@@ -158,37 +158,6 @@ export default function TeacherDashboard() {
 
             {/* Main Content */}
             <div className="grid gap-6 lg:grid-cols-3">
-                {/* Today's Schedule */}
-                <Card className="lg:col-span-1">
-                    <CardHeader>
-                        <CardTitle>Today's Schedule</CardTitle>
-                        <CardDescription>Your classes for today</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {todayClasses.map((slot, index) => (
-                                <div key={slot.id} className="flex items-center gap-4 p-3 rounded-lg border">
-                                    <div className="flex flex-col items-center justify-center w-16 text-center">
-                                        <span className="text-sm font-medium">{slot.startTime}</span>
-                                        <span className="text-xs text-muted-foreground">to</span>
-                                        <span className="text-sm font-medium">{slot.endTime}</span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium">{slot.subject}</p>
-                                        <p className="text-sm text-muted-foreground">Class {slot.class} • Room {slot.room}</p>
-                                    </div>
-                                    {index < 2 ? (
-                                        <Badge variant="success"><CheckCircle className="h-3 w-3 mr-1" />Done</Badge>
-                                    ) : index === 2 ? (
-                                        <Badge variant="default"><Clock className="h-3 w-3 mr-1" />Now</Badge>
-                                    ) : (
-                                        <Badge variant="secondary">Upcoming</Badge>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
 
                 {/* Class Performance Chart */}
                 <Card className="lg:col-span-2">
@@ -225,7 +194,7 @@ export default function TeacherDashboard() {
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <CardTitle>Upcoming Quizzes</CardTitle>
+                            <CardTitle>Scheduled Quizzes</CardTitle>
                             <Button variant="ghost" size="sm">View All</Button>
                         </div>
                     </CardHeader>

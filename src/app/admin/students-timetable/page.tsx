@@ -23,7 +23,8 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Download, Printer, Calendar, Plus, Edit, Trash2, Save } from 'lucide-react'
-import { mockTimetable, TimetableSlot } from '@/lib/mockData'
+import { TimetableSlot } from '@/lib/mockData'
+import { useTimetable } from '@/lib/useTimetable'
 import { toast } from 'sonner'
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -40,7 +41,7 @@ const classes = ['6-A', '6-B', '7-A', '7-B', '8-A', '8-B', '9-A', '9-B', '10-A',
 
 export default function StudentsTimetablePage() {
     const [selectedClass, setSelectedClass] = useState('10-A')
-    const [timetable, setTimetable] = useState<TimetableSlot[]>(mockTimetable)
+    const { timetable, updateTimetable } = useTimetable('admin')
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [selectedSlot, setSelectedSlot] = useState<{ day: string, time: string, entry: TimetableSlot | undefined } | null>(null)
     const [formData, setFormData] = useState({
@@ -115,14 +116,18 @@ export default function StudentsTimetablePage() {
             toast.success('Slot cleared', { description: 'Timetable entry removed' })
         }
 
-        setTimetable(newTimetable)
+        if (updateTimetable) {
+            updateTimetable(newTimetable)
+        }
         setIsEditDialogOpen(false)
     }
 
     const handleDeleteSlot = () => {
         if (!selectedSlot?.entry) return
 
-        setTimetable(timetable.filter(t => t.id !== selectedSlot.entry!.id))
+        if (updateTimetable) {
+            updateTimetable(timetable.filter(t => t.id !== selectedSlot.entry!.id))
+        }
         setIsEditDialogOpen(false)
         toast.success('Slot cleared', { description: 'Timetable entry removed' })
     }

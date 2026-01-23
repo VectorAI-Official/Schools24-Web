@@ -4,12 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Download, Printer, Calendar } from 'lucide-react'
-import { mockTimetable } from '@/lib/mockData'
+import { useTimetable } from '@/lib/useTimetable'
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const timeSlots = ['08:00 - 08:45', '08:45 - 09:30', '09:45 - 10:30', '10:30 - 11:15', '11:30 - 12:15', '12:15 - 01:00']
 
 export default function TeachersTimetablePage() {
+    const { timetable } = useTimetable('teacher')
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -48,7 +49,7 @@ export default function TeachersTimetablePage() {
                                     <tr key={slot}>
                                         <td className="border p-3 bg-muted/50 font-medium text-sm">{slot}</td>
                                         {days.map((day) => {
-                                            const entry = mockTimetable.find(t => t.day === day && t.startTime === slot.split(' - ')[0])
+                                            const entry = timetable.find(t => t.day === day && t.startTime === slot.split(' - ')[0])
                                             if (slot === '12:15 - 01:00') return (<td key={`${day}-${slot}`} className="border p-3 text-center bg-green-50 dark:bg-green-950"><span className="text-green-600 font-medium">Lunch Break</span></td>)
                                             return (<td key={`${day}-${slot}`} className="border p-3">
                                                 {entry ? (<div className="text-center"><p className="font-medium text-primary">{entry.subject}</p><p className="text-xs text-muted-foreground mt-1">Class {entry.class}</p><Badge variant="outline" className="mt-1 text-xs">Room {entry.room}</Badge></div>) : (<div className="text-center"><Badge variant="secondary" className="text-xs">Free</Badge></div>)}

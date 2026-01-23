@@ -307,10 +307,32 @@ export default function AdminDashboard() {
                                         dataKey="value"
                                     >
                                         {feeStatusData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.color}
+                                            />
                                         ))}
                                     </Pie>
-                                    <Tooltip cursor={false} />
+                                    <Tooltip
+                                        cursor={false}
+                                        animationDuration={200}
+                                        animationEasing="ease-out"
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <div
+                                                        className="bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg"
+                                                        style={{
+                                                            animation: 'slideUp 0.2s ease-out'
+                                                        }}
+                                                    >
+                                                        <p className="font-medium text-sm">{payload[0].name}</p>
+                                                    </div>
+                                                )
+                                            }
+                                            return null
+                                        }}
+                                    />
                                 </PieChart>
                             ) : (
                                 <div className="h-full w-full flex items-center justify-center text-muted-foreground">
@@ -320,10 +342,10 @@ export default function AdminDashboard() {
                         </div>
                         <div className="grid grid-cols-2 gap-2 mt-4">
                             {feeStatusData.map((item, index) => (
-                                <div key={index} className="flex items-center gap-2">
-                                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                                    <span className="text-sm text-muted-foreground">{item.name}</span>
-                                    <span className="text-sm font-medium ml-auto">{item.value}%</span>
+                                <div key={index} className="flex items-center gap-2 group cursor-pointer hover:bg-muted/50 rounded-md p-1.5 transition-colors">
+                                    <div className="h-3 w-3 rounded-full group-hover:scale-110 transition-transform" style={{ backgroundColor: item.color }} />
+                                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{item.name}</span>
+                                    <span className="text-sm font-medium ml-auto group-hover:text-foreground transition-colors">{item.value}%</span>
                                 </div>
                             ))}
                         </div>

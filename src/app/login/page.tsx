@@ -266,7 +266,7 @@ export default function LoginPage() {
                             <div className={`absolute inset-0 bg-gradient-to-br ${currentRole.gradient} opacity-5 transition-opacity duration-700`} />
 
                             <CardHeader className="relative pb-6 pt-8 px-6 md:px-8">
-                                <div className="mb-8 min-h-[80px]">
+                                <div className="mb-2 min-h-[80px]">
                                     <CardTitle
                                         key={currentRole.role}
                                         className="text-3xl md:text-4xl mb-3 font-bold text-slate-900 dark:text-white tracking-tight animate-fade-in"
@@ -279,52 +279,6 @@ export default function LoginPage() {
                                     >
                                         {currentRole.tagline}. Sign in to continue.
                                     </CardDescription>
-                                </div>
-
-                                {/* Role Selector */}
-                                <div className="grid grid-cols-3 gap-4 p-2 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700/50 dark:to-slate-800/50 rounded-xl shadow-inner">
-                                    {roleData.map((role, index) => {
-                                        const Icon = role.icon
-                                        const isActive = selectedRole === role.role
-
-                                        return (
-                                            <button
-                                                key={role.role}
-                                                onClick={() => handleRoleChange(role.role as any)}
-                                                disabled={isLoading}
-                                                className={`relative p-3 rounded-xl transition-all duration-500 group/btn transform hover:scale-105 ${isActive
-                                                    ? `bg-gradient-to-br ${role.gradient} text-white shadow-lg scale-105 ring-2 ring-white/20`
-                                                    : 'bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 hover:shadow-md border border-slate-200/50 dark:border-slate-600/50'
-                                                    }`}
-                                                style={{
-                                                    animationDelay: `${index * 100}ms`,
-                                                    transform: isActive ? 'translateY(-4px)' : ''
-                                                }}
-                                            >
-                                                {isActive && (
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 rounded-xl" />
-                                                )}
-
-                                                <div className="relative flex flex-col items-center gap-3">
-                                                    <div className={`p-3 rounded-xl transition-all duration-500 ${isActive ? 'bg-white/25 shadow-lg' : 'bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-600 dark:to-slate-700 group-hover/btn:from-slate-200 group-hover/btn:to-slate-100 dark:group-hover/btn:from-slate-500 dark:group-hover/btn:to-slate-600'
-                                                        }`}>
-                                                        <Icon className={`h-6 w-6 transition-transform duration-500 ${isActive ? 'scale-110 rotate-12' : 'group-hover/btn:scale-110 group-hover/btn:rotate-6'}`} />
-                                                    </div>
-                                                    <span className="font-bold text-sm tracking-wide">{role.title}</span>
-
-                                                    {isActive && (
-                                                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50 animate-bounce-in ring-2 ring-white dark:ring-slate-800">
-                                                            <CheckCircle2 className="h-4 w-4 text-white" />
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {isActive && (
-                                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/40 rounded-b-xl shadow-inner" />
-                                                )}
-                                            </button>
-                                        )
-                                    })}
                                 </div>
                             </CardHeader>
 

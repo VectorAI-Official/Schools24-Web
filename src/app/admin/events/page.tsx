@@ -205,17 +205,17 @@ export default function EventsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">Event Calendar</h1>
-                    <p className="text-muted-foreground">Manage school events and activities</p>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Event Calendar</h1>
+                    <p className="text-muted-foreground mt-1">Manage school events, holidays, and important dates</p>
                 </div>
                 <div className="flex gap-3">
-                    <Button variant="outline" onClick={handleExport}>
+                    <Button variant="outline" onClick={handleExport} className="hover:bg-muted transition-colors">
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button>
+                            <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add Event
                             </Button>
@@ -313,9 +313,6 @@ export default function EventsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <CardTitle className="text-white">Calendar</CardTitle>
-                                <p className="text-white/80 text-sm mt-1">
-                                    {date?.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) || 'Select a date'}
-                                </p>
                             </div>
                             <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                                 <CalendarDays className="h-6 w-6 text-white" />
@@ -329,21 +326,110 @@ export default function EventsPage() {
                                 selected={date}
                                 onSelect={setDate}
                                 className="w-full"
+                                modifiers={{
+                                    hasEvent: events.map(e => new Date(e.date))
+                                }}
+                                modifiersClassNames={{
+                                    hasEvent: 'has-event-date'
+                                }}
                             />
                         </div>
 
-                        {/* Selected Date Display */}
-                        {date && (
-                            <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wide">Selected Date</p>
-                                <p className="text-lg font-semibold text-primary">
-                                    {date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-                                </p>
-                            </div>
-                        )}
+                        {/* Selected Date Display with Events */}
+                        {date && (() => {
+                            const selectedDateStr = date.toISOString().split('T')[0]
+                            const eventsOnDate = events.filter(e => e.date === selectedDateStr)
+
+                            return (
+                                <div className="mt-4 space-y-4">
+                                    {/* Selected Date Header */}
+                                    <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-200/50 dark:border-indigo-800/50">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold mb-1">Selected Date</p>
+                                        <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                            {date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                            {eventsOnDate.length === 0 ? 'No events scheduled' :
+                                                eventsOnDate.length === 1 ? '1 event scheduled' :
+                                                    `${eventsOnDate.length} events scheduled`}
+                                        </p>
+                                    </div>
+
+                                    {/* Events for Selected Date */}
+                                    {eventsOnDate.length > 0 && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between px-1">
+                                                <p className="text-sm font-bold text-foreground flex items-center gap-2">
+                                                    <CalendarDays className="h-4 w-4 text-primary" />
+                                                    Events Today
+                                                </p>
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {eventsOnDate.length}
+                                                </Badge>
+                                            </div>
+                                            <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+                                                {eventsOnDate.map((event, index) => (
+                                                    <div
+                                                        key={event.id}
+                                                        className="group relative p-3 rounded-xl border bg-gradient-to-br from-card to-card/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:scale-[1.02] cursor-pointer animate-slide-in-left"
+                                                        style={{ animationDelay: `${index * 50}ms` }}
+                                                    >
+                                                        {/* Color accent bar */}
+                                                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${getTypeColor(event.type)}`} />
+
+                                                        <div className="pl-3">
+                                                            {/* Event header */}
+                                                            <div className="flex items-start justify-between gap-2 mb-2">
+                                                                <h4 className="font-bold text-sm leading-tight flex-1">{event.title}</h4>
+                                                                <Badge
+                                                                    variant={getBadgeVariant(event.type)}
+                                                                    className="text-xs shrink-0 shadow-sm"
+                                                                >
+                                                                    {event.type}
+                                                                </Badge>
+                                                            </div>
+
+                                                            {/* Event details */}
+                                                            <div className="space-y-1.5">
+                                                                <div className="flex items-center gap-2 text-xs">
+                                                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                                        <Clock className="h-3.5 w-3.5 text-primary" />
+                                                                        <span className="font-medium">{event.time}</span>
+                                                                    </div>
+                                                                    {event.location && (
+                                                                        <>
+                                                                            <span className="text-muted-foreground">•</span>
+                                                                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                                                <MapPin className="h-3.5 w-3.5 text-primary" />
+                                                                                <span className="font-medium truncate">{event.location}</span>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+
+                                                                {event.description && (
+                                                                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                                                        {event.description}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Hover indicator */}
+                                                        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        })()}
 
                         {/* Event Types Legend */}
-                        <div className="mt-4 space-y-3">
+                        <div className="mt-4 pt-4 border-t space-y-3">
                             <p className="text-sm font-semibold text-foreground">Event Types</p>
                             <div className="grid grid-cols-2 gap-2">
                                 {eventTypes.map((type) => (
@@ -361,12 +447,12 @@ export default function EventsPage() {
                         {/* Quick Stats */}
                         <div className="mt-4 pt-4 border-t">
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-                                    <p className="text-2xl font-bold text-blue-600">{events.length}</p>
+                                <div className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10 transition-all cursor-pointer group">
+                                    <p className="text-2xl font-bold text-blue-600 group-hover:scale-110 transition-transform">{events.length}</p>
                                     <p className="text-xs text-muted-foreground">Total Events</p>
                                 </div>
-                                <div className="text-center p-3 rounded-lg bg-gradient-to-br from-green-500/10 to-green-500/5">
-                                    <p className="text-2xl font-bold text-green-600">{events.filter(e => e.type === 'holiday').length}</p>
+                                <div className="text-center p-3 rounded-lg bg-gradient-to-br from-green-500/10 to-green-500/5 hover:from-green-500/20 hover:to-green-500/10 transition-all cursor-pointer group">
+                                    <p className="text-2xl font-bold text-green-600 group-hover:scale-110 transition-transform">{events.filter(e => e.type === 'holiday').length}</p>
                                     <p className="text-xs text-muted-foreground">Holidays</p>
                                 </div>
                             </div>
@@ -376,37 +462,66 @@ export default function EventsPage() {
 
                 {/* Events List */}
                 <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Upcoming Events</CardTitle>
-                        <CardDescription>Events scheduled for this month</CardDescription>
+                    <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-b">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-xl">Upcoming Events</CardTitle>
+                                <CardDescription className="mt-1">All scheduled events and activities</CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                                <CalendarDays className="h-4 w-4 text-primary" />
+                                <span className="text-sm font-semibold text-primary">{events.length} Events</span>
+                            </div>
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
+                    <CardContent className="p-6">
+                        <div className="space-y-3">
                             {events.length === 0 ? (
-                                <div className="text-center py-8 text-muted-foreground">
-                                    No events scheduled. Click "Add Event" to create one.
+                                <div className="text-center py-16">
+                                    <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 mb-4">
+                                        <CalendarDays className="h-10 w-10 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold mb-2">No Events Yet</h3>
+                                    <p className="text-muted-foreground max-w-sm mx-auto mb-4">
+                                        Start building your school calendar by adding your first event.
+                                    </p>
+                                    <Button
+                                        onClick={() => setIsAddDialogOpen(true)}
+                                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                                    >
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Create Your First Event
+                                    </Button>
                                 </div>
                             ) : (
                                 events.map((event) => (
-                                    <div key={event.id} className="flex gap-4 p-4 rounded-lg border hover:bg-muted transition-colors group">
-                                        <div className={`flex h-14 w-14 items-center justify-center rounded-xl text-white ${getTypeColor(event.type)}`}>
-                                            <CalendarDays className="h-6 w-6" />
+                                    <div
+                                        key={event.id}
+                                        className="group relative flex gap-4 p-4 rounded-xl border bg-card hover:bg-accent/5 hover:shadow-md transition-all duration-300 hover:scale-[1.01]"
+                                    >
+                                        {/* Color indicator */}
+                                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${getTypeColor(event.type)}`} />
+
+                                        {/* Event icon */}
+                                        <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-white ${getTypeColor(event.type)} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                                            <CalendarDays className="h-7 w-7" />
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <h3 className="font-semibold">{event.title}</h3>
-                                                    <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-semibold text-lg mb-1 truncate">{event.title}</h3>
+                                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{event.description}</p>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Badge variant={getBadgeVariant(event.type)}>
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <Badge variant={getBadgeVariant(event.type)} className="text-xs font-semibold">
                                                         {event.type}
                                                     </Badge>
                                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8"
+                                                            className="h-8 w-8 hover:bg-primary/10"
                                                             onClick={() => openEditDialog(event)}
                                                         >
                                                             <Edit className="h-4 w-4" />
@@ -414,7 +529,7 @@ export default function EventsPage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 text-destructive"
+                                                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
                                                             onClick={() => openDeleteDialog(event)}
                                                         >
                                                             <Trash2 className="h-4 w-4" />
@@ -422,19 +537,20 @@ export default function EventsPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                                                <div className="flex items-center gap-1">
-                                                    <CalendarDays className="h-4 w-4" />
-                                                    {event.date}
+
+                                            <div className="flex flex-wrap items-center gap-4 text-sm">
+                                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                    <CalendarDays className="h-4 w-4 text-primary" />
+                                                    <span className="font-medium">{event.date}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Clock className="h-4 w-4" />
-                                                    {event.time}
+                                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                    <Clock className="h-4 w-4 text-primary" />
+                                                    <span className="font-medium">{event.time}</span>
                                                 </div>
                                                 {event.location && (
-                                                    <div className="flex items-center gap-1">
-                                                        <MapPin className="h-4 w-4" />
-                                                        {event.location}
+                                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                        <MapPin className="h-4 w-4 text-primary" />
+                                                        <span className="font-medium truncate">{event.location}</span>
                                                     </div>
                                                 )}
                                             </div>
