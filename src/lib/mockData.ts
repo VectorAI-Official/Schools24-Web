@@ -1,6 +1,6 @@
 // Mock Data for School24 School Management System
 
-export type UserRole = 'admin' | 'teacher' | 'student';
+export type UserRole = 'admin' | 'teacher' | 'student' | 'non-teaching';
 
 export interface User {
     id: string;
@@ -63,6 +63,30 @@ export interface Teacher {
     avatar?: string;
     salary: number;
     rating: number;
+    status: 'active' | 'on-leave' | 'inactive';
+}
+
+export interface Staff {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    employeeId: string;
+    staffType: 'teaching' | 'non-teaching';
+    department: string;
+    designation: string;
+    subjects?: string[]; // Only for teaching staff
+    classes?: string[]; // Only for teaching staff
+    qualification: string;
+    experience: number; // in years
+    joinDate: string;
+    avatar?: string;
+    salary: number;
+    rating?: number; // Only for teaching staff
+    address?: string;
+    dateOfBirth?: string;
+    emergencyContact?: string;
+    bloodGroup?: string;
     status: 'active' | 'on-leave' | 'inactive';
 }
 
@@ -438,6 +462,274 @@ export const mockTeachers: Teacher[] = [
     },
 ];
 
+// Mock Staff (Teaching + Non-Teaching)
+export const mockStaff: Staff[] = [
+    // Teaching Staff
+    {
+        id: '1',
+        name: 'Rajesh Kumar',
+        email: 'rajesh.kumar@School24.com',
+        phone: '+91 9876543221',
+        employeeId: 'TCH001',
+        staffType: 'teaching',
+        department: 'Mathematics',
+        designation: 'Senior Mathematics Teacher',
+        subjects: ['Mathematics', 'Physics'],
+        classes: ['9-A', '9-B', '10-A', '10-B'],
+        qualification: 'M.Sc. Mathematics, B.Ed',
+        experience: 12,
+        joinDate: '2012-06-15',
+        salary: 65000,
+        rating: 4.8,
+        status: 'active',
+        address: '123, Model Town, Delhi',
+        dateOfBirth: '1982-03-15',
+        emergencyContact: '+91 9876543299',
+        bloodGroup: 'O+',
+    },
+    {
+        id: '2',
+        name: 'Priya Sharma',
+        email: 'priya.sharma@School24.com',
+        phone: '+91 9876543222',
+        employeeId: 'TCH002',
+        staffType: 'teaching',
+        department: 'Science',
+        designation: 'Chemistry Teacher',
+        subjects: ['Chemistry', 'Biology'],
+        classes: ['9-A', '10-A', '10-B'],
+        qualification: 'M.Sc. Chemistry, B.Ed',
+        experience: 8,
+        joinDate: '2016-04-01',
+        salary: 55000,
+        rating: 4.6,
+        status: 'active',
+        address: '456, Vasant Vihar, Delhi',
+        dateOfBirth: '1988-07-22',
+        emergencyContact: '+91 9876543298',
+        bloodGroup: 'A+',
+    },
+    {
+        id: '3',
+        name: 'Ankit Gupta',
+        email: 'ankit.gupta@School24.com',
+        phone: '+91 9876543223',
+        employeeId: 'TCH003',
+        staffType: 'teaching',
+        department: 'English',
+        designation: 'English Teacher',
+        subjects: ['English', 'Literature'],
+        classes: ['8-A', '8-B', '9-A', '9-B'],
+        qualification: 'M.A. English, B.Ed',
+        experience: 6,
+        joinDate: '2018-07-15',
+        salary: 50000,
+        rating: 4.5,
+        status: 'active',
+        address: '789, Saket, Delhi',
+        dateOfBirth: '1990-11-10',
+        emergencyContact: '+91 9876543297',
+        bloodGroup: 'B+',
+    },
+    {
+        id: '4',
+        name: 'Sunita Devi',
+        email: 'sunita.devi@School24.com',
+        phone: '+91 9876543224',
+        employeeId: 'TCH004',
+        staffType: 'teaching',
+        department: 'Hindi',
+        designation: 'Senior Hindi Teacher',
+        subjects: ['Hindi', 'Sanskrit'],
+        classes: ['6-A', '6-B', '7-A', '7-B'],
+        qualification: 'M.A. Hindi, B.Ed',
+        experience: 15,
+        joinDate: '2009-08-01',
+        salary: 70000,
+        rating: 4.9,
+        status: 'active',
+        address: '321, Karol Bagh, Delhi',
+        dateOfBirth: '1979-05-18',
+        emergencyContact: '+91 9876543296',
+        bloodGroup: 'AB+',
+    },
+    {
+        id: '5',
+        name: 'Vikram Joshi',
+        email: 'vikram.joshi@School24.com',
+        phone: '+91 9876543225',
+        employeeId: 'TCH005',
+        staffType: 'teaching',
+        department: 'Social Studies',
+        designation: 'History & Geography Teacher',
+        subjects: ['History', 'Geography', 'Civics'],
+        classes: ['9-A', '9-B', '10-A'],
+        qualification: 'M.A. History, B.Ed',
+        experience: 10,
+        joinDate: '2014-05-01',
+        salary: 60000,
+        rating: 4.7,
+        status: 'on-leave',
+        address: '654, Laxmi Nagar, Delhi',
+        dateOfBirth: '1984-09-25',
+        emergencyContact: '+91 9876543295',
+        bloodGroup: 'O-',
+    },
+    // Non-Teaching Staff
+    {
+        id: '6',
+        name: 'Ramesh Verma',
+        email: 'ramesh.verma@School24.com',
+        phone: '+91 9876543226',
+        employeeId: 'NTS001',
+        staffType: 'non-teaching',
+        department: 'Administration',
+        designation: 'Office Administrator',
+        qualification: 'B.Com',
+        experience: 8,
+        joinDate: '2016-01-10',
+        salary: 35000,
+        status: 'active',
+        address: '111, Rohini, Delhi',
+        dateOfBirth: '1985-04-12',
+        emergencyContact: '+91 9876543294',
+        bloodGroup: 'B+',
+    },
+    {
+        id: '7',
+        name: 'Meena Kumari',
+        email: 'meena.kumari@School24.com',
+        phone: '+91 9876543227',
+        employeeId: 'NTS002',
+        staffType: 'non-teaching',
+        department: 'Library',
+        designation: 'Librarian',
+        qualification: 'M.Lib.Sc',
+        experience: 12,
+        joinDate: '2012-07-01',
+        salary: 40000,
+        status: 'active',
+        address: '222, Pitampura, Delhi',
+        dateOfBirth: '1980-08-30',
+        emergencyContact: '+91 9876543293',
+        bloodGroup: 'A+',
+    },
+    {
+        id: '8',
+        name: 'Suresh Yadav',
+        email: 'suresh.yadav@School24.com',
+        phone: '+91 9876543228',
+        employeeId: 'NTS003',
+        staffType: 'non-teaching',
+        department: 'IT Support',
+        designation: 'IT Administrator',
+        qualification: 'B.Tech (CS)',
+        experience: 5,
+        joinDate: '2019-03-15',
+        salary: 45000,
+        status: 'active',
+        address: '333, Janakpuri, Delhi',
+        dateOfBirth: '1992-12-05',
+        emergencyContact: '+91 9876543292',
+        bloodGroup: 'O+',
+    },
+    {
+        id: '9',
+        name: 'Kavita Singh',
+        email: 'kavita.singh@School24.com',
+        phone: '+91 9876543229',
+        employeeId: 'NTS004',
+        staffType: 'non-teaching',
+        department: 'Accounts',
+        designation: 'Accountant',
+        qualification: 'M.Com, CA',
+        experience: 10,
+        joinDate: '2014-09-01',
+        salary: 50000,
+        status: 'active',
+        address: '444, Dwarka, Delhi',
+        dateOfBirth: '1984-02-20',
+        emergencyContact: '+91 9876543291',
+        bloodGroup: 'AB-',
+    },
+    {
+        id: '10',
+        name: 'Dinesh Kumar',
+        email: 'dinesh.kumar@School24.com',
+        phone: '+91 9876543230',
+        employeeId: 'NTS005',
+        staffType: 'non-teaching',
+        department: 'Maintenance',
+        designation: 'Maintenance Supervisor',
+        qualification: 'ITI',
+        experience: 15,
+        joinDate: '2009-05-20',
+        salary: 30000,
+        status: 'active',
+        address: '555, Mayur Vihar, Delhi',
+        dateOfBirth: '1978-06-15',
+        emergencyContact: '+91 9876543290',
+        bloodGroup: 'B-',
+    },
+    {
+        id: '11',
+        name: 'Anjali Reddy',
+        email: 'anjali.reddy@School24.com',
+        phone: '+91 9876543231',
+        employeeId: 'NTS006',
+        staffType: 'non-teaching',
+        department: 'Health',
+        designation: 'School Nurse',
+        qualification: 'B.Sc Nursing',
+        experience: 7,
+        joinDate: '2017-08-10',
+        salary: 38000,
+        status: 'active',
+        address: '666, Nehru Place, Delhi',
+        dateOfBirth: '1989-10-08',
+        emergencyContact: '+91 9876543289',
+        bloodGroup: 'A-',
+    },
+    {
+        id: '12',
+        name: 'Mohan Lal',
+        email: 'mohan.lal@School24.com',
+        phone: '+91 9876543232',
+        employeeId: 'NTS007',
+        staffType: 'non-teaching',
+        department: 'Security',
+        designation: 'Security Supervisor',
+        qualification: '12th Pass',
+        experience: 20,
+        joinDate: '2004-02-01',
+        salary: 25000,
+        status: 'active',
+        address: '777, Shahdara, Delhi',
+        dateOfBirth: '1974-01-25',
+        emergencyContact: '+91 9876543288',
+        bloodGroup: 'O+',
+    },
+    {
+        id: '13',
+        name: 'Rekha Nair',
+        email: 'rekha.nair@School24.com',
+        phone: '+91 9876543233',
+        employeeId: 'NTS008',
+        staffType: 'non-teaching',
+        department: 'Reception',
+        designation: 'Receptionist',
+        qualification: 'B.A.',
+        experience: 4,
+        joinDate: '2020-11-01',
+        salary: 28000,
+        status: 'active',
+        address: '888, Connaught Place, Delhi',
+        dateOfBirth: '1994-03-18',
+        emergencyContact: '+91 9876543287',
+        bloodGroup: 'B+',
+    },
+];
+
 // Mock Events
 export const mockEvents: Event[] = [
     { id: '1', title: 'Republic Day Celebration', description: 'Annual Republic Day celebration with flag hoisting and cultural programs', date: '2026-01-26', time: '08:00 AM', type: 'event', location: 'Main Ground' },
@@ -446,6 +738,10 @@ export const mockEvents: Event[] = [
     { id: '4', title: 'Parent-Teacher Meeting', description: 'Quarterly parent-teacher meeting to discuss student progress', date: '2026-02-20', time: '10:00 AM', type: 'meeting', location: 'Conference Hall' },
     { id: '5', title: 'Annual Sports Day', description: 'Annual sports competition and athletic events', date: '2026-02-28', time: '08:00 AM', type: 'sports', location: 'Sports Complex' },
     { id: '6', title: 'Science Exhibition', description: 'Student science project exhibition', date: '2026-03-05', time: '09:00 AM', type: 'event', location: 'Science Block' },
+    { id: '7', title: 'Cultural Program', description: 'Special cultural program celebrating Republic Day', date: '2026-01-26', time: '02:00 PM', type: 'event', location: 'Auditorium' },
+    { id: '8', title: 'Staff Meeting', description: 'Monthly staff coordination meeting', date: '2026-01-26', time: '04:00 PM', type: 'meeting', location: 'Conference Room' },
+    { id: '9', title: 'Basketball Tournament', description: 'Inter-class basketball championship', date: '2026-01-28', time: '10:00 AM', type: 'sports', location: 'Sports Ground' },
+    { id: '10', title: 'Math Quiz Competition', description: 'Mathematics quiz for classes 9 and 10', date: '2026-01-30', time: '11:00 AM', type: 'exam', location: 'Exam Hall' },
 ];
 
 // Mock Quizzes
@@ -598,8 +894,11 @@ export const dashboardStats = {
 };
 
 // Chart Data
-export const revenueChartData = [
-    { month: 'Apr', revenue: 1200000, expenses: 800000 },
+export const revenueChartDataMonth = [
+    { month: 'Jan', revenue: 1100000, expenses: 700000 },
+    { month: 'Feb', revenue: 1300000, expenses: 850000 },
+    { month: 'Mar', revenue: 1200000, expenses: 800000 },
+    { month: 'Apr', revenue: 1250000, expenses: 820000 },
     { month: 'May', revenue: 1100000, expenses: 750000 },
     { month: 'Jun', revenue: 1050000, expenses: 700000 },
     { month: 'Jul', revenue: 1300000, expenses: 850000 },
@@ -608,8 +907,28 @@ export const revenueChartData = [
     { month: 'Oct', revenue: 1350000, expenses: 880000 },
     { month: 'Nov', revenue: 1450000, expenses: 920000 },
     { month: 'Dec', revenue: 1500000, expenses: 950000 },
-    { month: 'Jan', revenue: 1550000, expenses: 980000 },
 ];
+
+export const revenueChartDataWeek = [
+    { name: 'Mon', revenue: 150000, expenses: 90000 },
+    { name: 'Tue', revenue: 160000, expenses: 95000 },
+    { name: 'Wed', revenue: 145000, expenses: 85000 },
+    { name: 'Thu', revenue: 155000, expenses: 92000 },
+    { name: 'Fri', revenue: 170000, expenses: 100000 },
+    { name: 'Sat', revenue: 140000, expenses: 80000 },
+    { name: 'Sun', revenue: 130000, expenses: 75000 },
+];
+
+export const revenueChartDataYear = [
+    { name: '2021', revenue: 10000000, expenses: 6000000 },
+    { name: '2022', revenue: 12000000, expenses: 7500000 },
+    { name: '2023', revenue: 11500000, expenses: 7000000 },
+    { name: '2024', revenue: 14000000, expenses: 8500000 },
+    { name: '2025', revenue: 15500000, expenses: 9000000 },
+];
+
+// Alias for backward compatibility if needed, though we will update the usage
+export const revenueChartData = revenueChartDataMonth;
 
 export const attendanceChartData = [
     { day: 'Mon', present: 92, absent: 8 },

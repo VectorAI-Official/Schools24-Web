@@ -29,7 +29,7 @@ import {
     CheckCircle2,
     XCircle,
 } from 'lucide-react'
-import { dashboardStats, mockStudents, mockTeachers, mockEvents, revenueChartData, attendanceChartData, leaderboardData, mockFeeRecords } from '@/lib/mockData'
+import { dashboardStats, mockStudents, mockTeachers, mockEvents, revenueChartDataMonth, revenueChartDataWeek, revenueChartDataYear, attendanceChartData, leaderboardData, mockFeeRecords } from '@/lib/mockData'
 import { formatCurrency, getInitials } from '@/lib/utils'
 import Link from 'next/link'
 import {
@@ -46,6 +46,7 @@ import {
     PieChart,
     Pie,
     Cell,
+    Sector,
     ResponsiveContainer,
 } from 'recharts'
 
@@ -70,6 +71,7 @@ const feeStatusData = [
 export default function AdminDashboard() {
     const [selectedPeriod, setSelectedPeriod] = useState('month')
     const [mounted, setMounted] = useState(false)
+    const [activePieIndex, setActivePieIndex] = useState<number | undefined>(undefined)
 
     const upcomingEvents = mockEvents.slice(0, 4)
     const topStudents = leaderboardData.students.slice(0, 5)
@@ -82,6 +84,37 @@ export default function AdminDashboard() {
         }, 100)
         return () => clearTimeout(timer)
     }, [])
+
+    // Custom active shape renderer for pie chart with center-origin animation
+    const renderActiveShape = (props: any) => {
+        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props
+
+        // Calculate the mid-angle of the sector to offset it outward from center
+        const RADIAN = Math.PI / 180
+        const midAngle = (startAngle + endAngle) / 2
+        const offsetDistance = 10 // How far the segment moves outward from center
+
+        // Calculate offset position (segment moves outward from center)
+        const offsetX = Math.cos(-midAngle * RADIAN) * offsetDistance
+        const offsetY = Math.sin(-midAngle * RADIAN) * offsetDistance
+
+        return (
+            <g>
+                <Sector
+                    cx={cx + offsetX}
+                    cy={cy + offsetY}
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius + 4}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                    fill={fill}
+                    style={{
+                        filter: 'brightness(1.2) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.3))',
+                    }}
+                />
+            </g>
+        )
+    }
 
 
 
@@ -237,7 +270,7 @@ export default function AdminDashboard() {
                         <div className="h-[300px] w-full overflow-hidden">
                             {mounted ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={revenueChartData}>
+                                    <AreaChart data={selectedPeriod === 'week' ? revenueChartDataWeek : selectedPeriod === 'year' ? revenueChartDataYear : revenueChartDataMonth}>
                                         <defs>
                                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
@@ -249,7 +282,10 @@ export default function AdminDashboard() {
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                        <XAxis dataKey="month" className="text-xs" />
+                                        <XAxis
+                                            dataKey={selectedPeriod === 'week' || selectedPeriod === 'year' ? 'name' : 'month'}
+                                            className="text-xs"
+                                        />
                                         <YAxis className="text-xs" tickFormatter={(value) => `₹${value / 100000}L`} />
                                         <Tooltip
                                             contentStyle={{
@@ -294,46 +330,55 @@ export default function AdminDashboard() {
                         <CardDescription>Current month breakdown</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[200px] w-full overflow-hidden">
+                        <div className="h-[200px] w-full overflow-visible pie-chart-container">
                             {mounted ? (
-                                <PieChart width={300} height={200} style={{ width: '100%', height: '100%', margin: '0 auto' }}>
-                                    <Pie
-                                        data={feeStatusData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                    >
-                                        {feeStatusData.map((entry, index) => (
-                                            <Cell
-                                                key={`cell-${index}`}
-                                                fill={entry.color}
-                                            />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        cursor={false}
-                                        animationDuration={200}
-                                        animationEasing="ease-out"
-                                        content={({ active, payload }) => {
-                                            if (active && payload && payload.length) {
-                                                return (
-                                                    <div
-                                                        className="bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg"
-                                                        style={{
-                                                            animation: 'slideUp 0.2s ease-out'
-                                                        }}
-                                                    >
-                                                        <p className="font-medium text-sm">{payload[0].name}</p>
-                                                    </div>
-                                                )
-                                            }
-                                            return null
-                                        }}
-                                    />
-                                </PieChart>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={feeStatusData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            {...({
+                                                activeIndex: activePieIndex,
+                                                activeShape: renderActiveShape,
+                                                onMouseEnter: (_: any, index: number) => setActivePieIndex(index),
+                                                onMouseLeave: () => setActivePieIndex(undefined)
+                                            } as any)}
+                                        >
+                                            {feeStatusData.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={entry.color}
+                                                    style={{ cursor: 'pointer' }}
+                                                />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            cursor={false}
+                                            animationDuration={200}
+                                            animationEasing="ease-out"
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    return (
+                                                        <div
+                                                            className="bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg"
+                                                            style={{
+                                                                animation: 'slideUp 0.2s ease-out'
+                                                            }}
+                                                        >
+                                                            <p className="font-medium text-sm">{payload[0].name}</p>
+                                                        </div>
+                                                    )
+                                                }
+                                                return null
+                                            }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             ) : (
                                 <div className="h-full w-full flex items-center justify-center text-muted-foreground">
                                     Loading chart...

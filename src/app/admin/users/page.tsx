@@ -64,6 +64,7 @@ import {
     RefreshCw,
     Plus,
     Upload,
+    Briefcase,
 } from 'lucide-react'
 import { mockUsers, User } from '@/lib/mockData'
 import { getInitials } from '@/lib/utils'
@@ -90,8 +91,8 @@ export default function UsersPage() {
     })
 
     const filteredUsers = users.filter(user => {
-        const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesSearch = (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (user.email || '').toLowerCase().includes(searchQuery.toLowerCase())
         const matchesRole = roleFilter === 'all' || user.role === roleFilter
         const matchesStatus = statusFilter === 'all' || user.status === statusFilter
         return matchesSearch && matchesRole && matchesStatus
@@ -128,9 +129,9 @@ export default function UsersPage() {
 
         const user: User = {
             id: `usr-${Date.now()}`,
-            name: newUser.name,
-            email: newUser.email,
-            role: newUser.role as 'admin' | 'teacher' | 'student',
+            name: newUser.name || '',
+            email: newUser.email || '',
+            role: newUser.role as 'admin' | 'teacher' | 'student' | 'non-teaching',
             status: newUser.status as 'active' | 'inactive',
             phone: newUser.phone,
             department: newUser.department,
@@ -191,6 +192,8 @@ export default function UsersPage() {
                 return <BookOpen className="h-4 w-4" />
             case 'student':
                 return <GraduationCap className="h-4 w-4" />
+            case 'non-teaching':
+                return <Briefcase className="h-4 w-4" />
             default:
                 return <Users className="h-4 w-4" />
         }
@@ -204,6 +207,8 @@ export default function UsersPage() {
                 return 'success'
             case 'student':
                 return 'warning'
+            case 'non-teaching':
+                return 'secondary'
             default:
                 return 'secondary'
         }
@@ -357,6 +362,7 @@ export default function UsersPage() {
                                     <SelectItem value="all">All Roles</SelectItem>
                                     <SelectItem value="admin">Admin</SelectItem>
                                     <SelectItem value="teacher">Teacher</SelectItem>
+                                    <SelectItem value="non-teaching">Non-Teaching</SelectItem>
                                     <SelectItem value="student">Student</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -582,7 +588,7 @@ export default function UsersPage() {
                                     <Label htmlFor="edit-role">Role</Label>
                                     <Select
                                         value={selectedUser.role}
-                                        onValueChange={(value: 'admin' | 'teacher' | 'student') =>
+                                        onValueChange={(value: 'admin' | 'teacher' | 'student' | 'non-teaching') =>
                                             setSelectedUser({ ...selectedUser, role: value })
                                         }
                                     >
@@ -592,6 +598,7 @@ export default function UsersPage() {
                                         <SelectContent>
                                             <SelectItem value="admin">Admin</SelectItem>
                                             <SelectItem value="teacher">Teacher</SelectItem>
+                                            <SelectItem value="non-teaching">Non-Teaching</SelectItem>
                                             <SelectItem value="student">Student</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -699,6 +706,7 @@ export default function UsersPage() {
                                     <SelectContent>
                                         <SelectItem value="admin">Admin</SelectItem>
                                         <SelectItem value="teacher">Teacher</SelectItem>
+                                        <SelectItem value="non-teaching">Non-Teaching</SelectItem>
                                         <SelectItem value="student">Student</SelectItem>
                                     </SelectContent>
                                 </Select>

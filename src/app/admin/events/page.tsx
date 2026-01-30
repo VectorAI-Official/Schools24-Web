@@ -308,7 +308,7 @@ export default function EventsPage() {
 
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Calendar */}
-                <Card className="lg:col-span-1 overflow-hidden">
+                <Card className="lg:col-span-2 overflow-hidden min-h-[600px]">
                     <CardHeader className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white pb-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -319,25 +319,58 @@ export default function EventsPage() {
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-4">
-                        <div className="bg-gradient-to-br from-background to-muted/30 rounded-xl p-2 border shadow-inner">
+                    <CardContent className="p-6">
+                        <div className="bg-gradient-to-br from-background to-muted/30 rounded-xl p-6 border shadow-inner">
                             <Calendar
                                 mode="single"
                                 selected={date}
                                 onSelect={setDate}
-                                className="w-full"
+                                className="w-full calendar-with-events [&_td_button]:font-bold"
                                 modifiers={{
-                                    hasEvent: events.map(e => new Date(e.date))
+                                    hasEventType: events.map(e => {
+                                        const [year, month, day] = e.date.split('-')
+                                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                                    }),
+                                    hasExam: events.filter(e => e.type === 'exam').map(e => {
+                                        const [year, month, day] = e.date.split('-')
+                                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                                    }),
+                                    hasHoliday: events.filter(e => e.type === 'holiday').map(e => {
+                                        const [year, month, day] = e.date.split('-')
+                                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                                    }),
+                                    hasMeeting: events.filter(e => e.type === 'meeting').map(e => {
+                                        const [year, month, day] = e.date.split('-')
+                                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                                    }),
+                                    hasSports: events.filter(e => e.type === 'sports').map(e => {
+                                        const [year, month, day] = e.date.split('-')
+                                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                                    }),
+                                    hasEvent: events.filter(e => e.type === 'event').map(e => {
+                                        const [year, month, day] = e.date.split('-')
+                                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                                    }),
                                 }}
                                 modifiersClassNames={{
-                                    hasEvent: 'has-event-date'
+                                    hasEventType: 'has-event-marker',
+                                    hasExam: 'has-exam-event',
+                                    hasHoliday: 'has-holiday-event',
+                                    hasMeeting: 'has-meeting-event',
+                                    hasSports: 'has-sports-event',
+                                    hasEvent: 'has-general-event',
                                 }}
                             />
                         </div>
 
                         {/* Selected Date Display with Events */}
                         {date && (() => {
-                            const selectedDateStr = date.toISOString().split('T')[0]
+                            // Format the selected date to YYYY-MM-DD to match event dates
+                            const year = date.getFullYear()
+                            const month = String(date.getMonth() + 1).padStart(2, '0')
+                            const day = String(date.getDate()).padStart(2, '0')
+                            const selectedDateStr = `${year}-${month}-${day}`
+
                             const eventsOnDate = events.filter(e => e.date === selectedDateStr)
 
                             return (
@@ -371,8 +404,7 @@ export default function EventsPage() {
                                                 {eventsOnDate.map((event, index) => (
                                                     <div
                                                         key={event.id}
-                                                        className="group relative p-3 rounded-xl border bg-gradient-to-br from-card to-card/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:scale-[1.02] cursor-pointer animate-slide-in-left"
-                                                        style={{ animationDelay: `${index * 50}ms` }}
+                                                        className="relative p-3 rounded-xl border bg-card"
                                                     >
                                                         {/* Color accent bar */}
                                                         <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${getTypeColor(event.type)}`} />
@@ -415,10 +447,6 @@ export default function EventsPage() {
                                                             </div>
                                                         </div>
 
-                                                        {/* Hover indicator */}
-                                                        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -427,41 +455,11 @@ export default function EventsPage() {
                                 </div>
                             )
                         })()}
-
-                        {/* Event Types Legend */}
-                        <div className="mt-4 pt-4 border-t space-y-3">
-                            <p className="text-sm font-semibold text-foreground">Event Types</p>
-                            <div className="grid grid-cols-2 gap-2">
-                                {eventTypes.map((type) => (
-                                    <div
-                                        key={type.value}
-                                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
-                                    >
-                                        <div className={`h-3 w-3 rounded-full ${type.color} ring-2 ring-offset-2 ring-transparent group-hover:ring-${type.color.replace('bg-', '')}/30 transition-all`} />
-                                        <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{type.label}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Quick Stats */}
-                        <div className="mt-4 pt-4 border-t">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10 transition-all cursor-pointer group">
-                                    <p className="text-2xl font-bold text-blue-600 group-hover:scale-110 transition-transform">{events.length}</p>
-                                    <p className="text-xs text-muted-foreground">Total Events</p>
-                                </div>
-                                <div className="text-center p-3 rounded-lg bg-gradient-to-br from-green-500/10 to-green-500/5 hover:from-green-500/20 hover:to-green-500/10 transition-all cursor-pointer group">
-                                    <p className="text-2xl font-bold text-green-600 group-hover:scale-110 transition-transform">{events.filter(e => e.type === 'holiday').length}</p>
-                                    <p className="text-xs text-muted-foreground">Holidays</p>
-                                </div>
-                            </div>
-                        </div>
                     </CardContent>
                 </Card>
 
                 {/* Events List */}
-                <Card className="lg:col-span-2">
+                <Card className="lg:col-span-1">
                     <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-b">
                         <div className="flex items-center justify-between">
                             <div>

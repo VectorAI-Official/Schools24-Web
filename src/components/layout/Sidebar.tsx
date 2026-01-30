@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -99,6 +99,22 @@ export function Sidebar() {
     const [collapsed, setCollapsed] = useState(false)
     const pathname = usePathname()
     const { userRole } = useAuth()
+
+    // Collapse sidebar on mobile by default
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                setCollapsed(true)
+            }
+        }
+
+        // Set initial state
+        handleResize()
+
+        // Listen for resize events
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     const getNavItems = (): NavItem[] => {
         switch (userRole) {

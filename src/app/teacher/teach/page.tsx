@@ -37,10 +37,6 @@ export default function TeachPage() {
                                 Open Whiteboard
                             </Button>
                         </Link>
-                        <Button variant="outline" size="lg" className="h-12">
-                            <Monitor className="mr-2 h-5 w-5" />
-                            Screen Share
-                        </Button>
                     </div>
                 </CardContent>
             </Card>
@@ -75,34 +71,6 @@ export default function TeachPage() {
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Upcoming Classes */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Upcoming Classes Today</CardTitle>
-                    <CardDescription>Your schedule for the rest of the day</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {mockTimetable.filter(slot => slot.day === 'Monday').slice(1, 4).map((slot) => (
-                            <div key={slot.id} className="flex items-center gap-4 p-4 rounded-lg border">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
-                                    <Clock className="h-5 w-5 text-muted-foreground" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-medium">{slot.subject}</p>
-                                    <p className="text-sm text-muted-foreground">Class {slot.class} • Room {slot.room}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-medium">{slot.startTime}</p>
-                                    <p className="text-sm text-muted-foreground">{slot.endTime}</p>
-                                </div>
-                                <Button variant="outline" size="sm">Prepare</Button>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     )
 }

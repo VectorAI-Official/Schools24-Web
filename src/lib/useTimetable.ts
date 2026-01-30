@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { timetableStore } from './timetableStore'
+import { timetableStore, PeriodsConfiguration, DEFAULT_PERIODS_CONFIG } from './timetableStore'
 import { TimetableSlot, mockTimetable } from './mockData'
 
 /**
@@ -15,6 +15,7 @@ import { TimetableSlot, mockTimetable } from './mockData'
  */
 export function useTimetable(role: 'admin' | 'teacher' | 'student' = 'student') {
     const [timetable, setTimetable] = useState<TimetableSlot[]>([])
+    const [periodsConfig, setPeriodsConfig] = useState<PeriodsConfiguration>(DEFAULT_PERIODS_CONFIG)
     const [isInitialized, setIsInitialized] = useState(false)
 
     useEffect(() => {
@@ -23,7 +24,9 @@ export function useTimetable(role: 'admin' | 'teacher' | 'student' = 'student') 
 
         // Load initial data
         const initialData = timetableStore.getTimetable()
+        const initialConfig = timetableStore.getPeriodsConfig()
         setTimetable(initialData)
+        setPeriodsConfig(initialConfig)
         setIsInitialized(true)
 
         // Subscribe to changes
@@ -32,7 +35,16 @@ export function useTimetable(role: 'admin' | 'teacher' | 'student' = 'student') 
             setTimetable(updatedData)
         })
 
-        return unsubscribe
+        // Subscribe to config changes
+        const unsubscribeConfig = timetableStore.subscribeConfig(() => {
+            const updatedConfig = timetableStore.getPeriodsConfig()
+            setPeriodsConfig(updatedConfig)
+        })
+
+        return () => {
+            unsubscribe()
+            unsubscribeConfig()
+        }
     }, [])
 
     // Only admins can update timetable
@@ -42,9 +54,18 @@ export function useTimetable(role: 'admin' | 'teacher' | 'student' = 'student') 
         }
         : undefined
 
+    // Only admins can update periods config
+    const updatePeriodsConfig = role === 'admin'
+        ? (newConfig: PeriodsConfiguration) => {
+            timetableStore.setPeriodsConfig(newConfig)
+        }
+        : undefined
+
     return {
         timetable,
         updateTimetable,
+        periodsConfig,
+        updatePeriodsConfig,
         isInitialized
     }
 }

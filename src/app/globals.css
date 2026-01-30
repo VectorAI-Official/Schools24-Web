@@ -259,21 +259,28 @@
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
 }
 
 @keyframes floatSlow {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px);
   }
+
   33% {
     transform: translateY(-15px) translateX(10px);
   }
+
   66% {
     transform: translateY(-5px) translateX(-10px);
   }
@@ -283,15 +290,19 @@
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
 }
 
 @keyframes gradientShift {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
@@ -302,13 +313,16 @@
     opacity: 0;
     transform: scale(0.3) translateY(-50px);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.05);
   }
+
   70% {
     transform: scale(0.9);
   }
+
   100% {
     transform: scale(1);
   }
@@ -319,6 +333,7 @@
     opacity: 0;
     transform: translateX(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -330,6 +345,7 @@
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -337,9 +353,12 @@
 }
 
 @keyframes glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(59, 130, 246, 0.8);
   }
@@ -350,6 +369,7 @@
     transform: scale(0);
     opacity: 1;
   }
+
   100% {
     transform: scale(4);
     opacity: 0;
@@ -386,12 +406,10 @@
 
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 100%);
   background-size: 1000px 100%;
 }
 
@@ -417,11 +435,25 @@
 }
 
 /* Staggered animation delays */
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.stagger-5 {
+  animation-delay: 0.5s;
+}
 
 /* Typography */
 .text-gradient {
@@ -534,12 +566,13 @@
 }
 
 /* Calendar event date highlighting */
-.has-event-date {
+.has-event-marker {
   position: relative;
   font-weight: 600;
 }
 
-.has-event-date::after {
+/* Color-coded event type markers */
+.has-exam-event::after {
   content: '';
   position: absolute;
   bottom: 2px;
@@ -547,16 +580,110 @@
   transform: translateX(-50%);
   width: 6px;
   height: 6px;
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(262 83% 58%) 100%);
+  background: #ef4444;
+  /* Red for exams */
   border-radius: 50%;
-  box-shadow: 0 0 8px hsl(var(--primary) / 0.6);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
 }
 
-.has-event-date:hover::after {
+.has-holiday-event::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  /* Green for holidays */
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.has-meeting-event::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: #3b82f6;
+  /* Blue for meetings */
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+.has-sports-event::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: #eab308;
+  /* Yellow for sports */
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.6);
+}
+
+.has-general-event::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: #a855f7;
+  /* Purple for general events */
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+}
+
+/* Hover effects for event dates */
+.has-event-marker:hover::after {
   width: 8px;
   height: 8px;
-  box-shadow: 0 0 12px hsl(var(--primary) / 0.8);
   animation: pulse-glow 1.5s infinite;
+}
+
+/* Enhanced selected date styling */
+.calendar-with-events .rdp-day_selected {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(262 83% 58%) 100%) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  transform: scale(1.05);
+  position: relative;
+  z-index: 10;
+}
+
+.calendar-with-events .rdp-day_selected:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+  transform: scale(1.08);
+}
+
+/* Make sure selected date marker is visible */
+.calendar-with-events .rdp-day_selected::after {
+  filter: brightness(1.5) !important;
+}
+
+/* Smooth transitions for calendar days */
+.calendar-with-events .rdp-day {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.calendar-with-events .rdp-day:hover {
+  background-color: hsl(var(--muted)) !important;
+  transform: scale(1.05);
+}
+
+/* Ensure event markers are visible on all states */
+.calendar-with-events .rdp-day::after {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
 }
 
 /* Custom scrollbar for event lists */
@@ -576,4 +703,41 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.5);
+}
+
+/* Pie Chart Center-Origin Animation */
+.recharts-wrapper {
+  overflow: visible !important;
+}
+
+.recharts-pie {
+  overflow: visible !important;
+}
+
+.recharts-pie-sector path,
+.recharts-sector {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Pie chart container - allow overflow for hover effects */
+.pie-chart-container {
+  overflow: visible !important;
+}
+
+.pie-chart-container .recharts-wrapper {
+  overflow: visible !important;
+}
+
+.pie-chart-container .recharts-surface {
+  overflow: visible !important;
+}
+
+/* Target pie sectors for smooth hover transitions */
+.pie-chart-container .recharts-layer.recharts-pie-sector {
+  transform-origin: center center;
+  transform-box: fill-box;
+}
+
+.pie-chart-container .recharts-layer.recharts-pie-sector path {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
