@@ -129,7 +129,6 @@ export default function TeacherStudentsTimetablePage() {
                             <div key={`header-${index}`} className="border bg-muted flex flex-col items-center justify-center text-center p-0.5">
                                 <div className="font-bold" style={{ fontSize: 'clamp(8px, 1.5vw, 14px)' }}>P{index + 1}</div>
                                 <div className="text-muted-foreground hidden lg:block" style={{ fontSize: 'clamp(7px, 1vw, 11px)' }}>{slot.display}</div>
-                                {slot.isBreak && <Badge variant="outline" className="mt-0.5 px-0.5 hidden sm:inline-flex" style={{ fontSize: 'clamp(6px, 0.8vw, 9px)' }}>{slot.breakName || 'Break'}</Badge>}
                             </div>
                         ))}
 
@@ -149,7 +148,6 @@ export default function TeacherStudentsTimetablePage() {
                                     if (slot.isBreak) return (
                                         <div key={`${day}-${index}`} className="border bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 flex items-center justify-center">
                                             <div className="text-center">
-                                                <span className="hidden sm:inline" style={{ fontSize: 'clamp(12px, 2vw, 24px)' }}>🍽️</span>
                                                 <p className="text-green-600 dark:text-green-400 font-bold" style={{ fontSize: 'clamp(6px, 1vw, 11px)' }}>{slot.breakName || 'BREAK'}</p>
                                             </div>
                                         </div>
