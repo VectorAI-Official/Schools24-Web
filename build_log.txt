@@ -1,0 +1,71 @@
+
+> school24@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.1 (Turbopack)
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 14.5s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/48) ...
+  Generating static pages using 15 workers (12/48) 
+  Generating static pages using 15 workers (24/48) 
+  Generating static pages using 15 workers (36/48) 
+Ô£ô Generating static pages using 15 workers (48/48) in 895.4ms
+  Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ Ôùï /admin/bus-routes
+Ôö£ Ôùï /admin/dashboard
+Ôö£ Ôùï /admin/events
+Ôö£ Ôùï /admin/fees
+Ôö£ Ôùï /admin/inventory
+Ôö£ Ôùï /admin/reports
+Ôö£ Ôùï /admin/staff
+Ôö£ Ôùï /admin/students-details
+Ôö£ Ôùï /admin/students-leaderboard
+Ôö£ Ôùï /admin/students-timetable
+Ôö£ Ôùï /admin/teachers-details
+Ôö£ Ôùï /admin/teachers-leaderboard
+Ôö£ Ôùï /admin/teachers-timetable
+Ôö£ Ôùï /admin/users
+Ôö£ Ôùï /apple-icon.png
+Ôö£ Ôùï /icon.png
+Ôö£ Ôùï /login
+Ôö£ Ôùï /student/attendance
+Ôö£ Ôùï /student/bus-route
+Ôö£ Ôùï /student/calendar
+Ôö£ Ôùï /student/dashboard
+Ôö£ Ôùï /student/events
+Ôö£ Ôùï /student/feedback
+Ôö£ Ôùï /student/fees
+Ôö£ Ôùï /student/leaderboard
+Ôö£ Ôùï /student/materials
+Ôö£ Ôùï /student/performance
+Ôö£ Ôùï /student/quizzes
+Ôö£ Ôùï /student/reports
+Ôö£ Ôùï /student/timetable
+Ôö£ Ôùï /super-admin
+Ôö£ ãÆ /super-admin/school/[id]
+Ôö£ Ôùï /teacher/attendance-upload
+Ôö£ Ôùï /teacher/dashboard
+Ôö£ Ôùï /teacher/homework
+Ôö£ Ôùï /teacher/leaderboard
+Ôö£ Ôùï /teacher/materials
+Ôö£ Ôùï /teacher/messages
+Ôö£ Ôùï /teacher/monitoring
+Ôö£ Ôùï /teacher/question-generator
+Ôö£ Ôùï /teacher/quiz-scheduler
+Ôö£ Ôùï /teacher/students-timetable
+Ôö£ Ôùï /teacher/teach
+Ôö£ Ôùï /teacher/teach/whiteboard
+Ôö£ Ôùï /teacher/teachers-leaderboard
+Ôöö Ôùï /teacher/teachers-timetable
+
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

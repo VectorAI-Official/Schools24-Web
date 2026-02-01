@@ -1,0 +1,535 @@
+
+> school24@0.1.0 lint
+> eslint
+
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\bus-routes\page.tsx
+    4:29  warning  'CardDescription' is defined but never used                      @typescript-eslint/no-unused-vars
+    4:46  warning  'CardHeader' is defined but never used                           @typescript-eslint/no-unused-vars
+    4:58  warning  'CardTitle' is defined but never used                            @typescript-eslint/no-unused-vars
+  652:81  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\dashboard\page.tsx
+    7:34  warning  'AvatarImage' is defined but never used                          @typescript-eslint/no-unused-vars
+   10:5   warning  'Users' is defined but never used                                @typescript-eslint/no-unused-vars
+   18:5   warning  'Bell' is defined but never used                                 @typescript-eslint/no-unused-vars
+   21:5   warning  'ArrowDownRight' is defined but never used                       @typescript-eslint/no-unused-vars
+   25:5   warning  'Award' is defined but never used                                @typescript-eslint/no-unused-vars
+   27:5   warning  'UserCheck' is defined but never used                            @typescript-eslint/no-unused-vars
+   32:26  warning  'mockStudents' is defined but never used                         @typescript-eslint/no-unused-vars
+   32:40  warning  'mockTeachers' is defined but never used                         @typescript-eslint/no-unused-vars
+   44:5   warning  'LineChart' is defined but never used                            @typescript-eslint/no-unused-vars
+   45:5   warning  'Line' is defined but never used                                 @typescript-eslint/no-unused-vars
+   62:7   warning  'COLORS' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+   89:39  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  130:29  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  130:36  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  348:67  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  350:50  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\events\page.tsx
+  404:75  warning  'index' is defined but never used                                @typescript-eslint/no-unused-vars
+  657:61  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  657:84  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\fees\page.tsx
+   4:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+   4:58  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  33:10  warning  'Tabs' is defined but never used             @typescript-eslint/no-unused-vars
+  33:16  warning  'TabsContent' is defined but never used      @typescript-eslint/no-unused-vars
+  33:29  warning  'TabsList' is defined but never used         @typescript-eslint/no-unused-vars
+  33:39  warning  'TabsTrigger' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\inventory\page.tsx
+   4:29  warning  'CardDescription' is defined but never used        @typescript-eslint/no-unused-vars
+   4:58  warning  'CardTitle' is defined but never used              @typescript-eslint/no-unused-vars
+  37:5   warning  'DropdownMenuSeparator' is defined but never used  @typescript-eslint/no-unused-vars
+  40:96  warning  'Edit' is defined but never used                   @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\reports\page.tsx
+  13:20  warning  'FileText' is defined but never used      @typescript-eslint/no-unused-vars
+  28:49  warning  'mockStudents' is defined but never used  @typescript-eslint/no-unused-vars
+  28:63  warning  'mockTeachers' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\staff\page.tsx
+  72:5  warning  'Clock' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\students-details\page.tsx
+    4:29   warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+    4:58   warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+   55:5    warning  'Plus' is defined but never used             @typescript-eslint/no-unused-vars
+   65:5    warning  'Mail' is defined but never used             @typescript-eslint/no-unused-vars
+   69:5    warning  'DollarSign' is defined but never used       @typescript-eslint/no-unused-vars
+  204:43   error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  603:110  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  795:109  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\students-leaderboard\page.tsx
+  6:51  warning  'Medal' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\students-timetable\page.tsx
+    4:29  warning  'CardDescription' is defined but never used        @typescript-eslint/no-unused-vars
+    4:46  warning  'CardHeader' is defined but never used             @typescript-eslint/no-unused-vars
+    4:58  warning  'CardTitle' is defined but never used              @typescript-eslint/no-unused-vars
+   24:79  warning  'BookOpen' is defined but never used               @typescript-eslint/no-unused-vars
+   53:11  warning  'ampm' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  205:11  warning  'totalColumns' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  206:11  warning  'totalRows' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\teachers-details\page.tsx
+    4:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+    4:58  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  204:43  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\teachers-leaderboard\page.tsx
+  6:18  warning  'TrendingUp' is defined but never used    @typescript-eslint/no-unused-vars
+  6:30  warning  'TrendingDown' is defined but never used  @typescript-eslint/no-unused-vars
+  6:44  warning  'Minus' is defined but never used         @typescript-eslint/no-unused-vars
+  6:64  warning  'Award' is defined but never used         @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\teachers-timetable\page.tsx
+   4:29  warning  'CardDescription' is defined but never used              @typescript-eslint/no-unused-vars
+   4:46  warning  'CardHeader' is defined but never used                   @typescript-eslint/no-unused-vars
+   4:58  warning  'CardTitle' is defined but never used                    @typescript-eslint/no-unused-vars
+  11:39  warning  'Edit' is defined but never used                         @typescript-eslint/no-unused-vars
+  75:13  error    'newTimetable' is never reassigned. Use 'const' instead  prefer-const
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\admin\users\page.tsx
+    4:29   warning  'CardDescription' is defined but never used                      @typescript-eslint/no-unused-vars
+    4:58   warning  'CardTitle' is defined but never used                            @typescript-eslint/no-unused-vars
+  116:30   warning  'isError' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  116:39   warning  'refetch' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  715:93   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  766:103  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  783:105  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\login\page.tsx
+   14:141  warning  'Copy' is defined but never used                        @typescript-eslint/no-unused-vars
+   14:147  warning  'Check' is defined but never used                       @typescript-eslint/no-unused-vars
+  107:12   warning  'loadingRole' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  109:12   warning  'copiedField' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  110:12   warning  'cardClickFeedback' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  147:11   warning  'handleRoleChange' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  173:11   warning  'handleCopy' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  217:31   warning  'roleToRedirect' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  238:11   warning  'handleQuickLogin' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\attendance\page.tsx
+   9:49  warning  'AlertCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  48:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\attendance\page.tsx:48:9
+  46 |
+  47 |     useEffect(() => {
+> 48 |         setMounted(true)
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |     }, [])
+  50 |
+  51 |     const getStatusColor = (status: string) => {  react-hooks/set-state-in-effect
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\calendar\page.tsx
+   5:10  warning  'Button' is defined but never used               @typescript-eslint/no-unused-vars
+   8:39  warning  'ArrowLeft' is defined but never used            @typescript-eslint/no-unused-vars
+   9:22  warning  'Event' is defined but never used                @typescript-eslint/no-unused-vars
+  13:11  warning  'router' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  17:11  warning  'eventTypes' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\dashboard\page.tsx
+   55:9   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\dashboard\page.tsx:55:9
+  53 |
+  54 |     useEffect(() => {
+> 55 |         setMounted(true)
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  56 |     }, [])
+  57 |
+  58 |     const quickLinks = [  react-hooks/set-state-in-effect
+  239:68  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react/no-unescaped-entities
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\events\page.tsx
+  8:44  warning  'Users' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\feedback\page.tsx
+  13:15  warning  'Award' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\fees\page.tsx
+  10:5  warning  'DollarSign' is defined but never used        @typescript-eslint/no-unused-vars
+  18:7  warning  'student' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\leaderboard\page.tsx
+   49:11  warning  'getTrendIcon' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  134:49  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  208:61  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\materials\page.tsx
+   5:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+   5:46  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+   5:58  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  11:16  warning  'Filter' is defined but never used           @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\performance\page.tsx
+  10:25  warning  'Star' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  32:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\performance\page.tsx:32:9
+  30 |
+  31 |     useEffect(() => {
+> 32 |         setMounted(true)
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  33 |     }, [])
+  34 |
+  35 |     const radarData = student.performance.subjects.map(s => ({  react-hooks/set-state-in-effect
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\quizzes\page.tsx
+   42:32  warning  'quizId' is defined but never used                               @typescript-eslint/no-unused-vars
+  255:73  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\reports\page.tsx
+   42:9   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\reports\page.tsx:42:9
+  40 |
+  41 |     useEffect(() => {
+> 42 |         setMounted(true)
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  43 |     }, [])
+  44 |
+  45 |     const handleDownloadReport = (reportName: string) => {  react-hooks/set-state-in-effect
+  292:61  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react/no-unescaped-entities
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\student\timetable\page.tsx
+  5:29  warning  'CardHeader' is defined but never used  @typescript-eslint/no-unused-vars
+  5:41  warning  'CardTitle' is defined but never used   @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\super-admin\page.tsx
+   23:39  warning  'School' is defined but never used                               @typescript-eslint/no-unused-vars
+   24:10  warning  'getInitials' is defined but never used                          @typescript-eslint/no-unused-vars
+   29:5   warning  'DropdownMenuLabel' is defined but never used                    @typescript-eslint/no-unused-vars
+  106:18  warning  'e' is defined but never used                                    @typescript-eslint/no-unused-vars
+  333:58  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  333:73  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\super-admin\school\[id]\page.tsx
+   26:5    warning  'DialogTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   30:10   warning  'toast' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   43:42   warning  'isAdminLoading' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   44:44   warning  'isTeacherLoading' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   45:44   warning  'isStudentLoading' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   55:52   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   86:18   warning  'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  103:31   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  119:18   warning  'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  137:34   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  158:81   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  158:133  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  178:44   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  371:26   error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\super-admin\school\[id]\page.tsx:371:26
+  369 |
+  370 |                     <TabsContent value="admins" className="mt-0">
+> 371 |                         <UserList
+      |                          ^^^^^^^^ This component is created during render
+  372 |                             users={adminsData?.users || []}
+  373 |                             role="admin"
+  374 |                             icon={Users}
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\super-admin\school\[id]\page.tsx:158:22
+  156 |     }
+  157 |
+> 158 |     const UserList = ({ users, role, icon: Icon, title, description }: { users: any[], role: 'admin' | 'teacher' | 'student', icon: any, title: string, description: string }) => (
+      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 159 |         <Card>
+      | ^^^^^^^^^^^^^^
+> 160 |             <CardHeader className="flex flex-row items-center justify-between">
+      ÔÇª
+      | ^^^^^^^^^^^^^^
+> 229 |         </Card>
+      | ^^^^^^^^^^^^^^
+> 230 |     )
+      | ^^^^^^ The component is created during render here
+  231 |
+  232 |     return (
+  233 |         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-4">                react-hooks/static-components
+  381:26   error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\super-admin\school\[id]\page.tsx:381:26
+  379 |
+  380 |                     <TabsContent value="teachers" className="mt-0">
+> 381 |                         <UserList
+      |                          ^^^^^^^^ This component is created during render
+  382 |                             users={teachersData?.users || []}
+  383 |                             role="teacher"
+  384 |                             icon={BookOpen}
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\super-admin\school\[id]\page.tsx:158:22
+  156 |     }
+  157 |
+> 158 |     const UserList = ({ users, role, icon: Icon, title, description }: { users: any[], role: 'admin' | 'teacher' | 'student', icon: any, title: string, description: string }) => (
+      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 159 |         <Card>
+      | ^^^^^^^^^^^^^^
+> 160 |             <CardHeader className="flex flex-row items-center justify-between">
+      ÔÇª
+      | ^^^^^^^^^^^^^^
+> 229 |         </Card>
+      | ^^^^^^^^^^^^^^
+> 230 |     )
+      | ^^^^^^ The component is created during render here
+  231 |
+  232 |     return (
+  233 |         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-4">       react-hooks/static-components
+  391:26   error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\super-admin\school\[id]\page.tsx:391:26
+  389 |
+  390 |                     <TabsContent value="students" className="mt-0">
+> 391 |                         <UserList
+      |                          ^^^^^^^^ This component is created during render
+  392 |                             users={studentsData?.users || []}
+  393 |                             role="student"
+  394 |                             icon={GraduationCap}
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\super-admin\school\[id]\page.tsx:158:22
+  156 |     }
+  157 |
+> 158 |     const UserList = ({ users, role, icon: Icon, title, description }: { users: any[], role: 'admin' | 'teacher' | 'student', icon: any, title: string, description: string }) => (
+      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 159 |         <Card>
+      | ^^^^^^^^^^^^^^
+> 160 |             <CardHeader className="flex flex-row items-center justify-between">
+      ÔÇª
+      | ^^^^^^^^^^^^^^
+> 229 |         </Card>
+      | ^^^^^^^^^^^^^^
+> 230 |     )
+      | ^^^^^^ The component is created during render here
+  231 |
+  232 |     return (
+  233 |         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-4">  react-hooks/static-components
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\attendance-upload\page.tsx
+   4:29  warning  'CardDescription' is defined but never used         @typescript-eslint/no-unused-vars
+   6:10  warning  'Badge' is defined but never used                   @typescript-eslint/no-unused-vars
+   7:10  warning  'Checkbox' is defined but never used                @typescript-eslint/no-unused-vars
+  10:24  warning  'mockAttendance' is defined but never used          @typescript-eslint/no-unused-vars
+  12:34  warning  'AvatarImage' is defined but never used             @typescript-eslint/no-unused-vars
+  15:12  warning  'attendance' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  15:24  warning  'setAttendance' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\dashboard\page.tsx
+   6:10  warning  'Progress' is defined but never used                             @typescript-eslint/no-unused-vars
+  12:5   warning  'Clock' is defined but never used                                @typescript-eslint/no-unused-vars
+  14:5   warning  'Bell' is defined but never used                                 @typescript-eslint/no-unused-vars
+  18:5   warning  'AlertCircle' is defined but never used                          @typescript-eslint/no-unused-vars
+  58:11  warning  'todayClasses' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  66:67  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  66:74  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\homework\page.tsx
+  3:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  3:46  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+  3:58  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\leaderboard\page.tsx
+   7:10  warning  'leaderboardData' is defined but never used  @typescript-eslint/no-unused-vars
+  12:13  warning  'user' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\materials\page.tsx
+   4:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+   4:46  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+   4:58  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+   7:10  warning  'Badge' is defined but never used            @typescript-eslint/no-unused-vars
+  25:18  warning  'Plus' is defined but never used             @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\messages\page.tsx
+   7:10  warning  'Badge' is defined but never used  @typescript-eslint/no-unused-vars
+  10:24  warning  'Inbox' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\monitoring\page.tsx
+  4:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  4:46  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+  4:58  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\quiz-scheduler\page.tsx
+  3:10  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\students-timetable\page.tsx
+  4:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  4:46  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+  4:58  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  8:53  warning  'BookOpen' is defined but never used         @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teach\page.tsx
+  7:32  warning  'Monitor' is defined but never used  @typescript-eslint/no-unused-vars
+  7:51  warning  'Clock' is defined but never used    @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teach\whiteboard\page.tsx
+  573:54  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teach\whiteboard\page.tsx:573:54
+  571 |                             className="absolute"
+  572 |                             style={{
+> 573 |                                 left: textInput.x / (canvasRef.current?.width || 1) * 100 + '%',
+      |                                                      ^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  574 |                                 top: textInput.y / (canvasRef.current?.height || 1) * 100 + '%',
+  575 |                                 transform: `translate(0, -50%) scale(${1 / zoom})`,
+  576 |                                 transformOrigin: 'top left',              react-hooks/refs
+  573:54  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teach\whiteboard\page.tsx:573:54
+  571 |                             className="absolute"
+  572 |                             style={{
+> 573 |                                 left: textInput.x / (canvasRef.current?.width || 1) * 100 + '%',
+      |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  574 |                                 top: textInput.y / (canvasRef.current?.height || 1) * 100 + '%',
+  575 |                                 transform: `translate(0, -50%) scale(${1 / zoom})`,
+  576 |                                 transformOrigin: 'top left',       react-hooks/refs
+  573:54  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teach\whiteboard\page.tsx:573:54
+  571 |                             className="absolute"
+  572 |                             style={{
+> 573 |                                 left: textInput.x / (canvasRef.current?.width || 1) * 100 + '%',
+      |                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  574 |                                 top: textInput.y / (canvasRef.current?.height || 1) * 100 + '%',
+  575 |                                 transform: `translate(0, -50%) scale(${1 / zoom})`,
+  576 |                                 transformOrigin: 'top left',  react-hooks/refs
+  574:53  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teach\whiteboard\page.tsx:574:53
+  572 |                             style={{
+  573 |                                 left: textInput.x / (canvasRef.current?.width || 1) * 100 + '%',
+> 574 |                                 top: textInput.y / (canvasRef.current?.height || 1) * 100 + '%',
+      |                                                     ^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  575 |                                 transform: `translate(0, -50%) scale(${1 / zoom})`,
+  576 |                                 transformOrigin: 'top left',
+  577 |                                 zIndex: 20                     react-hooks/refs
+  574:53  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teach\whiteboard\page.tsx:574:53
+  572 |                             style={{
+  573 |                                 left: textInput.x / (canvasRef.current?.width || 1) * 100 + '%',
+> 574 |                                 top: textInput.y / (canvasRef.current?.height || 1) * 100 + '%',
+      |                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  575 |                                 transform: `translate(0, -50%) scale(${1 / zoom})`,
+  576 |                                 transformOrigin: 'top left',
+  577 |                                 zIndex: 20             react-hooks/refs
+  574:53  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teach\whiteboard\page.tsx:574:53
+  572 |                             style={{
+  573 |                                 left: textInput.x / (canvasRef.current?.width || 1) * 100 + '%',
+> 574 |                                 top: textInput.y / (canvasRef.current?.height || 1) * 100 + '%',
+      |                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  575 |                                 transform: `translate(0, -50%) scale(${1 / zoom})`,
+  576 |                                 transformOrigin: 'top left',
+  577 |                                 zIndex: 20        react-hooks/refs
+
+D:\Schools24-Workspace\Schools24-frontend\src\app\teacher\teachers-timetable\page.tsx
+  4:29  warning  'CardHeader' is defined but never used  @typescript-eslint/no-unused-vars
+  4:41  warning  'CardTitle' is defined but never used   @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\components\layout\Header.tsx
+  18:10  warning  'Input' is defined but never used   @typescript-eslint/no-unused-vars
+  19:10  warning  'Bell' is defined but never used    @typescript-eslint/no-unused-vars
+  19:16  warning  'Search' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\components\layout\Sidebar.tsx
+  24:5  warning  'Bell' is defined but never used      @typescript-eslint/no-unused-vars
+  25:5  warning  'Settings' is defined but never used  @typescript-eslint/no-unused-vars
+  32:5  warning  'PenTool' is defined but never used   @typescript-eslint/no-unused-vars
+  37:5  warning  'Clock' is defined but never used     @typescript-eslint/no-unused-vars
+  41:5  warning  'Sparkles' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\components\ui\calendar.tsx
+  4:10  warning  'ChevronLeft' is defined but never used   @typescript-eslint/no-unused-vars
+  4:23  warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Schools24-Workspace\Schools24-frontend\src\contexts\AuthContext.tsx
+  29:7   warning  'mockCredentials' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  86:25  error    Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+
+D:\Schools24-Workspace\Schools24-frontend\src\hooks\useAdminUsers.ts
+  66:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  94:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Schools24-Workspace\Schools24-frontend\src\hooks\useSchools.ts
+  103:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  146:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Schools24-Workspace\Schools24-frontend\src\lib\api.ts
+  67:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Schools24-Workspace\Schools24-frontend\src\lib\useTimetable.ts
+  28:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Schools24-Workspace\Schools24-frontend\src\lib\useTimetable.ts:28:9
+  26 |         const initialData = timetableStore.getTimetable()
+  27 |         const initialConfig = timetableStore.getPeriodsConfig()
+> 28 |         setTimetable(initialData)
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |         setPeriodsConfig(initialConfig)
+  30 |         setIsInitialized(true)
+  31 |  react-hooks/set-state-in-effect
+
+D:\Schools24-Workspace\Schools24-frontend\tailwind.config.ts
+  104:15  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+Ô£û 199 problems (57 errors, 142 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

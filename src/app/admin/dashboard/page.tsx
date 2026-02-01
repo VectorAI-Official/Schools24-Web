@@ -29,7 +29,9 @@ import {
     CheckCircle2,
     XCircle,
 } from 'lucide-react'
-import { dashboardStats, mockStudents, mockTeachers, mockEvents, revenueChartDataMonth, revenueChartDataWeek, revenueChartDataYear, attendanceChartData, leaderboardData, mockFeeRecords } from '@/lib/mockData'
+import { useQuery } from '@tanstack/react-query'
+import { adminService } from '@/services/adminService'
+import { mockEvents, revenueChartDataMonth, revenueChartDataWeek, revenueChartDataYear, attendanceChartData, leaderboardData, mockFeeRecords } from '@/lib/mockData'
 import { formatCurrency, getInitials } from '@/lib/utils'
 import Link from 'next/link'
 import {
@@ -50,8 +52,6 @@ import {
     ResponsiveContainer,
 } from 'recharts'
 
-const stats = dashboardStats.admin
-
 const quickActions = [
     { title: 'Add Student', icon: GraduationCap, href: '/admin/students-details', color: 'bg-blue-500' },
     { title: 'Add Teacher', icon: BookOpen, href: '/admin/teachers-details', color: 'bg-green-500' },
@@ -61,21 +61,43 @@ const quickActions = [
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444']
 
-const feeStatusData = [
-    { name: 'Paid', value: 65, color: '#22c55e' },
-    { name: 'Partial', value: 20, color: '#f59e0b' },
-    { name: 'Pending', value: 10, color: '#ef4444' },
-    { name: 'Overdue', value: 5, color: '#dc2626' },
-]
-
 export default function AdminDashboard() {
     const [selectedPeriod, setSelectedPeriod] = useState('month')
     const [mounted, setMounted] = useState(false)
     const [activePieIndex, setActivePieIndex] = useState<number | undefined>(undefined)
 
-    const upcomingEvents = mockEvents.slice(0, 4)
+    // Fetch real data from backend
+    const { data: dashboardData, isLoading } = useQuery({
+        queryKey: ['adminDashboard'],
+        queryFn: adminService.getDashboardStats,
+    })
+
+    const stats = dashboardData || {
+        total_students: 0,
+        total_teachers: 0,
+        fee_collection: { total_collected: 0, total_pending: 0 },
+        upcoming_events: [],
+        inventory_alerts: [],
+    };
+
+    const upcomingEvents = stats.upcoming_events?.length > 0 ? stats.upcoming_events : mockEvents.slice(0, 4);
     const topStudents = leaderboardData.students.slice(0, 5)
     const recentFees = mockFeeRecords.slice(0, 5)
+
+    const feeStatusData = [
+        { name: 'Collected', value: stats.fee_collection?.total_collected || 0, color: '#22c55e' },
+        { name: 'Pending', value: stats.fee_collection?.total_pending || 0, color: '#f59e0b' },
+        { name: 'Overdue', value: stats.fee_collection?.total_overdue || 0, color: '#ef4444' },
+    ].filter(item => item.value > 0);
+
+    // If no real fee data, show something placeholder
+    if (feeStatusData.length === 0) {
+        feeStatusData.push(
+            { name: 'Collected', value: 65, color: '#22c55e' },
+            { name: 'Pending', value: 25, color: '#f59e0b' },
+            { name: 'Overdue', value: 10, color: '#ef4444' }
+        );
+    }
 
     // Ensure charts only render after component is mounted and DOM is ready
     useEffect(() => {
@@ -149,7 +171,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
                                 <p className="text-sm text-blue-100">Total Students</p>
-                                <p className="text-3xl font-bold text-white">{stats.totalStudents}</p>
+                                <p className="text-3xl font-bold text-white">{stats.total_students}</p>
                                 <div className="flex items-center gap-1 text-blue-100 text-xs">
                                     <ArrowUpRight className="h-3 w-3" />
                                     <span>+12% from last month</span>
@@ -168,7 +190,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
                                 <p className="text-sm text-green-100">Total Teachers</p>
-                                <p className="text-3xl font-bold text-white">{stats.totalTeachers}</p>
+                                <p className="text-3xl font-bold text-white">{stats.total_teachers}</p>
                                 <div className="flex items-center gap-1 text-green-100 text-xs">
                                     <ArrowUpRight className="h-3 w-3" />
                                     <span>+3 new hires</span>
@@ -187,7 +209,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
                                 <p className="text-sm text-violet-100">Total Revenue</p>
-                                <p className="text-3xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</p>
+                                <p className="text-3xl font-bold text-white">{formatCurrency(stats.fee_collection?.total_collected || 0)}</p>
                                 <div className="flex items-center gap-1 text-violet-100 text-xs">
                                     <ArrowUpRight className="h-3 w-3" />
                                     <span>+8.5% from last month</span>
@@ -206,7 +228,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
                                 <p className="text-sm text-amber-100">Pending Fees</p>
-                                <p className="text-3xl font-bold text-white">{formatCurrency(stats.pendingFees)}</p>
+                                <p className="text-3xl font-bold text-white">{formatCurrency(stats.fee_collection?.total_pending || 0)}</p>
                                 <div className="flex items-center gap-1 text-amber-100 text-xs">
                                     <ArrowUpRight className="h-3 w-3" />
                                     <span>+5.3% from last month</span>
@@ -592,7 +614,7 @@ export default function AdminDashboard() {
                                 <School className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">{stats.activeClasses}</p>
+                                <p className="text-2xl font-bold">{stats.total_classes || 0}</p>
                                 <p className="text-sm text-muted-foreground">Active Classes</p>
                             </div>
                         </div>
@@ -608,7 +630,7 @@ export default function AdminDashboard() {
                                 <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">{formatCurrency(stats.pendingFees)}</p>
+                                <p className="text-2xl font-bold">{formatCurrency(stats.fee_collection?.total_pending || 0)}</p>
                                 <p className="text-sm text-muted-foreground">Pending Fees</p>
                             </div>
                         </div>
@@ -624,7 +646,7 @@ export default function AdminDashboard() {
                                 <Target className="h-6 w-6 text-green-600 dark:text-green-400" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">{stats.upcomingEvents}</p>
+                                <p className="text-2xl font-bold">{stats.upcoming_events?.length || 0}</p>
                                 <p className="text-sm text-muted-foreground">Upcoming Events</p>
                             </div>
                         </div>

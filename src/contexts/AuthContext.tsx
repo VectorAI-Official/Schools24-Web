@@ -3,14 +3,27 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { UserRole } from '@/lib/mockData'
+import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 interface User {
     id: string
     name: string
+    full_name?: string
     email: string
     role: UserRole
     avatar?: string
 }
+
+const getDashboardPath = (role: UserRole): string => {
+    switch (role) {
+        case 'super_admin': return '/super-admin';
+        case 'admin': return '/admin/dashboard';
+        case 'teacher': return '/teacher/dashboard';
+        case 'student': return '/student/dashboard';
+        default: return '/login';
+    }
+};
 
 interface AuthContextType {
     user: User | null
@@ -50,46 +63,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [])
 
     useEffect(() => {
-        // Route protection
-        if (!isLoading && !user) {
-            const protectedPaths = ['/admin', '/teacher', '/student']
+        if (isLoading) return;
+
+        // 1. Initial Redirect if on login page
+        if (user && pathname === '/login') {
+            router.push(getDashboardPath(user.role));
+            return;
+        }
+
+        // 2. Route protection for unauthenticated users
+        if (!user) {
+            const protectedPaths = ['/admin', '/teacher', '/student', '/super-admin']
             const isProtected = protectedPaths.some(path => pathname.startsWith(path))
             if (isProtected) {
                 router.push('/login')
             }
+            return;
         }
 
-        // Role-based access control
-        if (!isLoading && user) {
-            if (pathname.startsWith('/admin') && user.role !== 'admin') {
-                router.push(`/${user.role}/dashboard`)
-            } else if (pathname.startsWith('/teacher') && user.role !== 'teacher' && user.role !== 'admin') {
-                router.push(`/${user.role}/dashboard`)
-            } else if (pathname.startsWith('/student') && user.role !== 'student' && user.role !== 'admin') {
-                router.push(`/${user.role}/dashboard`)
-            }
+        // 3. Role-based access control (RBAC)
+        const pathSegments = pathname.split('/').filter(Boolean);
+        const baseSegment = pathSegments[0]; // 'admin', 'teacher', 'student', 'super-admin'
+
+        const roleAllowedMap: Record<string, UserRole[]> = {
+            'admin': ['admin', 'super_admin'],
+            'teacher': ['teacher', 'admin', 'super_admin'],
+            'student': ['student', 'admin', 'super_admin'],
+            'super-admin': ['super_admin']
+        };
+
+        if (roleAllowedMap[baseSegment] && !roleAllowedMap[baseSegment].includes(user.role)) {
+            // Unauthorized - redirect to their own dashboard
+            router.push(getDashboardPath(user.role));
         }
     }, [isLoading, user, pathname, router])
 
     const login = async (email: string, password: string): Promise<boolean> => {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500))
+        setIsLoading(true);
+        try {
+            const response = await api.post<{ access_token: string, user: any, expires_in: number }>('/auth/login', { email, password });
 
-        // Check credentials
-        for (const cred of Object.values(mockCredentials)) {
-            if (cred.email === email && cred.password === password) {
-                setUser(cred.user)
-                localStorage.setItem('School24_user', JSON.stringify(cred.user))
-                return true
-            }
+            // Map backend fields to frontend interface
+            const userData: User = {
+                ...response.user,
+                name: response.user.full_name || response.user.name || 'User'
+            };
+
+            setUser(userData);
+            localStorage.setItem('School24_user', JSON.stringify(userData));
+            localStorage.setItem('School24_token', response.access_token);
+            toast.success("Login successful");
+            return true;
+        } catch (error: any) {
+            toast.error("Login failed", { description: error.message || "Invalid credentials" });
+            return false;
+        } finally {
+            setIsLoading(false);
         }
-
-        return false
     }
 
     const logout = () => {
         setUser(null)
         localStorage.removeItem('School24_user')
+        localStorage.removeItem('School24_token')
         router.push('/login')
     }
 

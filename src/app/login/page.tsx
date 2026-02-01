@@ -195,18 +195,15 @@ export default function LoginPage() {
         try {
             const success = await login(data.email, data.password)
             if (success) {
-                // Determine the role for redirect based on the credentials used, not selectedRole
-                const actualRole = roleData.find(r => r.email === data.email)?.role || selectedRole
+                // The login function updates the 'user' state in AuthContext.
+                // We'll use a small timeout to let the state propagate or we could just use the returned success.
+                // However, redirection is actually handled by the redirect logic in AuthContext's useEffect 
+                // but for a faster UX, we can trigger it here too.
 
                 toast.success(`Welcome back!`, {
                     description: `Successfully signed in. Accessing your dashboard...`,
                     duration: 3000,
                 })
-
-                // Redirect based on the actual authenticated role
-                setTimeout(() => {
-                    router.push(`/${actualRole}/dashboard`)
-                }, 500)
             } else {
                 toast.error('Authentication Failed', {
                     description: 'The credentials provided are incorrect. Please try again.',
@@ -527,162 +524,7 @@ export default function LoginPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Demo Credentials - Below Login Panel */}
-                        <div className="mt-6 max-w-xl mx-auto animate-fade-in" style={{ animationDelay: '0.5s' }}>
-                            <div className="text-center mb-5">
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-2">
-                                    <Zap className="h-4 w-4 text-amber-500" />
-                                    Quick Access Demo Accounts
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    Click a card to auto-fill or use Quick Login for instant access
-                                </p>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {roleData.map((role, index) => {
-                                    const Icon = role.icon
-                                    const isActive = selectedRole === role.role
-                                    const isRoleLoading = loadingRole === role.role
-                                    const hasClickFeedback = cardClickFeedback === role.role
-
-                                    return (
-                                        <div
-                                            key={role.role}
-                                            onClick={() => !isLoading && handleRoleChange(role.role)}
-                                            className={`relative p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${isActive
-                                                ? `border-transparent bg-gradient-to-br ${role.gradient} text-white shadow-xl ring-2 ring-white/20`
-                                                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-lg text-slate-700 dark:text-slate-300'
-                                                } ${hasClickFeedback ? 'scale-95' : 'hover:scale-[1.02] hover:-translate-y-1'} ${isLoading && !isRoleLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            style={{ animationDelay: `${0.6 + index * 0.1}s` }}
-                                        >
-                                            {/* Loading overlay */}
-                                            {isRoleLoading && (
-                                                <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-xl flex items-center justify-center z-20">
-                                                    <div className="flex items-center gap-2 text-white">
-                                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                                        <span className="text-sm font-medium">Signing in...</span>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Shimmer effect for active card */}
-                                            {isActive && !isRoleLoading && (
-                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer rounded-xl overflow-hidden pointer-events-none" />
-                                            )}
-
-                                            <div className="relative space-y-3">
-                                                {/* Header with role info */}
-                                                <div
-                                                    className="w-full text-left group/header"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`p-3 rounded-xl transition-all duration-300 shadow-sm ${isActive
-                                                            ? 'bg-white/30 backdrop-blur-sm shadow-lg'
-                                                            : 'bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 group-hover/header:from-slate-200 group-hover/header:to-slate-100 dark:group-hover/header:from-slate-600 dark:group-hover/header:to-slate-700'
-                                                            }`}>
-                                                            <Icon className={`h-5 w-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover/header:scale-110'}`} />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <p className="font-bold text-sm">{role.title}</p>
-                                                            <p className={`text-xs ${isActive ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                                                                {role.tagline}
-                                                            </p>
-                                                        </div>
-                                                        {isActive && !isRoleLoading && (
-                                                            <div className="flex items-center gap-1">
-                                                                <Check className="h-4 w-4 text-green-300" />
-                                                                <span className="text-xs">Active</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Credentials with copy buttons */}
-                                                <div className="space-y-2 text-xs">
-                                                    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-colors group/email ${isActive
-                                                        ? 'bg-black/20 backdrop-blur-sm'
-                                                        : 'bg-slate-50 dark:bg-slate-700/50'
-                                                        }`}>
-                                                        <Mail className="h-3 w-3 opacity-70 flex-shrink-0" />
-                                                        <span className="font-mono truncate flex-1">{role.email}</span>
-                                                        <button
-                                                            onClick={(e) => handleCopy(role.email, `${role.role}-email`, e)}
-                                                            disabled={isLoading}
-                                                            className={`p-1 rounded-md transition-all opacity-0 group-hover/email:opacity-100 ${isActive
-                                                                ? 'hover:bg-white/20'
-                                                                : 'hover:bg-slate-200 dark:hover:bg-slate-600'
-                                                                }`}
-                                                            title="Copy email"
-                                                        >
-                                                            {copiedField === `${role.role}-email` ? (
-                                                                <Check className="h-3 w-3 text-green-500" />
-                                                            ) : (
-                                                                <Copy className="h-3 w-3" />
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-colors group/pass ${isActive
-                                                        ? 'bg-black/20 backdrop-blur-sm'
-                                                        : 'bg-slate-50 dark:bg-slate-700/50'
-                                                        }`}>
-                                                        <Lock className="h-3 w-3 opacity-70 flex-shrink-0" />
-                                                        <span className="font-mono flex-1">{role.password}</span>
-                                                        <button
-                                                            onClick={(e) => handleCopy(role.password, `${role.role}-pass`, e)}
-                                                            disabled={isLoading}
-                                                            className={`p-1 rounded-md transition-all opacity-0 group-hover/pass:opacity-100 ${isActive
-                                                                ? 'hover:bg-white/20'
-                                                                : 'hover:bg-slate-200 dark:hover:bg-slate-600'
-                                                                }`}
-                                                            title="Copy password"
-                                                        >
-                                                            {copiedField === `${role.role}-pass` ? (
-                                                                <Check className="h-3 w-3 text-green-500" />
-                                                            ) : (
-                                                                <Copy className="h-3 w-3" />
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Quick Login Button */}
-                                                <button
-                                                    onClick={(e) => handleQuickLogin(role.role, e)}
-                                                    disabled={isLoading}
-                                                    className={`w-full py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${isActive
-                                                        ? 'bg-white/20 hover:bg-white/30 text-white border border-white/30'
-                                                        : `bg-gradient-to-r ${role.gradient} text-white hover:opacity-90 shadow-md hover:shadow-lg`
-                                                        } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
-                                                >
-                                                    {isRoleLoading ? (
-                                                        <>
-                                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                                            <span>Signing in...</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Zap className="h-3 w-3" />
-                                                            <span>Quick Login</span>
-                                                            <ArrowRight className="h-3 w-3" />
-                                                        </>
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-
-                            <div className="text-center mt-6 space-y-2">
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    <span className="inline-flex items-center gap-1">
-                                        <Shield className="h-3 w-3" />
-                                        Demo credentials reset on page refresh
-                                    </span>
-                                </p>
-                            </div>
-                        </div>
+                        {/* Demo Credentials Removed */}
 
                         {/* Footer */}
                         <div className="text-center mt-8 space-y-3 animate-fade-in" style={{ animationDelay: '0.7s' }}>
