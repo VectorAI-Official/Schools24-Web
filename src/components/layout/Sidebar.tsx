@@ -39,6 +39,7 @@ import {
     Presentation,
     School,
     Sparkles,
+    FileCheck,
 } from 'lucide-react'
 
 interface NavItem {
@@ -55,12 +56,14 @@ const adminNavItems: NavItem[] = [
     { title: 'Staff Management', href: '/admin/staff', icon: <UserCog className="h-5 w-5" />, category: 'Management' },
     { title: 'Students Details', href: '/admin/students-details', icon: <GraduationCap className="h-5 w-5" />, category: 'Management' },
     { title: 'Teachers Details', href: '/admin/teachers-details', icon: <School className="h-5 w-5" />, category: 'Management' },
+    { title: 'Attendance', href: '/admin/attendance', icon: <ClipboardList className="h-5 w-5" />, category: 'Operations' },
     { title: 'Bus Routes', href: '/admin/bus-routes', icon: <Bus className="h-5 w-5" />, category: 'Operations' },
     { title: 'Students Timetable', href: '/admin/students-timetable', icon: <Calendar className="h-5 w-5" />, category: 'Operations' },
     { title: 'Teachers Timetable', href: '/admin/teachers-timetable', icon: <CalendarDays className="h-5 w-5" />, category: 'Operations' },
     { title: 'Resource Inventory', href: '/admin/inventory', icon: <Package className="h-5 w-5" />, category: 'Operations' },
     { title: 'Fee Management', href: '/admin/fees', icon: <DollarSign className="h-5 w-5" />, category: 'Finance' },
     { title: 'Event Calendar', href: '/admin/events', icon: <CalendarDays className="h-5 w-5" />, category: 'Events' },
+    { title: 'Question Papers', href: '/admin/question-papers', icon: <FileCheck className="h-5 w-5" />, category: 'Resources' },
     { title: 'Teachers Leaderboard', href: '/admin/teachers-leaderboard', icon: <Trophy className="h-5 w-5" />, category: 'Analytics' },
     { title: 'Students Leaderboard', href: '/admin/students-leaderboard', icon: <Trophy className="h-5 w-5" />, category: 'Analytics' },
     { title: 'Reports', href: '/admin/reports', icon: <FileText className="h-5 w-5" />, category: 'Analytics' },
@@ -74,11 +77,11 @@ const teacherNavItems: NavItem[] = [
     { title: 'Homework', href: '/teacher/homework', icon: <BookOpen className="h-5 w-5" />, category: 'Teaching' },
     { title: 'Materials', href: '/teacher/materials', icon: <FileText className="h-5 w-5" />, category: 'Resources' },
     { title: 'Question Generator', href: '/teacher/question-generator', icon: <FileQuestion className="h-5 w-5" />, category: 'Resources' },
+    { title: 'Question Papers', href: '/teacher/question-papers', icon: <FileCheck className="h-5 w-5" />, category: 'Resources' },
     { title: 'Students Timetable', href: '/teacher/students-timetable', icon: <Calendar className="h-5 w-5" />, category: 'Schedule' },
     { title: 'Teachers Timetable', href: '/teacher/teachers-timetable', icon: <CalendarDays className="h-5 w-5" />, category: 'Schedule' },
-    { title: 'Attendance Upload', href: '/teacher/attendance-upload', icon: <Upload className="h-5 w-5" />, category: 'Admin' },
-    { title: 'My Rank', href: '/teacher/leaderboard', icon: <Trophy className="h-5 w-5" />, category: 'Performance' },
-    { title: 'Teachers Leaderboard', href: '/teacher/teachers-leaderboard', icon: <BarChart3 className="h-5 w-5" />, category: 'Performance' },
+    { title: 'Attendance', href: '/teacher/attendance-upload', icon: <Upload className="h-5 w-5" />, category: 'Admin' },
+    { title: 'Leaderboard', href: '/teacher/leaderboard', icon: <Trophy className="h-5 w-5" />, category: 'Performance' },
     { title: 'Messages', href: '/teacher/messages', icon: <MessageSquare className="h-5 w-5" />, category: 'Communication' },
 ]
 
