@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -6,9 +6,8 @@ export interface AdminUser {
     id: string;
     email: string;
     full_name: string;
-    role: 'super_admin' | 'admin' | 'teacher' | 'student' | 'non-teaching';
+    role: 'super_admin' | 'admin' | 'teacher' | 'student';
     phone?: string;
-    is_active: boolean;
     created_at: string;
     last_login?: string;
     avatar?: string;
@@ -22,6 +21,13 @@ interface UsersResponse {
     page_size: number;
 }
 
+export interface UserStats {
+    total: number;
+    admins: number;
+    teachers: number;
+    students: number;
+}
+
 interface CreateUserParams {
     email: string;
     full_name: string;
@@ -29,7 +35,6 @@ interface CreateUserParams {
     phone?: string;
     department?: string;
     password?: string; // Optional (auto-generated if empty)
-    is_active?: boolean;
 }
 
 interface UpdateUserParams {
@@ -38,20 +43,31 @@ interface UpdateUserParams {
     full_name?: string;
     role?: string;
     phone?: string;
-    is_active?: boolean; // sending as pointer from frontend? backend accepts boolean ptr
 }
 
-export function useUsers(role: string = 'all', search: string = '', page: number = 1, pageSize: number = 20) {
-    return useQuery({
-        queryKey: ['users', role, search, page, pageSize],
-        queryFn: () => {
+export function useUsers(role: string = 'all', search: string = '', pageSize: number = 20) {
+    return useInfiniteQuery({
+        queryKey: ['users', role, search, pageSize],
+        queryFn: async ({ pageParam = 1 }) => {
             const params = new URLSearchParams();
             if (role && role !== 'all') params.append('role', role);
             if (search) params.append('search', search);
-            params.append('page', page.toString());
+            params.append('page', pageParam.toString());
             params.append('page_size', pageSize.toString());
             return api.get<UsersResponse>(`/admin/users?${params.toString()}`);
+        },
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => {
+            const totalPages = Math.ceil(lastPage.total / lastPage.page_size);
+            return lastPage.page < totalPages ? lastPage.page + 1 : undefined;
         }
+    });
+}
+
+export function useUserStats() {
+    return useQuery({
+        queryKey: ['user-stats'],
+        queryFn: () => api.get<UserStats>('/admin/stats/users')
     });
 }
 

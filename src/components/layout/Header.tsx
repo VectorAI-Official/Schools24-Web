@@ -16,7 +16,7 @@ import {
     DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Bell, Search, Moon, Sun, LogOut, User, Settings, Monitor, Check } from 'lucide-react'
+import { Bell, Search, Moon, Sun, LogOut, User, Settings, Monitor, Check, School } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { getInitials } from '@/lib/utils'
 
@@ -25,10 +25,44 @@ export function Header() {
     const { theme, setTheme } = useTheme()
 
     return (
-        <header className="flex h-16 items-center justify-end border-b bg-card px-6">
+        <header className="flex h-16 items-center justify-between border-b bg-card px-6">
+            {/* Left Side: School Name with Glassmorphism */}
+            <div className="flex items-center">
+                {user?.school_name && (
+                    <div className="relative flex items-center gap-2.5 px-4 py-2 rounded-xl overflow-hidden">
+                        {/* Colored gradient background layer */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/45 via-purple-400/40 to-fuchsia-400/45 dark:from-violet-500/55 dark:via-purple-400/50 dark:to-fuchsia-400/55" />
+                        {/* Blur/Glass effect */}
+                        <div className="absolute inset-0 backdrop-blur-md bg-white/40 dark:bg-slate-900/40" />
+                        {/* Border glow */}
+                        <div className="absolute inset-0 rounded-xl border border-white/50 dark:border-white/10" />
 
-            {/* Actions */}
+                        {/* Content */}
+                        <div className="relative z-10 hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-primary dark:bg-primary/30">
+                            <School className="h-5 w-5" />
+                        </div>
+                        <span className="relative z-10 text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                            {user.school_name}
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            {/* Right Side: Role Badge & Profile */}
             <div className="flex items-center gap-4">
+                {/* Role Badge */}
+                {user?.role && (
+                    <div className={`
+                        px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide
+                        ${user.role === 'super_admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ''}
+                        ${user.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : ''}
+                        ${user.role === 'teacher' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : ''}
+                        ${user.role === 'student' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' : ''}
+                        ${user.role === 'parent' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : ''}
+                    `}>
+                        {user.role.replace('_', ' ')}
+                    </div>
+                )}
 
                 {/* User Menu */}
                 <DropdownMenu>
@@ -49,9 +83,6 @@ export function Header() {
                                 <p className="text-xs leading-none text-muted-foreground">
                                     {user?.email}
                                 </p>
-                                <p className="text-xs leading-none text-muted-foreground capitalize mt-1">
-                                    {user?.role}
-                                </p>
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
@@ -62,13 +93,10 @@ export function Header() {
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
                                 <Settings className="mr-2 h-4 w-4" />
-                                <span>Settings</span>
+                                <span>Theme</span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
                                 <DropdownMenuSubContent>
-                                    <DropdownMenuLabel className="text-xs text-muted-foreground">
-                                        Theme
-                                    </DropdownMenuLabel>
                                     <DropdownMenuItem onClick={() => setTheme('light')}>
                                         <Sun className="mr-2 h-4 w-4" />
                                         <span>Light</span>

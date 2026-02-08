@@ -84,11 +84,11 @@ export interface Staff {
     avatar?: string;
     salary: number;
     rating?: number;
+    schoolId?: string;
     address?: string;
     dateOfBirth?: string;
     emergencyContact?: string;
     bloodGroup?: string;
-    status: 'active' | 'on-leave' | 'inactive';
 }
 
 export interface Event {
@@ -130,13 +130,13 @@ export interface Homework {
 export interface BusRoute {
     id: string;
     routeNumber: string;
+    driverStaffId?: string;
     driverName: string;
     driverPhone: string;
     vehicleNumber: string;
     capacity: number;
     currentStudents: number;
     stops: { name: string; time: string }[];
-    status: 'active' | 'inactive';
 }
 
 export interface InventoryItem {

@@ -13,6 +13,8 @@ interface User {
     email: string
     role: UserRole
     avatar?: string
+    school_id?: string
+    school_name?: string
 }
 
 const getDashboardPath = (role: UserRole): string => {
@@ -29,18 +31,42 @@ interface AuthContextType {
     user: User | null
     isAuthenticated: boolean
     isLoading: boolean
-    login: (email: string, password: string) => Promise<boolean>
+    login: (email: string, password: string, rememberMe?: boolean) => Promise<User | null>
     logout: () => void
     userRole: UserRole | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Mock credentials for demo
-const mockCredentials = {
-    admin: { email: 'admin@school24.com', password: 'admin123', user: { id: '1', name: 'Admin User', email: 'admin@school24.com', role: 'admin' as UserRole } },
-    teacher: { email: 'teacher@school24.com', password: 'teacher123', user: { id: '2', name: 'Rajesh Kumar', email: 'rajesh@school24.com', role: 'teacher' as UserRole } },
-    student: { email: 'student@school24.com', password: 'student123', user: { id: '3', name: 'Amit Singh', email: 'amit@school24.com', role: 'student' as UserRole } },
+// Storage keys
+const STORAGE_KEYS = {
+    USER: 'School24_user',
+    TOKEN: 'School24_token',
+    EXPIRY: 'School24_token_expiry',
+    REMEMBER: 'School24_remember'
+} as const
+
+// Helper to get storage based on remember me preference
+const getStorage = (): Storage => {
+    if (typeof window === 'undefined') return localStorage
+    const remembered = localStorage.getItem(STORAGE_KEYS.REMEMBER) === 'true'
+    return remembered ? localStorage : sessionStorage
+}
+
+// Check if token is expired
+const isTokenExpired = (): boolean => {
+    const storage = getStorage()
+    const expiryStr = storage.getItem(STORAGE_KEYS.EXPIRY)
+    if (!expiryStr) return true
+    const expiry = parseInt(expiryStr, 10)
+    return Date.now() > expiry
+}
+
+// Clear all auth data from both storages
+const clearAuthData = () => {
+    [localStorage, sessionStorage].forEach(storage => {
+        Object.values(STORAGE_KEYS).forEach(key => storage.removeItem(key))
+    })
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -50,16 +76,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname()
 
     useEffect(() => {
-        // Check for stored auth on mount
-        const storedUser = localStorage.getItem('School24_user')
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser))
-            } catch {
-                localStorage.removeItem('School24_user')
+        // Check for stored auth on mount with expiry validation
+        const storage = getStorage()
+        const storedUser = storage.getItem(STORAGE_KEYS.USER)
+        const storedToken = storage.getItem(STORAGE_KEYS.TOKEN)
+
+        if (storedUser && storedToken) {
+            // Check if token is expired
+            if (isTokenExpired()) {
+                clearAuthData()
+                setUser(null)
+            } else {
+                try {
+                    setUser(JSON.parse(storedUser))
+                } catch {
+                    clearAuthData()
+                }
             }
         }
         setIsLoading(false)
+    }, [])
+
+    useEffect(() => {
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === STORAGE_KEYS.TOKEN && event.newValue == null) {
+                setUser(null)
+            }
+        }
+
+        window.addEventListener('storage', handleStorage)
+        return () => window.removeEventListener('storage', handleStorage)
     }, [])
 
     useEffect(() => {
@@ -98,10 +144,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [isLoading, user, pathname, router])
 
-    const login = async (email: string, password: string): Promise<boolean> => {
+    const login = async (email: string, password: string, rememberMe: boolean = false): Promise<User | null> => {
         setIsLoading(true);
         try {
-            const response = await api.post<{ access_token: string, user: any, expires_in: number }>('/auth/login', { email, password });
+            const response = await api.post<{ access_token: string, user: any, expires_in: number }>('/auth/login', {
+                email,
+                password,
+                remember_me: rememberMe
+            });
 
             // Map backend fields to frontend interface
             const userData: User = {
@@ -109,14 +159,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 name: response.user.full_name || response.user.name || 'User'
             };
 
+            // Calculate expiry timestamp
+            const expiryTimestamp = Date.now() + (response.expires_in * 1000)
+
+            // Clear any existing data first
+            clearAuthData()
+
+            // Set remember preference in localStorage (always)
+            localStorage.setItem(STORAGE_KEYS.REMEMBER, rememberMe ? 'true' : 'false')
+
+            // Choose storage based on remember me
+            const storage = rememberMe ? localStorage : sessionStorage
+            storage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData))
+            storage.setItem(STORAGE_KEYS.TOKEN, response.access_token)
+            storage.setItem(STORAGE_KEYS.EXPIRY, expiryTimestamp.toString())
+
             setUser(userData);
-            localStorage.setItem('School24_user', JSON.stringify(userData));
-            localStorage.setItem('School24_token', response.access_token);
             toast.success("Login successful");
-            return true;
+            return userData;
         } catch (error: any) {
             toast.error("Login failed", { description: error.message || "Invalid credentials" });
-            return false;
+            return null;
         } finally {
             setIsLoading(false);
         }
@@ -124,8 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = () => {
         setUser(null)
-        localStorage.removeItem('School24_user')
-        localStorage.removeItem('School24_token')
+        clearAuthData()
         router.push('/login')
     }
 
@@ -152,3 +214,4 @@ export function useAuth() {
     }
     return context
 }
+

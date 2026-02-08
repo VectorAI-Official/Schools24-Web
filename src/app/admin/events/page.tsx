@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -34,8 +35,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { Plus, CalendarDays, Clock, MapPin, Edit, Trash2, Download } from 'lucide-react'
-import { mockEvents, Event } from '@/lib/mockData'
+import { Plus, CalendarDays, Clock, MapPin, Edit, Trash2, Download, Loader2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { useCreateEvent, useDeleteEvent, useInfiniteEvents, useUpdateEvent, EventItem } from '@/hooks/useEvents'
 import { toast } from 'sonner'
 
 interface EventFormData {
@@ -57,10 +59,15 @@ const initialFormData: EventFormData = {
 }
 
 export default function EventsPage() {
+    const { user, isLoading, userRole } = useAuth()
+    const searchParams = useSearchParams()
+    const schoolId = searchParams.get('school_id') || undefined
+    const isSuperAdmin = userRole === 'super_admin'
+    const canLoad = !!user && !isLoading && (!isSuperAdmin || !!schoolId)
+
     const [date, setDate] = useState<Date | undefined>(new Date())
-    const [events, setEvents] = useState<Event[]>(mockEvents)
     const [formData, setFormData] = useState<EventFormData>(initialFormData)
-    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+    const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -73,7 +80,48 @@ export default function EventsPage() {
         { value: 'sports', label: 'Sports', color: 'bg-yellow-500' },
     ]
 
-    const handleAddEvent = () => {
+    const {
+        data: eventsData,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        status
+    } = useInfiniteEvents(schoolId, {
+        pageSize: 20,
+        enabled: canLoad,
+    })
+
+    const events = eventsData?.pages.flatMap(page => page.events) ?? []
+
+    // Intersection Observer for infinite scrolling
+    const loadMoreRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage()
+                }
+            },
+            { threshold: 0.1 } // Trigger when 10% of the target is visible
+        )
+
+        if (loadMoreRef.current) {
+            observer.observe(loadMoreRef.current)
+        }
+
+        return () => {
+            if (loadMoreRef.current) {
+                observer.unobserve(loadMoreRef.current)
+            }
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+    const createEvent = useCreateEvent(schoolId)
+    const updateEvent = useUpdateEvent(schoolId)
+    const deleteEvent = useDeleteEvent(schoolId)
+
+    const handleAddEvent = async () => {
         if (!formData.title || !formData.date) {
             toast.error('Please fill in required fields', {
                 description: 'Title and date are required.',
@@ -81,25 +129,23 @@ export default function EventsPage() {
             return
         }
 
-        const newEvent: Event = {
-            id: String(events.length + 1),
-            title: formData.title,
-            type: formData.type,
-            date: formData.date,
-            time: formData.time || '09:00 AM',
-            location: formData.location,
-            description: formData.description,
+        try {
+            await createEvent.mutateAsync({
+                title: formData.title,
+                type: formData.type,
+                date: formData.date,
+                time: formData.time,
+                location: formData.location,
+                description: formData.description,
+            })
+            setFormData(initialFormData)
+            setIsAddDialogOpen(false)
+        } catch (error) {
+            // Error handled by mutation
         }
-
-        setEvents([...events, newEvent])
-        setFormData(initialFormData)
-        setIsAddDialogOpen(false)
-        toast.success('Event created successfully', {
-            description: `${newEvent.title} has been added to the calendar.`,
-        })
     }
 
-    const handleEditEvent = () => {
+    const handleEditEvent = async () => {
         if (!selectedEvent) return
 
         if (!formData.title || !formData.date) {
@@ -109,50 +155,50 @@ export default function EventsPage() {
             return
         }
 
-        const updatedEvent: Event = {
-            ...selectedEvent,
-            title: formData.title,
-            type: formData.type,
-            date: formData.date,
-            time: formData.time || '09:00 AM',
-            location: formData.location,
-            description: formData.description,
+        try {
+            await updateEvent.mutateAsync({
+                id: selectedEvent.id,
+                title: formData.title,
+                type: formData.type,
+                date: formData.date,
+                time: formData.time,
+                location: formData.location,
+                description: formData.description,
+            })
+            setFormData(initialFormData)
+            setSelectedEvent(null)
+            setIsEditDialogOpen(false)
+        } catch (error) {
+            // Error handled by mutation
         }
-
-        setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e))
-        setFormData(initialFormData)
-        setSelectedEvent(null)
-        setIsEditDialogOpen(false)
-        toast.success('Event updated successfully', {
-            description: `${updatedEvent.title} has been updated.`,
-        })
     }
 
-    const handleDeleteEvent = () => {
+    const handleDeleteEvent = async () => {
         if (!selectedEvent) return
 
-        setEvents(events.filter(e => e.id !== selectedEvent.id))
-        setSelectedEvent(null)
-        setIsDeleteDialogOpen(false)
-        toast.success('Event deleted successfully', {
-            description: `${selectedEvent.title} has been removed.`,
-        })
+        try {
+            await deleteEvent.mutateAsync(selectedEvent.id)
+            setSelectedEvent(null)
+            setIsDeleteDialogOpen(false)
+        } catch (error) {
+            // Error handled by mutation
+        }
     }
 
-    const openEditDialog = (event: Event) => {
+    const openEditDialog = (event: EventItem) => {
         setSelectedEvent(event)
         setFormData({
             title: event.title,
             type: event.type as EventFormData['type'],
             date: event.date,
-            time: event.time,
+            time: event.startTime || '',
             location: event.location || '',
             description: event.description,
         })
         setIsEditDialogOpen(true)
     }
 
-    const openDeleteDialog = (event: Event) => {
+    const openDeleteDialog = (event: EventItem) => {
         setSelectedEvent(event)
         setIsDeleteDialogOpen(true)
     }
@@ -213,13 +259,32 @@ export default function EventsPage() {
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
+                    <Button
+                        onClick={() => {
+                            if (date) {
+                                // Reset form first
+                                setFormData({ ...initialFormData })
+
+                                // Format date as YYYY-MM-DD for the input
+                                const year = date.getFullYear()
+                                const month = String(date.getMonth() + 1).padStart(2, '0')
+                                const day = String(date.getDate()).padStart(2, '0')
+                                const dateStr = `${year}-${month}-${day}`
+
+                                setFormData(prev => ({
+                                    ...prev,
+                                    date: dateStr
+                                }))
+                            }
+                            setIsAddDialogOpen(true)
+                        }}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Event
+                    </Button>
+
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Event
-                            </Button>
-                        </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Create New Event</DialogTitle>
@@ -309,16 +374,7 @@ export default function EventsPage() {
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Calendar */}
                 <Card className="lg:col-span-2 overflow-hidden min-h-[600px]">
-                    <CardHeader className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white pb-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle className="text-white">Calendar</CardTitle>
-                            </div>
-                            <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                                <CalendarDays className="h-6 w-6 text-white" />
-                            </div>
-                        </div>
-                    </CardHeader>
+
                     <CardContent className="p-6">
                         <div className="bg-gradient-to-br from-background to-muted/30 rounded-xl p-6 border shadow-inner">
                             <Calendar
@@ -394,7 +450,7 @@ export default function EventsPage() {
                                             <div className="flex items-center justify-between px-1">
                                                 <p className="text-sm font-bold text-foreground flex items-center gap-2">
                                                     <CalendarDays className="h-4 w-4 text-primary" />
-                                                    Events Today
+                                                    {new Date().toDateString() === date.toDateString() ? "Events Today" : "Events"}
                                                 </p>
                                                 <Badge variant="secondary" className="text-xs">
                                                     {eventsOnDate.length}
@@ -413,12 +469,32 @@ export default function EventsPage() {
                                                             {/* Event header */}
                                                             <div className="flex items-start justify-between gap-2 mb-2">
                                                                 <h4 className="font-bold text-sm leading-tight flex-1">{event.title}</h4>
-                                                                <Badge
-                                                                    variant={getBadgeVariant(event.type)}
-                                                                    className="text-xs shrink-0 shadow-sm"
-                                                                >
-                                                                    {event.type}
-                                                                </Badge>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Badge
+                                                                        variant={getBadgeVariant(event.type)}
+                                                                        className="text-xs shrink-0 shadow-sm"
+                                                                    >
+                                                                        {event.type}
+                                                                    </Badge>
+                                                                    <div className="flex gap-1">
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-6 w-6 hover:bg-primary/10"
+                                                                            onClick={() => openEditDialog(event)}
+                                                                        >
+                                                                            <Edit className="h-3 w-3" />
+                                                                        </Button>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-6 w-6 text-destructive hover:bg-destructive/10"
+                                                                            onClick={() => openDeleteDialog(event)}
+                                                                        >
+                                                                            <Trash2 className="h-3 w-3" />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
                                                             </div>
 
                                                             {/* Event details */}
@@ -459,8 +535,8 @@ export default function EventsPage() {
                 </Card>
 
                 {/* Events List */}
-                <Card className="lg:col-span-1">
-                    <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-b">
+                <Card className="lg:col-span-1 flex flex-col h-[600px]">
+                    <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-b shrink-0">
                         <div className="flex items-center justify-between">
                             <div>
                                 <CardTitle className="text-xl">Upcoming Events</CardTitle>
@@ -472,9 +548,9 @@ export default function EventsPage() {
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-6">
-                        <div className="space-y-3">
-                            {events.length === 0 ? (
+                    <CardContent className="p-0 flex-1 overflow-hidden">
+                        <div className="h-full overflow-y-auto p-6 space-y-3 custom-scrollbar">
+                            {events.length === 0 && !isFetchingNextPage ? (
                                 <div className="text-center py-16">
                                     <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 mb-4">
                                         <CalendarDays className="h-10 w-10 text-muted-foreground" />
@@ -492,69 +568,82 @@ export default function EventsPage() {
                                     </Button>
                                 </div>
                             ) : (
-                                events.map((event) => (
-                                    <div
-                                        key={event.id}
-                                        className="group relative flex gap-4 p-4 rounded-xl border bg-card hover:bg-accent/5 hover:shadow-md transition-all duration-300 hover:scale-[1.01]"
-                                    >
-                                        {/* Color indicator */}
-                                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${getTypeColor(event.type)}`} />
+                                <>
+                                    {events.map((event) => (
+                                        <div
+                                            key={event.id}
+                                            className="group relative flex gap-4 p-4 rounded-xl border bg-card hover:bg-accent/5 hover:shadow-md transition-all duration-300 hover:scale-[1.01]"
+                                        >
+                                            {/* Color indicator */}
+                                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${getTypeColor(event.type)}`} />
 
-                                        {/* Event icon */}
-                                        <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-white ${getTypeColor(event.type)} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                                            <CalendarDays className="h-7 w-7" />
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="font-semibold text-lg mb-1 truncate">{event.title}</h3>
-                                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{event.description}</p>
-                                                </div>
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <Badge variant={getBadgeVariant(event.type)} className="text-xs font-semibold">
-                                                        {event.type}
-                                                    </Badge>
-                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 hover:bg-primary/10"
-                                                            onClick={() => openEditDialog(event)}
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                                            onClick={() => openDeleteDialog(event)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
+                                            {/* Event icon */}
+                                            <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-white ${getTypeColor(event.type)} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                                                <CalendarDays className="h-7 w-7" />
                                             </div>
 
-                                            <div className="flex flex-wrap items-center gap-4 text-sm">
-                                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                                    <CalendarDays className="h-4 w-4 text-primary" />
-                                                    <span className="font-medium">{event.date}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="font-semibold text-lg mb-1 truncate">{event.title}</h3>
+                                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{event.description}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <Badge variant={getBadgeVariant(event.type)} className="text-xs font-semibold">
+                                                            {event.type}
+                                                        </Badge>
+                                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 hover:bg-primary/10"
+                                                                onClick={() => openEditDialog(event)}
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                                                onClick={() => openDeleteDialog(event)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                                    <Clock className="h-4 w-4 text-primary" />
-                                                    <span className="font-medium">{event.time}</span>
-                                                </div>
-                                                {event.location && (
+
+                                                <div className="flex flex-wrap items-center gap-4 text-sm">
                                                     <div className="flex items-center gap-1.5 text-muted-foreground">
-                                                        <MapPin className="h-4 w-4 text-primary" />
-                                                        <span className="font-medium truncate">{event.location}</span>
+                                                        <CalendarDays className="h-4 w-4 text-primary" />
+                                                        <span className="font-medium">{event.date}</span>
                                                     </div>
-                                                )}
+                                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                        <Clock className="h-4 w-4 text-primary" />
+                                                        <span className="font-medium">{event.time}</span>
+                                                    </div>
+                                                    {event.location && (
+                                                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                            <MapPin className="h-4 w-4 text-primary" />
+                                                            <span className="font-medium truncate">{event.location}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
+                                    ))}
+
+                                    {/* Loading indicator and intersection target */}
+                                    <div ref={loadMoreRef} className="py-4 flex justify-center w-full min-h-[50px]">
+                                        {isFetchingNextPage ? (
+                                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                        ) : hasNextPage ? (
+                                            <div className="h-1" /> // Invisible target
+                                        ) : events.length > 0 ? (
+                                            <p className="text-xs text-muted-foreground">No more events</p>
+                                        ) : null}
                                     </div>
-                                ))
+                                </>
                             )}
                         </div>
                     </CardContent>

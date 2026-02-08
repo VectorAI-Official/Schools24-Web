@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -11,6 +11,12 @@ export interface School {
     is_active: boolean;
     created_at: string;
     admin_count?: number; // Optional, if backend provides it
+    stats?: {
+        students: number;
+        teachers: number;
+        staff: number;
+        admins: number;
+    };
 }
 
 interface SchoolsResponse {
@@ -30,25 +36,26 @@ export interface CreateSchoolParams {
     admins: AdminParams[];
 }
 
-export function useSchools() {
+export function useSchools(enabled: boolean = true) {
     return useQuery({
         queryKey: ['schools'],
         queryFn: async () => {
             const response = await api.get<SchoolsResponse>('/super-admin/schools');
             return response.schools;
-        }
+        },
+        enabled,
     });
 }
 
 
 
-export function useSchool(idOrSlug: string) {
+export function useSchool(idOrSlug: string, enabled: boolean = true) {
     return useQuery({
         queryKey: ['school', idOrSlug],
         queryFn: async () => {
             return api.get<School>(`/super-admin/schools/${idOrSlug}`);
         },
-        enabled: !!idOrSlug,
+        enabled: !!idOrSlug && enabled,
     });
 }
 
@@ -70,7 +77,7 @@ interface UsersResponse {
     page_size: number;
 }
 
-export function useSchoolUsers(schoolId: string, role?: string) {
+export function useSchoolUsers(schoolId: string, role?: string, enabled: boolean = true) {
     return useQuery({
         queryKey: ['school-users', schoolId, role],
         queryFn: async () => {
@@ -80,7 +87,28 @@ export function useSchoolUsers(schoolId: string, role?: string) {
 
             return api.get<UsersResponse>(`/admin/users?${params.toString()}`);
         },
-        enabled: !!schoolId,
+        enabled: !!schoolId && enabled,
+    });
+}
+
+export function useInfiniteSchoolUsers(schoolId: string, role?: string, pageSize: number = 100, enabled: boolean = true) {
+    return useInfiniteQuery({
+        queryKey: ['school-users-infinite', schoolId, role, pageSize],
+        queryFn: async ({ pageParam = 1 }) => {
+            const params = new URLSearchParams();
+            if (role) params.append('role', role);
+            params.append('school_id', schoolId);
+            params.append('page', pageParam.toString());
+            params.append('page_size', pageSize.toString());
+
+            return api.get<UsersResponse>(`/admin/users?${params.toString()}`);
+        },
+        getNextPageParam: (lastPage) => {
+            if (lastPage.users.length < lastPage.page_size) return undefined;
+            return lastPage.page + 1;
+        },
+        initialPageParam: 1,
+        enabled: !!schoolId && enabled,
     });
 }
 

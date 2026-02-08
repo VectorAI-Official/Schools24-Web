@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,6 +23,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -65,67 +66,132 @@ import {
     Plus,
     Upload,
     Briefcase,
-    Loader2
+    Lock,
+    Unlock,
+    Loader2,
+    Check,
+    X,
+    Minus
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
-import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, AdminUser } from '@/hooks/useAdminUsers'
+import { useUsers, useUserStats, useCreateUser, useUpdateUser, useDeleteUser, AdminUser } from '@/hooks/useAdminUsers'
+import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, SchoolClass } from '@/hooks/useClasses'
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 // import { useDebounce } from '@/hooks/useDebounce'
 // I will just use simple useEffect debounce or just separate state for debounced search.
 import { useEffect } from 'react'
+
+const normalizeSection = (value: string) => value.trim().toUpperCase().replace(/[^A-Z]/g, '')
+
+const sectionToNumber = (label?: string | null) => {
+    if (!label) return 0
+    const normalized = normalizeSection(label)
+    if (!normalized) return 0
+    let num = 0
+    for (const char of normalized) {
+        num = num * 26 + (char.charCodeAt(0) - 64)
+    }
+    return num
+}
+
+const numberToSection = (num: number) => {
+    if (num <= 0) return ''
+    let result = ''
+    let n = num
+    while (n > 0) {
+        const rem = (n - 1) % 26
+        result = String.fromCharCode(65 + rem) + result
+        n = Math.floor((n - 1) / 26)
+    }
+    return result
+}
+
+const getNextSectionLabel = (existingLabels: string[]) => {
+    let max = 0
+    for (const label of existingLabels) {
+        const value = sectionToNumber(label)
+        if (value > max) max = value
+    }
+    return max === 0 ? 'A' : numberToSection(max + 1)
+}
+
+const getCurrentAcademicYear = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+    if (month < 4) {
+        return `${year - 1}-${year}`
+    }
+    return `${year}-${year + 1}`
+}
+
+const getAcademicYears = () => {
+    const now = new Date()
+    const base = now.getFullYear()
+    const years: string[] = []
+    for (let i = -2; i <= 1; i += 1) {
+        const start = base + i
+        years.push(`${start}-${start + 1}`)
+    }
+    return years
+}
 
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [roleFilter, setRoleFilter] = useState<string>('all')
-    // const [statusFilter, setStatusFilter] = useState<string>('all') // Backend doesn't support status filter yet, keeping client side for now? No, users list is from backend.
-    // If backend doesn't support status filter in API, I can't filter server-side. 
-    // I previously said status filter is missing in backend.
-    // I will hide status filter for now or keep it client side but applied to server Page? No that's weird.
-    // User said "not to remove any feature".
-    // I will filtering client side Is BAD if paginated.
-    // But I must follow instructions.
-    // I will add status filter to backend? It's easy.
-    // But I am in middle of frontend.
-    // I'll keep status filter UI but it might only filter current page if I don't update backend.
-    // Let's assume Status Filter is less critical or I can't do another backend round trip easily.
-    // Wait, I can update backend quickly.
-    // Just add status to GetAllUsers.
-    // Let's finish hooks first, then if time/ease permits, add status.
-    // For now, I'll remove status filtering or make it ineffective?
-    // User said "not to remove any feature".
-    // Client side filtering on top of server data is weird.
-    // I'll leave the UI but maybe disable it or just let it be (ineffective or client side on current page). I'll keep it client side on current page.
-
-    const [statusFilter, setStatusFilter] = useState<string>('all')
+    const [isClassDialogOpen, setIsClassDialogOpen] = useState(false)
+    const [academicYear, setAcademicYear] = useState(getCurrentAcademicYear())
+    const [newGrade, setNewGrade] = useState<number | null>(null)
+    const [editingSection, setEditingSection] = useState<{ id: string; value: string } | null>(null)
 
     // Pagination state
-    const [page, setPage] = useState(1)
     const pageSize = 20
 
     // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchQuery)
-            setPage(1) // Reset page on search
         }, 500)
         return () => clearTimeout(timer)
     }, [searchQuery])
 
-    // Query
-    const { data, isLoading, isError, refetch } = useUsers(roleFilter, debouncedSearch, page, pageSize)
+    // Queries
+    const {
+        data,
+        isLoading,
+        isError,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useUsers(roleFilter, debouncedSearch, pageSize)
+
+    const { data: statsData, isLoading: statsLoading } = useUserStats()
+
+    const { data: classesData, isLoading: classesLoading } = useClasses(academicYear)
+    const createClass = useCreateClass()
+    const updateClass = useUpdateClass()
+    const deleteClass = useDeleteClass()
 
     // Mutations
     const createUser = useCreateUser()
     const updateUser = useUpdateUser()
     const deleteUser = useDeleteUser()
 
-    const users = data?.users || []
+    const users = data?.pages.flatMap(page => page.users) || []
+    const totalUsersCount = data?.pages[0]?.total || 0
+    const classes = classesData?.classes || []
 
-    // Client-side status filter (on current page) - imperfect but preserves UI
-    const filteredUsers = statusFilter === 'all'
-        ? users
-        : users.filter(u => u.is_active === (statusFilter === 'active'))
+    // Infinite Scroll Logic (Intersection Observer)
+    const { ref: scrollRef, inView } = useIntersectionObserver()
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+    const filteredUsers = users
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -136,14 +202,12 @@ export default function UsersPage() {
         name: string;
         email: string;
         role: string;
-        status: string;
         phone: string;
         department: string;
     }>({
         name: '',
         email: '',
         role: 'student',
-        status: 'active',
         phone: '',
         department: ''
     })
@@ -156,12 +220,10 @@ export default function UsersPage() {
     // Or I fetch stats separately? `useDashboardStats`?
     // I'll simply show "Total Users: {data?.total}" and maybe hide others or show "-"
     const userStats = {
-        total: data?.total || 0,
-        admins: 0, // Placeholder
-        teachers: 0,
-        students: 0,
-        active: 0,
-        inactive: 0,
+        total: statsData?.total || 0,
+        admins: statsData?.admins || 0,
+        teachers: statsData?.teachers || 0,
+        students: statsData?.students || 0,
     }
     // Note: User stats cards might look empty. I should ideally fetch dashboard stats.
     // But I'll focus on CRUD first.
@@ -177,8 +239,7 @@ export default function UsersPage() {
             email: selectedUser.email,
             role: selectedUser.role,
             phone: selectedUser.phone,
-            // status update? is_active
-            is_active: selectedUser.is_active
+            department: selectedUser.department,
         }, {
             onSuccess: () => setIsEditDialogOpen(false)
         })
@@ -198,7 +259,6 @@ export default function UsersPage() {
             role: newUser.role,
             phone: newUser.phone,
             department: newUser.department,
-            is_active: newUser.status === 'active',
             // password auto-generated by backend
         }, {
             onSuccess: () => {
@@ -207,7 +267,6 @@ export default function UsersPage() {
                     name: '',
                     email: '',
                     role: 'student',
-                    status: 'active',
                     phone: '',
                     department: ''
                 })
@@ -229,20 +288,6 @@ export default function UsersPage() {
         })
     }
 
-    const handleToggleStatus = (user: AdminUser) => {
-        const newStatus = !user.is_active
-        updateUser.mutate({
-            id: user.id,
-            is_active: newStatus
-        }, {
-            onSuccess: () => {
-                toast.success(`User ${newStatus ? 'activated' : 'deactivated'}`, {
-                    description: `${user.full_name} is now ${newStatus ? 'active' : 'inactive'}`,
-                })
-            }
-        })
-    }
-
     const getRoleIcon = (role: string) => {
         switch (role) {
             case 'admin':
@@ -251,8 +296,6 @@ export default function UsersPage() {
                 return <BookOpen className="h-4 w-4" />
             case 'student':
                 return <GraduationCap className="h-4 w-4" />
-            case 'non-teaching':
-                return <Briefcase className="h-4 w-4" />
             default:
                 return <Users className="h-4 w-4" />
         }
@@ -266,8 +309,6 @@ export default function UsersPage() {
                 return 'success'
             case 'student':
                 return 'warning'
-            case 'non-teaching':
-                return 'secondary'
             default:
                 return 'secondary'
         }
@@ -275,9 +316,9 @@ export default function UsersPage() {
 
     const exportUsers = () => {
         const csvContent = [
-            ['Name', 'Email', 'Role', 'Phone', 'Department', 'Status'].join(','),
+            ['Name', 'Email', 'Role', 'Phone', 'Department'].join(','),
             ...filteredUsers.map(u =>
-                [u.full_name, u.email, u.role, u.phone || '', u.department || '', u.is_active ? 'Active' : 'Inactive'].join(',')
+                [u.full_name, u.email, u.role, u.phone || '', u.department || ''].join(',')
             )
         ].join('\n')
 
@@ -292,12 +333,84 @@ export default function UsersPage() {
         })
     }
 
+    const academicYears = useMemo(() => getAcademicYears(), [])
+
+    const classesByGrade = useMemo(() => {
+        const map = new Map<number, SchoolClass[]>()
+        for (const cls of classes) {
+            const list = map.get(cls.grade) || []
+            list.push(cls)
+            map.set(cls.grade, list)
+        }
+        for (const [grade, list] of map.entries()) {
+            list.sort((a, b) => sectionToNumber(a.section) - sectionToNumber(b.section))
+            map.set(grade, list)
+        }
+        return map
+    }, [classes])
+
+    const availableGrades = useMemo(() => {
+        const all = Array.from({ length: 12 }, (_, i) => i + 1)
+        const existing = new Set(classes.map(c => c.grade))
+        return all.filter(g => !existing.has(g))
+    }, [classes])
+
+    const handleAddSection = (grade: number) => {
+        const gradeClasses = classesByGrade.get(grade) || []
+        const existingLabels = gradeClasses.map(c => c.section || '')
+        const nextLabel = getNextSectionLabel(existingLabels)
+        createClass.mutate({
+            name: `Grade ${grade}`,
+            grade,
+            section: nextLabel,
+            academic_year: academicYear,
+        })
+    }
+
+    const handleRemoveSection = (cls: SchoolClass) => {
+        deleteClass.mutate(cls.id)
+    }
+
+    const handleShorten = (grade: number) => {
+        const gradeClasses = classesByGrade.get(grade) || []
+        if (gradeClasses.length === 0) return
+        const last = gradeClasses[gradeClasses.length - 1]
+        deleteClass.mutate(last.id)
+    }
+
+    const handleRenameSection = (cls: SchoolClass) => {
+        if (!editingSection) return
+        const nextValue = normalizeSection(editingSection.value)
+        if (!nextValue) {
+            toast.error('Section label is required')
+            return
+        }
+        updateClass.mutate({
+            id: cls.id,
+            section: nextValue,
+        }, {
+            onSuccess: () => setEditingSection(null)
+        })
+    }
+
+    const handleAddGrade = () => {
+        if (!newGrade) return
+        handleAddSection(newGrade)
+        setNewGrade(null)
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold">User Management</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold">User Management</h1>
+                        <Button variant="outline" onClick={() => setIsClassDialogOpen(true)}>
+                            <BookOpen className="mr-2 h-4 w-4" />
+                            Class Management
+                        </Button>
+                    </div>
                     <p className="text-muted-foreground">Manage all users in the system</p>
                 </div>
                 <div className="flex gap-2">
@@ -317,7 +430,7 @@ export default function UsersPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
@@ -370,32 +483,6 @@ export default function UsersPage() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{userStats.active}</p>
-                                <p className="text-xs text-muted-foreground">Active</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
-                                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{userStats.inactive}</p>
-                                <p className="text-xs text-muted-foreground">Inactive</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
             {/* Users Table */}
@@ -421,18 +508,7 @@ export default function UsersPage() {
                                     <SelectItem value="all">All Roles</SelectItem>
                                     <SelectItem value="admin">Admin</SelectItem>
                                     <SelectItem value="teacher">Teacher</SelectItem>
-                                    <SelectItem value="non-teaching">Non-Teaching</SelectItem>
                                     <SelectItem value="student">Student</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="w-[140px]">
-                                    <SelectValue placeholder="Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="inactive">Inactive</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Button
@@ -441,7 +517,6 @@ export default function UsersPage() {
                                 onClick={() => {
                                     setSearchQuery('')
                                     setRoleFilter('all')
-                                    setStatusFilter('all')
                                 }}
                             >
                                 <RefreshCw className="h-4 w-4" />
@@ -456,22 +531,22 @@ export default function UsersPage() {
                                 <TableRow>
                                     <TableHead>User</TableHead>
                                     <TableHead>Role</TableHead>
+                                    <TableHead>Rating</TableHead>
                                     <TableHead>Phone</TableHead>
                                     <TableHead>Department</TableHead>
-                                    <TableHead>Status</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {isLoading ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center">
+                                        <TableCell colSpan={5} className="h-24 text-center">
                                             <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                                         </TableCell>
                                     </TableRow>
                                 ) : filteredUsers.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                                             No users found
                                         </TableCell>
                                     </TableRow>
@@ -498,22 +573,17 @@ export default function UsersPage() {
                                                     <span className="capitalize">{user.role}</span>
                                                 </Badge>
                                             </TableCell>
+                                            <TableCell>
+                                                {user.role === 'teacher' ? (
+                                                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">
+                                                        {(user as any).rating || '0.0'} ★
+                                                    </Badge>
+                                                ) : (
+                                                    <span className="text-muted-foreground">-</span>
+                                                )}
+                                            </TableCell>
                                             <TableCell>{user.phone || '-'}</TableCell>
                                             <TableCell>{user.department || '-'}</TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    variant={user.is_active ? 'success' : 'destructive'}
-                                                    className="cursor-pointer"
-                                                    onClick={() => handleToggleStatus(user)}
-                                                >
-                                                    {user.is_active ? (
-                                                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                    ) : (
-                                                        <XCircle className="mr-1 h-3 w-3" />
-                                                    )}
-                                                    {user.is_active ? 'Active' : 'Inactive'}
-                                                </Badge>
-                                            </TableCell>
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
@@ -562,11 +632,182 @@ export default function UsersPage() {
                     </div>
                     <div className="flex items-center justify-between mt-4">
                         <p className="text-sm text-muted-foreground">
-                            Showing {filteredUsers.length} of {users.length} users
+                            Showing {users.length} of {totalUsersCount} users
                         </p>
+                        {isFetchingNextPage && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Loading more...
+                            </div>
+                        )}
+                        {/* Sentinel for infinite scroll */}
+                        <div ref={scrollRef} className="h-4 w-full" />
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Class Management Dialog */}
+            <Dialog open={isClassDialogOpen} onOpenChange={setIsClassDialogOpen}>
+                <DialogContent className="sm:max-w-[900px]">
+                    <DialogHeader>
+                        <DialogTitle>Class Management</DialogTitle>
+                        <DialogDescription>
+                            Add or remove classes and sections for the selected academic year.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="academic-year">Academic Year</Label>
+                            <Select value={academicYear} onValueChange={setAcademicYear}>
+                                <SelectTrigger id="academic-year" className="w-[160px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {academicYears.map(year => (
+                                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Select
+                                value={newGrade ? newGrade.toString() : ''}
+                                onValueChange={(value) => setNewGrade(parseInt(value, 10))}
+                            >
+                                <SelectTrigger className="w-[140px]">
+                                    <SelectValue placeholder="Add Grade" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableGrades.length === 0 && (
+                                        <SelectItem value="none" disabled>No grades left</SelectItem>
+                                    )}
+                                    {availableGrades.map(grade => (
+                                        <SelectItem key={grade} value={grade.toString()}>
+                                            Grade {grade}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                onClick={handleAddGrade}
+                                disabled={!newGrade || createClass.isPending}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Grade
+                            </Button>
+                        </div>
+                    </div>
+
+                    <ScrollArea className="h-[420px] pr-4">
+                        <div className="space-y-4">
+                            {classesLoading ? (
+                                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Loading classes...
+                                </div>
+                            ) : classesByGrade.size === 0 ? (
+                                <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+                                    No classes found for this academic year. Add a grade to get started.
+                                </div>
+                            ) : (
+                                Array.from(classesByGrade.entries())
+                                    .sort((a, b) => a[0] - b[0])
+                                    .map(([grade, gradeClasses]) => (
+                                        <div key={grade} className="rounded-lg border p-4">
+                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">Grade</p>
+                                                    <p className="text-lg font-semibold">Grade {grade}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleAddSection(grade)}
+                                                        disabled={createClass.isPending}
+                                                    >
+                                                        <Plus className="mr-2 h-4 w-4" />
+                                                        Add Section
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleShorten(grade)}
+                                                        disabled={deleteClass.isPending}
+                                                    >
+                                                        <Minus className="mr-2 h-4 w-4" />
+                                                        Shorten
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 flex flex-wrap gap-2">
+                                                {gradeClasses.map((cls) => (
+                                                    <div key={cls.id} className="flex items-center gap-2 rounded-full border px-3 py-1 text-sm">
+                                                        {editingSection?.id === cls.id ? (
+                                                            <>
+                                                                <Input
+                                                                    value={editingSection.value}
+                                                                    onChange={(e) => setEditingSection({ id: cls.id, value: e.target.value })}
+                                                                    className="h-7 w-20"
+                                                                />
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    onClick={() => handleRenameSection(cls)}
+                                                                    disabled={updateClass.isPending}
+                                                                >
+                                                                    <Check className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    onClick={() => setEditingSection(null)}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <span className="font-medium">{cls.section || '-'}</span>
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    onClick={() => setEditingSection({ id: cls.id, value: cls.section || '' })}
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    onClick={() => handleRemoveSection(cls)}
+                                                                    disabled={deleteClass.isPending}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <p className="mt-3 text-xs text-muted-foreground">
+                                                Sections follow A, B, C... Z, AA, AB patterns. You can also type custom labels like AA or AAA.
+                                            </p>
+                                        </div>
+                                    ))
+                            )}
+                        </div>
+                    </ScrollArea>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsClassDialogOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* View Dialog */}
             <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
@@ -592,19 +833,13 @@ export default function UsersPage() {
                                     </Badge>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 <div className="p-3 rounded-lg bg-muted">
                                     <p className="text-sm text-muted-foreground">Phone</p>
                                     <p className="font-medium">{selectedUser.phone || 'Not provided'}</p>
                                 </div>
-                                <div className="p-3 rounded-lg bg-muted">
-                                    <p className="text-sm text-muted-foreground">Status</p>
-                                    <Badge variant={selectedUser.is_active ? 'success' : 'destructive'}>
-                                        {selectedUser.is_active ? 'Active' : 'Inactive'}
-                                    </Badge>
-                                </div>
                                 {selectedUser.department && (
-                                    <div className="p-3 rounded-lg bg-muted col-span-2">
+                                    <div className="p-3 rounded-lg bg-muted">
                                         <p className="text-sm text-muted-foreground">Department</p>
                                         <p className="font-medium">{selectedUser.department}</p>
                                     </div>
@@ -648,43 +883,23 @@ export default function UsersPage() {
                                     onChange={(e) => setSelectedUser({ ...selectedUser, email: e.target.value })}
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-role">Role</Label>
-                                    <Select
-                                        value={selectedUser.role}
-                                        onValueChange={(value: 'admin' | 'teacher' | 'student' | 'non-teaching') =>
-                                            setSelectedUser({ ...selectedUser, role: value })
-                                        }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="admin">Admin</SelectItem>
-                                            <SelectItem value="teacher">Teacher</SelectItem>
-                                            <SelectItem value="non-teaching">Non-Teaching</SelectItem>
-                                            <SelectItem value="student">Student</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-status">Status</Label>
-                                    <Select
-                                        value={selectedUser.is_active ? 'active' : 'inactive'}
-                                        onValueChange={(value: 'active' | 'inactive') =>
-                                            setSelectedUser({ ...selectedUser, is_active: value === 'active' })
-                                        }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="active">Active</SelectItem>
-                                            <SelectItem value="inactive">Inactive</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-role">Role</Label>
+                                <Select
+                                    value={selectedUser.role}
+                                    onValueChange={(value: 'admin' | 'teacher' | 'student' | 'staff') =>
+                                        setSelectedUser({ ...selectedUser, role: value })
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="teacher">Teacher</SelectItem>
+                                        <SelectItem value="student">Student</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-phone">Phone Number</Label>
@@ -692,6 +907,14 @@ export default function UsersPage() {
                                     id="edit-phone"
                                     value={selectedUser.phone || ''}
                                     onChange={(e) => setSelectedUser({ ...selectedUser, phone: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-department">Department</Label>
+                                <Input
+                                    id="edit-department"
+                                    value={selectedUser.department || ''}
+                                    onChange={(e) => setSelectedUser({ ...selectedUser, department: e.target.value })}
                                 />
                             </div>
                         </div>
@@ -728,7 +951,6 @@ export default function UsersPage() {
                 </AlertDialogContent>
             </AlertDialog>
 
-
             {/* Add User Dialog */}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogContent className="sm:max-w-[500px]">
@@ -758,39 +980,21 @@ export default function UsersPage() {
                                 placeholder="john@school.com"
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="add-role">Role</Label>
-                                <Select
-                                    value={newUser.role}
-                                    onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="admin">Admin</SelectItem>
-                                        <SelectItem value="teacher">Teacher</SelectItem>
-                                        <SelectItem value="non-teaching">Non-Teaching</SelectItem>
-                                        <SelectItem value="student">Student</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="add-status">Status</Label>
-                                <Select
-                                    value={newUser.status}
-                                    onValueChange={(value) => setNewUser({ ...newUser, status: value as any })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="inactive">Inactive</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="add-role">Role</Label>
+                            <Select
+                                value={newUser.role}
+                                onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                    <SelectItem value="teacher">Teacher</SelectItem>
+                                    <SelectItem value="student">Student</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="add-phone">Phone Number</Label>
@@ -810,6 +1014,6 @@ export default function UsersPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div >
+        </div>
     )
 }

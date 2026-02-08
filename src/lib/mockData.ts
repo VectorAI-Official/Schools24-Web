@@ -564,7 +564,6 @@ export const mockBusRoutes: BusRoute[] = [
             { name: 'Malviya Nagar', time: '07:30 AM' },
             { name: 'School', time: '08:00 AM' },
         ],
-        status: 'active',
     },
     {
         id: '2',
@@ -580,7 +579,6 @@ export const mockBusRoutes: BusRoute[] = [
             { name: 'Janakpuri', time: '07:35 AM' },
             { name: 'School', time: '08:00 AM' },
         ],
-        status: 'active',
     },
     {
         id: '3',
@@ -596,7 +594,6 @@ export const mockBusRoutes: BusRoute[] = [
             { name: 'Shalimar Bagh', time: '07:40 AM' },
             { name: 'School', time: '08:10 AM' },
         ],
-        status: 'active',
     },
 ];
 

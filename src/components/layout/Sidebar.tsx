@@ -119,6 +119,7 @@ export function Sidebar() {
     const getNavItems = (): NavItem[] => {
         switch (userRole) {
             case 'admin':
+            case 'super_admin':
                 return adminNavItems
             case 'teacher':
                 return teacherNavItems
@@ -194,13 +195,8 @@ export function Sidebar() {
                                     "font-bold text-xl tracking-tight",
                                     `bg-gradient-to-r ${config.gradient} bg-clip-text text-transparent`
                                 )}>
-                                    School24
+                                    Schools24
                                 </span>
-                                <div className="flex items-center gap-1.5">
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-semibold uppercase tracking-wider">
-                                        {userRole}
-                                    </Badge>
-                                </div>
                             </div>
                         </Link>
                     )}

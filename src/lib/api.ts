@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1";
 
 interface FetchOptions extends RequestInit {
   headers?: Record<string, string>;
@@ -18,6 +18,14 @@ async function fetchClient<T>(endpoint: string, options: FetchOptions = {}): Pro
     headers["Authorization"] = `Bearer ${token}`;
   }
 
+  // Debug logging (remove in production)
+  if (typeof window !== 'undefined' && !endpoint.includes('/auth/login')) {
+    console.log(`[API] ${options.method || 'GET'} ${endpoint}`, {
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : null
+    });
+  }
+
   const config: RequestInit = {
     ...options,
     headers,
@@ -26,16 +34,27 @@ async function fetchClient<T>(endpoint: string, options: FetchOptions = {}): Pro
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
+    // Debug log responses for student list
+    if (endpoint.includes('/students-list') && typeof window !== 'undefined') {
+      console.log(`[API Response] ${endpoint}:`, {
+        status: response.status,
+        ok: response.ok,
+        statusText: response.statusText
+      });
+    }
+
     // Handle 401 Unauthorized (Logout)
     // Skip for login endpoint to allow handling invalid credentials
     if (response.status === 401 && !endpoint.includes("/auth/login")) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem("School24_token");
         localStorage.removeItem("School24_user");
-        // Optional: Redirect to login if not already there
+        // Temporarily disabled to see the error overlay
+        /*
         if (!window.location.pathname.includes("/login")) {
           window.location.href = "/login";
         }
+        */
       }
       throw new Error("Session expired. Please login again.");
     }
@@ -50,7 +69,18 @@ async function fetchClient<T>(endpoint: string, options: FetchOptions = {}): Pro
       return {} as T;
     }
 
-    return await response.json();
+    const data = await response.json();
+    
+    // Debug log student list data
+    if (endpoint.includes('/students-list') && typeof window !== 'undefined') {
+      console.log(`[API Data] ${endpoint}:`, {
+        students: data.students?.length || 0,
+        total: data.total,
+        firstStudent: data.students?.[0]
+      });
+    }
+
+    return data;
   } catch (error) {
     console.error(`API Error [${endpoint}]:`, error);
     // Don't toast here to allow custom error handling, or toast generic?

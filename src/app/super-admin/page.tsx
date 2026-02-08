@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,10 +32,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export default function SuperAdminPage() {
-    const { user, logout } = useAuth()
+    const { user, logout, isLoading } = useAuth()
     const router = useRouter()
     const [searchQuery, setSearchQuery] = useState('')
     const [isAddSchoolOpen, setIsAddSchoolOpen] = useState(false)
+    const isSuperAdmin = user?.role === 'super_admin'
 
     // Form state for new school
     const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({})
@@ -47,8 +48,21 @@ export default function SuperAdminPage() {
     })
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
-    const { data: schools = [], isLoading } = useSchools()
+    const canLoad = isSuperAdmin && !isLoading
+    const { data: schools = [], isLoading: isSchoolsLoading } = useSchools(canLoad)
     const createSchool = useCreateSchool()
+
+    useEffect(() => {
+        if (isLoading || !user) return
+        if (!isSuperAdmin) {
+            const fallbackPath =
+                user.role === 'admin' ? '/admin/dashboard'
+                : user.role === 'teacher' ? '/teacher/dashboard'
+                : user.role === 'student' ? '/student/dashboard'
+                : '/login'
+            router.push(fallbackPath)
+        }
+    }, [isLoading, isSuperAdmin, router, user])
 
     const handleLogout = () => {
         logout()
@@ -61,6 +75,19 @@ export default function SuperAdminPage() {
             s.contact_email?.toLowerCase().includes(searchQuery.toLowerCase())
         )
     }, [schools, searchQuery])
+
+    if (!isLoading && !isSuperAdmin) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+                <div className="text-center space-y-3">
+                    <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Access denied</h1>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                        Your account does not have Super Admin permissions.
+                    </p>
+                </div>
+            </div>
+        )
+    }
 
     const validatePassword = (password: string) => {
         const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -332,7 +359,7 @@ export default function SuperAdminPage() {
 
                 {/* Schools Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {isLoading ? (
+                    {isSchoolsLoading ? (
                         Array(4).fill(0).map((_, i) => (
                             <Card key={i} className="animate-pulse">
                                 <CardHeader className="h-24 bg-slate-100 dark:bg-slate-800 rounded-t-xl" />

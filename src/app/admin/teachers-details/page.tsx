@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -71,16 +72,23 @@ import {
     Clock,
     Briefcase,
 } from 'lucide-react'
-import { mockTeachers, Teacher } from '@/lib/mockData'
+import { Teacher } from '@/types'
 import { getInitials, formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useTeachers, useCreateTeacher, useUpdateTeacher, useDeleteTeacher } from '@/hooks/useAdminTeachers'
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { useAuth } from '@/contexts/AuthContext'
+import { EditTeacherDialog } from '@/components/admin/teachers/EditTeacherDialog'
 
 export default function TeachersDetailsPage() {
-    const [teachers, setTeachers] = useState<Teacher[]>(mockTeachers)
+    const searchParams = useSearchParams()
+    const { user } = useAuth()
+    const isSuperAdmin = user?.role === 'super_admin'
+    const schoolId = searchParams.get('school_id') || undefined
+
     const [searchQuery, setSearchQuery] = useState('')
     const [departmentFilter, setDepartmentFilter] = useState<string>('all')
-    const [statusFilter, setStatusFilter] = useState<string>('all')
-    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
@@ -98,93 +106,67 @@ export default function TeachersDetailsPage() {
         salary: 0,
     })
 
+    const {
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useTeachers(searchQuery, 20, schoolId, departmentFilter)
+
+    const teachers = data?.pages.flatMap(page => page.teachers) || []
+
+    const createMutation = useCreateTeacher()
+    const updateMutation = useUpdateTeacher()
+    const deleteMutation = useDeleteTeacher()
+
+    // Infinite Scroll Logic (Intersection Observer)
+    const { ref: scrollRef, inView } = useIntersectionObserver()
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
     const filteredTeachers = teachers.filter(teacher => {
-        const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            teacher.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            teacher.employeeId.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesSearch = !searchQuery ||
+            teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            teacher.email.toLowerCase().includes(searchQuery.toLowerCase())
         const matchesDepartment = departmentFilter === 'all' || teacher.department === departmentFilter
-        const matchesStatus = statusFilter === 'all' || teacher.status === statusFilter
-        return matchesSearch && matchesDepartment && matchesStatus
+        return matchesSearch && matchesDepartment
     })
 
     const departments = [...new Set(teachers.map(t => t.department))].sort()
 
     const stats = {
-        total: teachers.length,
-        active: teachers.filter(t => t.status === 'active').length,
-        onLeave: teachers.filter(t => t.status === 'on-leave').length,
-        inactive: teachers.filter(t => t.status === 'inactive').length,
+        total: data?.pages[0]?.total || teachers.length,
+        active: teachers.filter(t => t.status?.toLowerCase() === 'active').length,
+        onLeave: teachers.filter(t => t.status?.toLowerCase() === 'on_leave' || t.status?.toLowerCase() === 'on leave').length,
         totalSalary: teachers.reduce((acc, t) => acc + t.salary, 0),
         avgRating: (teachers.reduce((acc, t) => acc + t.rating, 0) / (teachers.length || 1)).toFixed(1),
     }
 
-    const handleAddTeacher = () => {
-        if (!newTeacher.name || !newTeacher.email || !newTeacher.department) {
-            toast.error('Please fill in all required fields')
-            return
-        }
+    // Removed handleAddTeacher function
 
-        const teacher: Teacher = {
-            id: String(teachers.length + 1),
-            name: newTeacher.name,
-            email: newTeacher.email,
-            phone: newTeacher.phone,
-            employeeId: newTeacher.employeeId || `TCH${String(teachers.length + 1).padStart(3, '0')}`,
-            department: newTeacher.department,
-            subjects: newTeacher.subjects.split(',').map(s => s.trim()).filter(Boolean),
-            classes: newTeacher.classes.split(',').map(c => c.trim()).filter(Boolean),
-            qualification: newTeacher.qualification,
-            experience: newTeacher.experience,
-            joinDate: new Date().toISOString().split('T')[0],
-            salary: newTeacher.salary,
-            rating: 0,
-            status: 'active',
-        }
-        setTeachers([...teachers, teacher])
-        setNewTeacher({
-            name: '',
-            email: '',
-            phone: '',
-            employeeId: '',
-            department: '',
-            subjects: '',
-            classes: '',
-            qualification: '',
-            experience: '',
-            salary: 0,
-        })
-        setIsAddDialogOpen(false)
-        toast.success('Teacher added successfully', {
-            description: `${teacher.name} has been added to ${teacher.department} department`,
-        })
-    }
-
-    const handleEditTeacher = () => {
-        if (!selectedTeacher) return
-
-        setTeachers(teachers.map(t => t.id === selectedTeacher.id ? selectedTeacher : t))
-        setIsEditDialogOpen(false)
-        toast.success('Teacher updated successfully', {
-            description: `${selectedTeacher.name}'s details have been updated`,
+    const handleEditTeacher = (id: string, data: any) => {
+        updateMutation.mutate({ id, data, schoolId }, {
+            onSuccess: () => {
+                setIsEditDialogOpen(false)
+            }
         })
     }
 
     const handleDeleteTeacher = () => {
         if (!selectedTeacher) return
 
-        setTeachers(teachers.filter(t => t.id !== selectedTeacher.id))
-        setIsDeleteDialogOpen(false)
-        toast.success('Teacher removed successfully', {
-            description: `${selectedTeacher.name} has been removed from the system`,
+        deleteMutation.mutate({ id: selectedTeacher.id, schoolId }, {
+            onSuccess: () => {
+                setIsDeleteDialogOpen(false)
+            }
         })
     }
 
-    const handleStatusChange = (teacher: Teacher, newStatus: 'active' | 'on-leave' | 'inactive') => {
-        setTeachers(teachers.map(t => t.id === teacher.id ? { ...t, status: newStatus } : t))
-        toast.success('Status updated', {
-            description: `${teacher.name}'s status changed to ${newStatus}`,
-        })
-    }
+
 
     const handleImport = () => {
         toast.info('Importing teachers...', {
@@ -198,24 +180,11 @@ export default function TeachersDetailsPage() {
         }, 1500)
     }
 
-    const handleCycleStatus = (teacher: Teacher) => {
-        const statuses: ('active' | 'on-leave' | 'inactive')[] = ['active', 'on-leave', 'inactive']
-        const checkStatus = (s: string): s is 'active' | 'on-leave' | 'inactive' => {
-            return statuses.includes(s as any)
-        }
-
-        const currentStatus = checkStatus(teacher.status) ? teacher.status : 'active'
-        const currentIndex = statuses.indexOf(currentStatus)
-        const newStatus = statuses[(currentIndex + 1) % statuses.length]
-
-        handleStatusChange(teacher, newStatus)
-    }
-
     const exportTeachers = () => {
         const csvContent = [
-            ['Name', 'Email', 'Phone', 'Employee ID', 'Department', 'Subjects', 'Salary', 'Rating', 'Status'].join(','),
+            ['Name', 'Email', 'Phone', 'Employee ID', 'Department', 'Subjects', 'Salary', 'Rating'].join(','),
             ...filteredTeachers.map(t =>
-                [t.name, t.email, t.phone, t.employeeId, t.department, t.subjects.join(';'), t.salary, t.rating, t.status].join(',')
+                [t.name, t.email, t.phone, t.employeeId, t.department, t.subjects.join(';'), t.salary, t.rating].join(',')
             )
         ].join('\n')
 
@@ -230,19 +199,6 @@ export default function TeachersDetailsPage() {
         })
     }
 
-    const getStatusBadgeVariant = (status: string): "success" | "warning" | "destructive" | "secondary" => {
-        switch (status) {
-            case 'active':
-                return 'success'
-            case 'on-leave':
-                return 'warning'
-            case 'inactive':
-                return 'destructive'
-            default:
-                return 'secondary'
-        }
-    }
-
     const renderStars = (rating: number) => {
         return (
             <div className="flex items-center gap-0.5">
@@ -255,6 +211,13 @@ export default function TeachersDetailsPage() {
                 <span className="ml-1 text-sm font-medium">{rating}</span>
             </div>
         )
+    }
+
+    const getStatusBadgeVariant = (status?: string): "default" | "success" | "warning" | "secondary" => {
+        const normalized = (status || '').toLowerCase()
+        if (normalized === 'active') return 'success'
+        if (normalized === 'on_leave' || normalized === 'on leave') return 'warning'
+        return 'secondary'
     }
 
     return (
@@ -274,142 +237,21 @@ export default function TeachersDetailsPage() {
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
-                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="bg-gradient-to-r from-green-600 to-teal-600 hover:opacity-90">
-                                <UserPlus className="mr-2 h-4 w-4" />
-                                Add Teacher
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[600px]">
-                            <DialogHeader>
-                                <DialogTitle>Add New Teacher</DialogTitle>
-                                <DialogDescription>
-                                    Add a new teacher to the staff.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="name">Full Name *</Label>
-                                        <Input
-                                            id="name"
-                                            placeholder="Enter full name"
-                                            value={newTeacher.name}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, name: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="email">Email Address *</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="Enter email"
-                                            value={newTeacher.email}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="phone">Phone Number</Label>
-                                        <Input
-                                            id="phone"
-                                            placeholder="Enter phone"
-                                            value={newTeacher.phone}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, phone: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="employeeId">Employee ID</Label>
-                                        <Input
-                                            id="employeeId"
-                                            placeholder="e.g., TCH001"
-                                            value={newTeacher.employeeId}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, employeeId: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="department">Department *</Label>
-                                        <Select
-                                            value={newTeacher.department}
-                                            onValueChange={(value) => setNewTeacher({ ...newTeacher, department: value })}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select department" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'Computer Science', 'Physical Education', 'Arts'].map(d => (
-                                                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="salary">Salary (₹)</Label>
-                                        <Input
-                                            id="salary"
-                                            type="number"
-                                            placeholder="Enter salary"
-                                            value={newTeacher.salary || ''}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, salary: Number(e.target.value) })}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="subjects">Subjects (comma separated)</Label>
-                                    <Input
-                                        id="subjects"
-                                        placeholder="e.g., Mathematics, Physics"
-                                        value={newTeacher.subjects}
-                                        onChange={(e) => setNewTeacher({ ...newTeacher, subjects: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="classes">Classes (comma separated)</Label>
-                                    <Input
-                                        id="classes"
-                                        placeholder="e.g., 9-A, 9-B, 10-A"
-                                        value={newTeacher.classes}
-                                        onChange={(e) => setNewTeacher({ ...newTeacher, classes: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="qualification">Qualification</Label>
-                                        <Input
-                                            id="qualification"
-                                            placeholder="e.g., M.Sc. Mathematics, B.Ed"
-                                            value={newTeacher.qualification}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, qualification: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="experience">Experience</Label>
-                                        <Input
-                                            id="experience"
-                                            placeholder="e.g., 5 years"
-                                            value={newTeacher.experience}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, experience: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={handleAddTeacher}>Add Teacher</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                    {/* Only super admins can add teachers directly; normal admins use User Management */}
+                    {isSuperAdmin && (
+                        <Button
+                            className="bg-gradient-to-r from-green-600 to-teal-600 hover:opacity-90"
+                            onClick={() => setIsAddDialogOpen(true)}
+                        >
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Add Teacher
+                        </Button>
+                    )}
                 </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+            < div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6" >
                 <Card className="bg-gradient-to-br from-green-500 to-teal-600 border-0">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
@@ -488,10 +330,10 @@ export default function TeachersDetailsPage() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
+            </div >
 
             {/* Teachers Table */}
-            <Card>
+            < Card >
                 <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="relative flex-1 max-w-sm">
@@ -516,24 +358,12 @@ export default function TeachersDetailsPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="w-[130px]">
-                                    <SelectValue placeholder="Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="on-leave">On Leave</SelectItem>
-                                    <SelectItem value="inactive">Inactive</SelectItem>
-                                </SelectContent>
-                            </Select>
                             <Button
                                 variant="outline"
                                 size="icon"
                                 onClick={() => {
                                     setSearchQuery('')
                                     setDepartmentFilter('all')
-                                    setStatusFilter('all')
                                 }}
                             >
                                 <RefreshCw className="h-4 w-4" />
@@ -552,14 +382,13 @@ export default function TeachersDetailsPage() {
                                     <TableHead>Subjects</TableHead>
                                     <TableHead>Salary</TableHead>
                                     <TableHead>Rating</TableHead>
-                                    <TableHead>Status</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {filteredTeachers.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                             No teachers found
                                         </TableCell>
                                     </TableRow>
@@ -602,15 +431,6 @@ export default function TeachersDetailsPage() {
                                             </TableCell>
                                             <TableCell className="font-medium">{formatCurrency(teacher.salary)}</TableCell>
                                             <TableCell>{renderStars(teacher.rating)}</TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    variant={getStatusBadgeVariant(teacher.status)}
-                                                    className="cursor-pointer"
-                                                    onClick={() => handleCycleStatus(teacher)}
-                                                >
-                                                    {teacher.status}
-                                                </Badge>
-                                            </TableCell>
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
@@ -638,15 +458,6 @@ export default function TeachersDetailsPage() {
                                                             Edit
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => handleStatusChange(teacher, 'active')}>
-                                                            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
-                                                            Set Active
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => handleStatusChange(teacher, 'on-leave')}>
-                                                            <Clock className="mr-2 h-4 w-4 text-amber-500" />
-                                                            Set On Leave
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
                                                         <DropdownMenuItem
                                                             className="text-destructive"
                                                             onClick={() => {
@@ -672,10 +483,12 @@ export default function TeachersDetailsPage() {
                         </p>
                     </div>
                 </CardContent>
-            </Card>
+                {/* Sentinel for infinite scroll */}
+                <div ref={scrollRef} className="h-4 w-full" />
+            </Card >
 
             {/* View Dialog */}
-            <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            < Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen} >
                 <DialogContent className="sm:max-w-[700px]">
                     <DialogHeader>
                         <DialogTitle>Teacher Details</DialogTitle>
@@ -803,120 +616,18 @@ export default function TeachersDetailsPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
+            </Dialog >
 
-            {/* Edit Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                        <DialogTitle>Edit Teacher</DialogTitle>
-                        <DialogDescription>
-                            Update teacher information.
-                        </DialogDescription>
-                    </DialogHeader>
-                    {selectedTeacher && (
-                        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-name">Full Name</Label>
-                                    <Input
-                                        id="edit-name"
-                                        value={selectedTeacher.name}
-                                        onChange={(e) => setSelectedTeacher({ ...selectedTeacher, name: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-email">Email</Label>
-                                    <Input
-                                        id="edit-email"
-                                        type="email"
-                                        value={selectedTeacher.email}
-                                        onChange={(e) => setSelectedTeacher({ ...selectedTeacher, email: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-phone">Phone</Label>
-                                    <Input
-                                        id="edit-phone"
-                                        value={selectedTeacher.phone}
-                                        onChange={(e) => setSelectedTeacher({ ...selectedTeacher, phone: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-department">Department</Label>
-                                    <Select
-                                        value={selectedTeacher.department}
-                                        onValueChange={(value) => setSelectedTeacher({ ...selectedTeacher, department: value })}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'Computer Science', 'Physical Education', 'Arts'].map(d => (
-                                                <SelectItem key={d} value={d}>{d}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-qualification">Qualification</Label>
-                                    <Input
-                                        id="edit-qualification"
-                                        value={selectedTeacher.qualification}
-                                        onChange={(e) => setSelectedTeacher({ ...selectedTeacher, qualification: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-experience">Experience</Label>
-                                    <Input
-                                        id="edit-experience"
-                                        value={selectedTeacher.experience}
-                                        onChange={(e) => setSelectedTeacher({ ...selectedTeacher, experience: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-salary">Salary (₹)</Label>
-                                <Input
-                                    id="edit-salary"
-                                    type="number"
-                                    value={selectedTeacher.salary}
-                                    onChange={(e) => setSelectedTeacher({ ...selectedTeacher, salary: Number(e.target.value) })}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-status">Status</Label>
-                                <Select
-                                    value={selectedTeacher.status}
-                                    onValueChange={(value: 'active' | 'on-leave' | 'inactive') => setSelectedTeacher({ ...selectedTeacher, status: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="on-leave">On Leave</SelectItem>
-                                        <SelectItem value="inactive">Inactive</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button onClick={handleEditTeacher}>Save Changes</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Edit Teacher Dialog */}
+            <EditTeacherDialog
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                teacher={selectedTeacher}
+                onSave={handleEditTeacher}
+            />
 
             {/* Delete Confirmation */}
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            < AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Remove Teacher?</AlertDialogTitle>
@@ -936,7 +647,7 @@ export default function TeachersDetailsPage() {
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
-            </AlertDialog>
-        </div>
+            </AlertDialog >
+        </div >
     )
 }

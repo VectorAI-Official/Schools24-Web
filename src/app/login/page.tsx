@@ -39,7 +39,7 @@ const roleData: RoleDataItem[] = [
     {
         role: 'admin',
         title: 'Admin',
-        email: 'admin@school24.com',
+        email: 'admin@schools24.com',
         password: 'admin123',
         icon: Shield,
         gradient: 'from-violet-600 via-indigo-600 to-blue-700',
@@ -50,8 +50,8 @@ const roleData: RoleDataItem[] = [
     {
         role: 'teacher',
         title: 'Teacher',
-        email: 'teacher@school24.com',
-        password: 'teacher123',
+        email: 'rajesh.kumar@school24.com',
+        password: 'password123',
         icon: BookOpen,
         gradient: 'from-teal-500 via-emerald-500 to-green-600',
         color: 'teal',
@@ -61,8 +61,8 @@ const roleData: RoleDataItem[] = [
     {
         role: 'student',
         title: 'Student',
-        email: 'student@school24.com',
-        password: 'student123',
+        email: 'amit.singh@student.school24.com',
+        password: 'password123',
         icon: Award,
         gradient: 'from-orange-500 via-amber-500 to-yellow-600',
         color: 'orange',
@@ -108,6 +108,7 @@ export default function LoginPage() {
     const [selectedRole, setSelectedRole] = useState<RoleType>('student')
     const [copiedField, setCopiedField] = useState<string | null>(null)
     const [cardClickFeedback, setCardClickFeedback] = useState<RoleType | null>(null)
+    const [rememberMe, setRememberMe] = useState(false)
     const { login } = useAuth()
     const router = useRouter()
 
@@ -131,7 +132,8 @@ export default function LoginPage() {
     const watchedEmail = watch('email')
     const watchedPassword = watch('password')
 
-    // Sync selectedRole based on form email changes
+    // Sync selectedRole based on form email changes (Disabled for honest login - now happens POST-login)
+    /*
     useEffect(() => {
         const matchedRole = getRoleFromEmail(watchedEmail)
         if (matchedRole && matchedRole !== selectedRole) {
@@ -142,125 +144,46 @@ export default function LoginPage() {
             }
         }
     }, [watchedEmail, watchedPassword, selectedRole])
-
-    // Handle clicking a demo credential card
-    const handleRoleChange = useCallback((role: RoleType) => {
-        // Show click feedback animation
-        setCardClickFeedback(role)
-        setTimeout(() => setCardClickFeedback(null), 300)
-
-        // Find the role data
-        const roleInfo = roleData.find(r => r.role === role)
-        if (!roleInfo) return
-
-        // Update selected role state
-        setSelectedRole(role)
-
-        // Reset form with new values and trigger validation
-        reset({
-            email: roleInfo.email,
-            password: roleInfo.password,
-        })
-
-        // Show toast notification
-        toast.success(`${roleInfo.title} credentials loaded!`, {
-            description: 'Form has been auto-filled with demo credentials.',
-            duration: 2000,
-        })
-    }, [reset])
-
-    // Handle copy to clipboard
-    const handleCopy = useCallback(async (text: string, field: string, e: React.MouseEvent) => {
-        e.stopPropagation() // Prevent card click when copying
-        try {
-            await navigator.clipboard.writeText(text)
-            setCopiedField(field)
-            toast.success('Copied to clipboard!')
-            setTimeout(() => setCopiedField(null), 2000)
-        } catch {
-            toast.error('Failed to copy')
-        }
-    }, [])
+    */
 
     // Handle form submission
     const onSubmit = async (data: LoginFormData) => {
         setIsLoading(true)
-
-        // Determine which role is being used based on credentials
-        const matchedRole = roleData.find(r => r.email === data.email && r.password === data.password)
-        if (matchedRole) {
-            setLoadingRole(matchedRole.role)
-        }
+        setLoadingRole(null)
 
         try {
-            const success = await login(data.email, data.password)
-            if (success) {
-                // The login function updates the 'user' state in AuthContext.
-                // We'll use a small timeout to let the state propagate or we could just use the returned success.
-                // However, redirection is actually handled by the redirect logic in AuthContext's useEffect 
-                // but for a faster UX, we can trigger it here too.
+            const user = await login(data.email, data.password, rememberMe)
 
-                toast.success(`Welcome back!`, {
+            if (user) {
+                // Determine which role is being used based on credentials
+                // This triggers the UI transition (icons, gradients) before redirect
+                if (user.role === 'super_admin' || user.role === 'admin') {
+                    setSelectedRole('admin')
+                    setLoadingRole('admin')
+                } else if (user.role === 'teacher') {
+                    setSelectedRole('teacher')
+                    setLoadingRole('teacher')
+                } else if (user.role === 'student') {
+                    setSelectedRole('student')
+                    setLoadingRole('student')
+                }
+
+                toast.success(`Welcome back, ${user.name || 'User'}!`, {
                     description: `Successfully signed in. Accessing your dashboard...`,
                     duration: 3000,
                 })
-            } else {
-                toast.error('Authentication Failed', {
-                    description: 'The credentials provided are incorrect. Please try again.',
-                })
+
+                // Redirection is handled by AuthContext useEffect, 
+                // but we let the UI transition play for a few ms
             }
-        } catch {
-            toast.error('System Error', {
-                description: 'Something went wrong. Please try again later.',
-            })
+        } catch (error: any) {
+            // Error is handled in AuthContext logic now to prevent Turbopack overlay
+            console.error("Login component error:", error)
         } finally {
             setIsLoading(false)
             setLoadingRole(null)
         }
     }
-
-    // Quick login handler - directly logs in with selected role credentials
-    const handleQuickLogin = useCallback(async (role: RoleType, e: React.MouseEvent) => {
-        e.stopPropagation() // Prevent triggering the card click
-
-        const roleInfo = roleData.find(r => r.role === role)
-        if (!roleInfo) return
-
-        setIsLoading(true)
-        setLoadingRole(role)
-        setSelectedRole(role)
-
-        // Update form values
-        reset({
-            email: roleInfo.email,
-            password: roleInfo.password,
-        })
-
-        try {
-            const success = await login(roleInfo.email, roleInfo.password)
-            if (success) {
-                toast.success(`Welcome, ${roleInfo.title}!`, {
-                    description: `Quick login successful. Accessing your dashboard...`,
-                    duration: 3000,
-                })
-
-                setTimeout(() => {
-                    router.push(`/${role}/dashboard`)
-                }, 500)
-            } else {
-                toast.error('Authentication Failed', {
-                    description: 'Quick login failed. Please try manual login.',
-                })
-            }
-        } catch {
-            toast.error('System Error', {
-                description: 'Something went wrong. Please try again later.',
-            })
-        } finally {
-            setIsLoading(false)
-            setLoadingRole(null)
-        }
-    }, [login, router, reset])
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 pt-20 md:pt-28 relative overflow-hidden bg-gradient-to-br from-gray-50 via-gray-100 to-zinc-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
@@ -479,6 +402,8 @@ export default function LoginPage() {
                                         <label className="flex items-center gap-3 cursor-pointer group">
                                             <input
                                                 type="checkbox"
+                                                checked={rememberMe}
+                                                onChange={(e) => setRememberMe(e.target.checked)}
                                                 className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-4 focus:ring-blue-500/30 cursor-pointer transition-all hover:scale-110"
                                             />
                                             <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-medium">
@@ -492,24 +417,20 @@ export default function LoginPage() {
                                         className={`relative w-full h-12 bg-gradient-to-r ${currentRole.gradient} hover:opacity-95 border-0 text-white text-base font-bold shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 overflow-hidden group mt-6 rounded-xl`}
                                         disabled={isLoading}
                                     >
-                                        <span className="relative z-10 flex items-center justify-center gap-3">
+                                        <div className="relative z-10 flex items-center justify-center w-full">
                                             {isLoading ? (
-                                                <>
+                                                <div className="flex items-center gap-3 animate-fade-in">
                                                     <Loader2 className="h-6 w-6 animate-spin" />
-                                                    <span>Signing in...</span>
-                                                </>
+                                                    <span className="tracking-wide">Validating Credentials...</span>
+                                                </div>
                                             ) : (
-                                                <>
+                                                <div className="flex items-center justify-center gap-3 animate-fade-in">
                                                     <span>Sign in as {currentRole.title}</span>
                                                     <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
-                                                </>
+                                                </div>
                                             )}
-                                        </span>
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
-                                        <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                            <div className="absolute inset-0 rounded-xl border-2 border-white/40 animate-pulse" />
                                         </div>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                                     </Button>
                                 </form>
 

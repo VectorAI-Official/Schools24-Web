@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,17 +39,54 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Search, Plus, Package, AlertTriangle, CheckCircle, XCircle, Download, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
-import { mockInventory, InventoryItem } from '@/lib/mockData'
+import { useAuth } from '@/contexts/AuthContext'
+import { InventoryItem } from '@/types'
+import { useCreateInventoryItem, useDeleteInventoryItem, useInventoryItems, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { toast } from 'sonner'
 
 export default function InventoryPage() {
-    const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory)
+    const { user, isLoading, userRole } = useAuth()
+    const searchParams = useSearchParams()
+    const schoolId = searchParams.get('school_id') || undefined
+    const isSuperAdmin = userRole === 'super_admin'
+    const canLoad = !!user && !isLoading && (!isSuperAdmin || !!schoolId)
+
+    const {
+        data: inventoryPages,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInventoryItems(schoolId, 20, { enabled: canLoad })
+    const inventory = useMemo(
+        () => inventoryPages?.pages.flatMap(page => page.items) || [],
+        [inventoryPages]
+    )
+    const createInventoryItem = useCreateInventoryItem(schoolId)
+    const deleteInventoryItem = useDeleteInventoryItem(schoolId)
+    const updateInventoryItem = useUpdateInventoryItem(schoolId)
+
     const [searchQuery, setSearchQuery] = useState('')
     const [categoryFilter, setCategoryFilter] = useState('all')
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [newItem, setNewItem] = useState({ name: '', category: 'Stationery', quantity: 0, unit: 'pcs', minStock: 10, location: '' })
+    const [editItem, setEditItem] = useState<InventoryItem | null>(null)
 
     const categories = [...new Set(inventory.map(item => item.category))]
+
+    const tableContainerRef = useRef<HTMLDivElement | null>(null)
+
+    const handleTableScroll = () => {
+        const el = tableContainerRef.current
+        if (!el || !hasNextPage || isFetchingNextPage) return
+
+        const scrollThreshold = el.scrollHeight * 0.8
+        const currentPosition = el.scrollTop + el.clientHeight
+
+        if (currentPosition >= scrollThreshold) {
+            fetchNextPage()
+        }
+    }
 
     const filteredInventory = inventory.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -73,19 +111,53 @@ export default function InventoryPage() {
         toast.success('Export completed', { description: 'Inventory exported to CSV.' })
     }
 
-    const handleAddItem = () => {
-        if (!newItem.name) { toast.error('Please enter item name'); return }
-        const status = newItem.quantity === 0 ? 'out-of-stock' : newItem.quantity <= newItem.minStock ? 'low-stock' : 'in-stock'
-        const item: InventoryItem = { id: String(inventory.length + 1), ...newItem, lastUpdated: new Date().toISOString().split('T')[0], status }
-        setInventory([...inventory, item])
-        setNewItem({ name: '', category: 'Stationery', quantity: 0, unit: 'pcs', minStock: 10, location: '' })
-        setIsAddDialogOpen(false)
-        toast.success('Item added', { description: `${item.name} added to inventory.` })
+    const handleAddItem = async () => {
+        if (!newItem.name) {
+            toast.error('Please enter item name')
+            return
+        }
+        try {
+            await createInventoryItem.mutateAsync(newItem)
+            setNewItem({ name: '', category: 'Stationery', quantity: 0, unit: 'pcs', minStock: 10, location: '' })
+            setIsAddDialogOpen(false)
+        } catch (error) {
+            // Error handled by mutation
+        }
     }
 
-    const handleDeleteItem = (item: InventoryItem) => {
-        setInventory(inventory.filter(i => i.id !== item.id))
-        toast.success('Item deleted', { description: `${item.name} removed from inventory.` })
+    const handleDeleteItem = async (item: InventoryItem) => {
+        try {
+            await deleteInventoryItem.mutateAsync(item.id)
+        } catch (error) {
+            // Error handled by mutation
+        }
+    }
+
+    const handleEditClick = (item: InventoryItem) => {
+        setEditItem(item)
+        setIsEditDialogOpen(true)
+    }
+
+    const handleUpdateItem = async () => {
+        if (!editItem || !editItem.name) {
+            toast.error('Please enter item name')
+            return
+        }
+        try {
+            await updateInventoryItem.mutateAsync({
+                id: editItem.id,
+                name: editItem.name,
+                category: editItem.category,
+                quantity: editItem.quantity,
+                unit: editItem.unit,
+                minStock: editItem.minStock,
+                location: editItem.location,
+            })
+            setIsEditDialogOpen(false)
+            setEditItem(null)
+        } catch (error) {
+            // Error handled by mutation
+        }
     }
 
     return (
@@ -163,6 +235,67 @@ export default function InventoryPage() {
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
+
+                    {/* Edit Item Dialog */}
+                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Edit Item</DialogTitle>
+                                <DialogDescription>Update inventory item details.</DialogDescription>
+                            </DialogHeader>
+                            {editItem && (
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid gap-2">
+                                        <Label>Item Name *</Label>
+                                        <Input value={editItem.name} onChange={(e) => setEditItem({ ...editItem, name: e.target.value })} placeholder="Enter item name" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label>Category</Label>
+                                            <Select value={editItem.category} onValueChange={(v) => setEditItem({ ...editItem, category: v })}>
+                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Stationery">Stationery</SelectItem>
+                                                    <SelectItem value="Electronics">Electronics</SelectItem>
+                                                    <SelectItem value="Furniture">Furniture</SelectItem>
+                                                    <SelectItem value="Sports Equipment">Sports Equipment</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Location</Label>
+                                            <Input value={editItem.location} onChange={(e) => setEditItem({ ...editItem, location: e.target.value })} placeholder="Store Room A" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label>Quantity</Label>
+                                            <Input type="number" value={editItem.quantity} onChange={(e) => setEditItem({ ...editItem, quantity: Number(e.target.value) })} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Unit</Label>
+                                            <Select value={editItem.unit} onValueChange={(v) => setEditItem({ ...editItem, unit: v })}>
+                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="pcs">pcs</SelectItem>
+                                                    <SelectItem value="boxes">boxes</SelectItem>
+                                                    <SelectItem value="sets">sets</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Min Stock</Label>
+                                            <Input type="number" value={editItem.minStock} onChange={(e) => setEditItem({ ...editItem, minStock: Number(e.target.value) })} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={handleUpdateItem}>Update Item</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 
@@ -175,7 +308,7 @@ export default function InventoryPage() {
                                 <Package className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">{mockInventory.length}</p>
+                                <p className="text-2xl font-bold">{inventory.length}</p>
                                 <p className="text-sm text-muted-foreground">Total Items</p>
                             </div>
                         </div>
@@ -188,7 +321,7 @@ export default function InventoryPage() {
                                 <CheckCircle className="h-6 w-6" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">{mockInventory.filter(i => i.status === 'in-stock').length}</p>
+                                <p className="text-2xl font-bold">{inventory.filter(i => i.status === 'in-stock').length}</p>
                                 <p className="text-sm text-muted-foreground">In Stock</p>
                             </div>
                         </div>
@@ -248,7 +381,12 @@ export default function InventoryPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Table>
+                    <div
+                        ref={tableContainerRef}
+                        onScroll={handleTableScroll}
+                        className="max-h-[520px] overflow-auto"
+                    >
+                        <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Item Name</TableHead>
@@ -289,6 +427,11 @@ export default function InventoryPage() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => handleEditClick(item)}>
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    Edit
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
                                                 <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item)}>
                                                     <Trash2 className="mr-2 h-4 w-4" />
                                                     Delete
@@ -298,8 +441,16 @@ export default function InventoryPage() {
                                     </TableCell>
                                 </TableRow>
                             ))}
+                                {isFetchingNextPage && (
+                                    <TableRow>
+                                        <TableCell colSpan={8} className="text-center text-muted-foreground">
+                                            Loading more items...
+                                        </TableCell>
+                                    </TableRow>
+                                )}
                         </TableBody>
-                    </Table>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>

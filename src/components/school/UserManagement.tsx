@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from 'react'
-import { useParams } from 'next/navigation'
-import { Plus, Search, Edit2, Trash2, MoreVertical, ShieldCheck, Mail, Phone as PhoneIcon, Eye, EyeOff } from 'lucide-react'
-import { useSchoolUsers, useCreateUser, useUpdateUser, useDeleteUser, User } from '@/hooks/useSchools'
+import { useRef, useEffect, useState } from 'react'
+import { Plus, Search, Edit2, Trash2, MoreVertical, Mail, Phone as PhoneIcon, Eye, EyeOff } from 'lucide-react'
+import { useInfiniteSchoolUsers, useCreateUser, useUpdateUser, useDeleteUser, User } from '@/hooks/useSchools'
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { useStudents, useStudentMutations, Student as StudentRecord } from '@/hooks/useAdminStudents'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -21,15 +22,26 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from '@/components/ui/tabs'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -40,10 +52,28 @@ interface UserManagementProps {
 }
 
 export function UserManagement({ role, schoolId }: UserManagementProps) {
-    const { data: usersData, isLoading } = useSchoolUsers(schoolId, role)
+    const {
+        data: usersData,
+        isLoading,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useInfiniteSchoolUsers(schoolId, role, 100)
+
+    const { ref: observerRef, inView } = useIntersectionObserver({
+        threshold: 0,
+    })
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
     const createUserMutation = useCreateUser()
     const updateUserMutation = useUpdateUser()
     const deleteUserMutation = useDeleteUser()
+    const { updateStudent } = useStudentMutations()
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -56,9 +86,53 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
         password: '',
         phone: '',
     })
+    const [studentFormData, setStudentFormData] = useState({
+        // Academic
+        admission_number: '',
+        class_id: '',
+        roll_number: '',
+        section: '',
+        admission_date: '',
+        academic_year: '',
+        // Personal
+        date_of_birth: '',
+        gender: '',
+        blood_group: '',
+        address: '',
+        // Parent & Contact
+        parent_name: '',
+        parent_phone: '',
+        parent_email: '',
+        emergency_contact: '',
+    })
+    const [studentSearch, setStudentSearch] = useState('')
+    const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null)
+
+    const { data: studentsData } = useStudents(studentSearch, 10, schoolId, {
+        enabled: role === 'student' && isDialogOpen && !!studentSearch,
+    })
+    const students = studentsData?.pages.flatMap(page => page.students) || []
 
     const resetForm = () => {
         setFormData({ full_name: '', email: '', password: '', phone: '' })
+        setStudentFormData({
+            admission_number: '',
+            class_id: '',
+            roll_number: '',
+            section: '',
+            admission_date: '',
+            academic_year: '',
+            date_of_birth: '',
+            gender: '',
+            blood_group: '',
+            address: '',
+            parent_name: '',
+            parent_phone: '',
+            parent_email: '',
+            emergency_contact: '',
+        })
+        setStudentSearch('')
+        setSelectedStudent(null)
         setEditingUser(null)
     }
 
@@ -75,32 +149,87 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
             password: '', // Password empty on edit
             phone: user.phone || '',
         })
+        if (role === 'student') {
+            setStudentSearch(user.email)
+        }
         setIsDialogOpen(true)
     }
 
+    useEffect(() => {
+        if (role !== 'student' || !editingUser) return
+
+        const matched = students.find(s => s.user_id === editingUser.id || s.email === editingUser.email)
+        if (!matched) return
+
+        setSelectedStudent(matched)
+        setStudentFormData({
+            admission_number: matched.admission_number || '',
+            class_id: matched.class_id || '',
+            roll_number: matched.roll_number || '',
+            section: matched.section || '',
+            admission_date: matched.admission_date ? matched.admission_date.split('T')[0] : '',
+            academic_year: matched.academic_year || '',
+            date_of_birth: matched.date_of_birth ? matched.date_of_birth.split('T')[0] : '',
+            gender: matched.gender || '',
+            blood_group: matched.blood_group || '',
+            address: matched.address || '',
+            parent_name: matched.parent_name || '',
+            parent_phone: matched.parent_phone || '',
+            parent_email: matched.parent_email || '',
+            emergency_contact: matched.emergency_contact || '',
+        })
+    }, [role, editingUser, students])
+
     const handleSubmit = async () => {
-        if (editingUser) {
-            // Update
-            await updateUserMutation.mutateAsync({
-                id: editingUser.id,
-                full_name: formData.full_name,
-                email: formData.email,
-                phone: formData.phone,
-                password: formData.password || undefined // Only send if changed
-            })
-        } else {
-            // Create
-            await createUserMutation.mutateAsync({
-                school_id: schoolId,
-                role: role,
-                full_name: formData.full_name,
-                email: formData.email,
-                password: formData.password || undefined, // will auto-gen if empty
-                phone: formData.phone
-            })
+        try {
+            if (editingUser) {
+                // Update
+                await updateUserMutation.mutateAsync({
+                    id: editingUser.id,
+                    full_name: formData.full_name,
+                    email: formData.email,
+                    phone: formData.phone,
+                    password: formData.password || undefined // Only send if changed
+                })
+
+                if (role === 'student' && selectedStudent) {
+                    const payload = {
+                        full_name: formData.full_name,
+                        email: formData.email,
+                        admission_number: studentFormData.admission_number,
+                        roll_number: studentFormData.roll_number || undefined,
+                        class_id: studentFormData.class_id || undefined,
+                        section: studentFormData.section || undefined,
+                        admission_date: studentFormData.admission_date || undefined,
+                        academic_year: studentFormData.academic_year || undefined,
+                        date_of_birth: studentFormData.date_of_birth || undefined,
+                        gender: studentFormData.gender || undefined,
+                        blood_group: studentFormData.blood_group || undefined,
+                        address: studentFormData.address || undefined,
+                        parent_name: studentFormData.parent_name || undefined,
+                        parent_phone: studentFormData.parent_phone || undefined,
+                        parent_email: studentFormData.parent_email || undefined,
+                        emergency_contact: studentFormData.emergency_contact || undefined,
+                    }
+                    await updateStudent({ id: selectedStudent.id, data: payload })
+                }
+            } else {
+                // Create
+                await createUserMutation.mutateAsync({
+                    school_id: schoolId,
+                    role: role,
+                    full_name: formData.full_name,
+                    email: formData.email,
+                    password: formData.password || undefined, // will auto-gen if empty
+                    phone: formData.phone
+                })
+            }
+            setIsDialogOpen(false)
+            resetForm()
+        } catch (error) {
+            console.error('User management submission failed:', error)
+            // Error is already toasted by mutation hooks
         }
-        setIsDialogOpen(false)
-        resetForm()
     }
 
     const handleDelete = async (user: User) => {
@@ -119,7 +248,8 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
         }
     }
 
-    const filteredUsers = (usersData?.users || []).filter(user =>
+    const allUsers = usersData?.pages.flatMap(page => page.users) || []
+    const flatUsers = allUsers.filter(user =>
         user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
     ) || []
@@ -142,7 +272,12 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
                 </Button>
             </div>
 
-            <div className="rounded-md border bg-white dark:bg-slate-900">
+            <div className="rounded-md border bg-white dark:bg-slate-900 max-h-[600px] overflow-y-auto" onScroll={(e) => {
+                const bottom = e.currentTarget.scrollHeight - e.currentTarget.scrollTop === e.currentTarget.clientHeight;
+                if (bottom && hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage();
+                }
+            }}>
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -160,59 +295,72 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
                                     <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
                                 </TableRow>
                             ))
-                        ) : filteredUsers.length === 0 ? (
+                        ) : flatUsers.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={3} className="h-24 text-center">
                                     No users found.
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            filteredUsers.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarFallback>{user.full_name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <div className="font-medium">{user.full_name}</div>
-                                                <div className="text-xs text-muted-foreground capitalize">{user.role}</div>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <Mail className="h-3 w-3 text-muted-foreground" />
-                                                {user.email}
-                                            </div>
-                                            {user.phone && (
-                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                    <PhoneIcon className="h-3 w-3" />
-                                                    {user.phone}
+                            <>
+                                {flatUsers.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar>
+                                                    <AvatarFallback>{user.full_name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium">{user.full_name}</div>
+                                                    <div className="text-xs text-muted-foreground capitalize">{user.role}</div>
                                                 </div>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => handleEditClick(user)}>
-                                                    <Edit2 className="h-4 w-4 mr-2" /> Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(user)}>
-                                                    <Trash2 className="h-4 w-4 mr-2" /> Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <Mail className="h-3 w-3 text-muted-foreground" />
+                                                    {user.email}
+                                                </div>
+                                                {user.phone && (
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                        <PhoneIcon className="h-3 w-3" />
+                                                        {user.phone}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => handleEditClick(user)}>
+                                                        <Edit2 className="h-4 w-4 mr-2" /> Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(user)}>
+                                                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {isFetchingNextPage && (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center py-4">
+                                            <div className="flex justify-center items-center gap-2">
+                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                                                Loading more...
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                <TableRow ref={observerRef} />
+                            </>
                         )}
                     </TableBody>
                 </Table>
@@ -281,6 +429,175 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
                             />
                         </div>
                     </div>
+
+                    {editingUser && role === 'student' && (
+                        <div className="space-y-4 pt-2">
+                            <div>
+                                <DialogTitle>Edit Student Details</DialogTitle>
+                                <DialogDescription>
+                                    Update all student information.
+                                </DialogDescription>
+                            </div>
+
+                            <Tabs defaultValue="academic" className="w-full">
+                                <TabsList className="grid w-full grid-cols-3">
+                                    <TabsTrigger value="academic">Academic Info</TabsTrigger>
+                                    <TabsTrigger value="personal">Personal Details</TabsTrigger>
+                                    <TabsTrigger value="parent">Parent & Contact</TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="academic" className="space-y-4 py-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label>Admission Number</Label>
+                                            <Input
+                                                value={studentFormData.admission_number}
+                                                onChange={(e) => setStudentFormData({ ...studentFormData, admission_number: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Class ID</Label>
+                                            <Input
+                                                value={studentFormData.class_id}
+                                                onChange={(e) => setStudentFormData({ ...studentFormData, class_id: e.target.value })}
+                                                placeholder="Class ID"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label>Roll Number</Label>
+                                            <Input
+                                                value={studentFormData.roll_number}
+                                                onChange={(e) => setStudentFormData({ ...studentFormData, roll_number: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Section</Label>
+                                            <Select
+                                                value={studentFormData.section}
+                                                onValueChange={(val) => setStudentFormData({ ...studentFormData, section: val })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Section" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {['A', 'B', 'C', 'D', 'E'].map(s => (
+                                                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label>Admission Date</Label>
+                                            <Input
+                                                type="date"
+                                                value={studentFormData.admission_date}
+                                                onChange={(e) => setStudentFormData({ ...studentFormData, admission_date: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Academic Year</Label>
+                                            <Input
+                                                value={studentFormData.academic_year}
+                                                placeholder="e.g. 2024-2025"
+                                                onChange={(e) => setStudentFormData({ ...studentFormData, academic_year: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="personal" className="space-y-4 py-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label>Date of Birth</Label>
+                                            <Input
+                                                type="date"
+                                                value={studentFormData.date_of_birth}
+                                                onChange={(e) => setStudentFormData({ ...studentFormData, date_of_birth: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Gender</Label>
+                                            <Select
+                                                value={studentFormData.gender}
+                                                onValueChange={(val) => setStudentFormData({ ...studentFormData, gender: val })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Gender" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="male">Male</SelectItem>
+                                                    <SelectItem value="female">Female</SelectItem>
+                                                    <SelectItem value="other">Other</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Blood Group</Label>
+                                        <Select
+                                            value={studentFormData.blood_group}
+                                            onValueChange={(val) => setStudentFormData({ ...studentFormData, blood_group: val })}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(bg => (
+                                                    <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Address</Label>
+                                        <Input
+                                            value={studentFormData.address}
+                                            placeholder="Full residential address"
+                                            onChange={(e) => setStudentFormData({ ...studentFormData, address: e.target.value })}
+                                        />
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="parent" className="space-y-4 py-4">
+                                    <div className="grid gap-2">
+                                        <Label>Parent/Guardian Name</Label>
+                                        <Input
+                                            value={studentFormData.parent_name}
+                                            onChange={(e) => setStudentFormData({ ...studentFormData, parent_name: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label>Parent Phone</Label>
+                                            <Input
+                                                value={studentFormData.parent_phone}
+                                                onChange={(e) => setStudentFormData({ ...studentFormData, parent_phone: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Parent Email</Label>
+                                            <Input
+                                                value={studentFormData.parent_email}
+                                                onChange={(e) => setStudentFormData({ ...studentFormData, parent_email: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Emergency Contact</Label>
+                                        <Input
+                                            value={studentFormData.emergency_contact}
+                                            placeholder="Alternative phone number"
+                                            onChange={(e) => setStudentFormData({ ...studentFormData, emergency_contact: e.target.value })}
+                                        />
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                        </div>
+                    )}
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>

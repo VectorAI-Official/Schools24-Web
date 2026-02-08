@@ -31,6 +31,8 @@ export function formatTime(date: Date | string): string {
 }
 
 export function getInitials(name: string): string {
+    if (!name || typeof name !== 'string') return '??'
+    
     return name
         .split(' ')
         .map(n => n[0])
