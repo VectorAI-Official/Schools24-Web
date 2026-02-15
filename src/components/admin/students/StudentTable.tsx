@@ -49,13 +49,15 @@ interface Student {
 interface StudentTableProps {
     students: Student[]
     totalStudents: number
+    fetchTriggerIndex?: number
+    fetchTriggerRef?: any
     onView: (student: any) => void
     onEdit: (student: any) => void
     onDelete: (student: any) => void
     onToggleFee: (student: any) => void
 }
 
-export function StudentTable({ students, totalStudents, onView, onEdit, onDelete, onToggleFee }: StudentTableProps) {
+export function StudentTable({ students, totalStudents, fetchTriggerIndex, fetchTriggerRef, onView, onEdit, onDelete, onToggleFee }: StudentTableProps) {
     const getFeesBadgeVariant = (status: string) => {
         switch (status) {
             case 'paid':
@@ -79,7 +81,7 @@ export function StudentTable({ students, totalStudents, onView, onEdit, onDelete
                         <TableHead>Roll No</TableHead>
                         <TableHead>Parent</TableHead>
                         <TableHead>Attendance</TableHead>
-                        <TableHead>Grade</TableHead>
+                        <TableHead>Class</TableHead>
                         <TableHead>Fees</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -92,8 +94,8 @@ export function StudentTable({ students, totalStudents, onView, onEdit, onDelete
                             </TableCell>
                         </TableRow>
                     ) : (
-                        students.map((student) => (
-                            <TableRow key={student.id} className="hover:bg-muted/50">
+                        students.map((student, index) => (
+                            <TableRow key={student.id} className="hover:bg-muted/50" ref={index === fetchTriggerIndex ? fetchTriggerRef : undefined}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <Avatar>

@@ -92,6 +92,7 @@ export default function TeachersDetailsPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
     const [newTeacher, setNewTeacher] = useState({
         name: '',
@@ -120,7 +121,7 @@ export default function TeachersDetailsPage() {
     const deleteMutation = useDeleteTeacher()
 
     // Infinite Scroll Logic (Intersection Observer)
-    const { ref: scrollRef, inView } = useIntersectionObserver()
+    const { ref: scrollRef, inView } = useIntersectionObserver({ threshold: 0.1 })
 
     useEffect(() => {
         if (inView && hasNextPage && !isFetchingNextPage) {
@@ -128,13 +129,17 @@ export default function TeachersDetailsPage() {
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    const filteredTeachers = teachers.filter(teacher => {
-        const matchesSearch = !searchQuery ||
-            teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            teacher.email.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesDepartment = departmentFilter === 'all' || teacher.department === departmentFilter
-        return matchesSearch && matchesDepartment
-    })
+    const filteredTeachers = teachers
+        .filter(teacher => {
+            const matchesSearch = !searchQuery ||
+                teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                teacher.email.toLowerCase().includes(searchQuery.toLowerCase())
+            const matchesDepartment = departmentFilter === 'all' || teacher.department === departmentFilter
+            return matchesSearch && matchesDepartment
+        })
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
+
+    const fetchTriggerIndex = filteredTeachers.length > 0 ? Math.max(0, Math.floor(filteredTeachers.length * 0.8) - 1) : -1
 
     const departments = [...new Set(teachers.map(t => t.department))].sort()
 
@@ -393,8 +398,8 @@ export default function TeachersDetailsPage() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredTeachers.map((teacher) => (
-                                        <TableRow key={teacher.id} className="hover:bg-muted/50">
+                                    filteredTeachers.map((teacher, index) => (
+                                        <TableRow key={teacher.id} className="hover:bg-muted/50" ref={index === fetchTriggerIndex ? scrollRef : undefined}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
@@ -483,8 +488,6 @@ export default function TeachersDetailsPage() {
                         </p>
                     </div>
                 </CardContent>
-                {/* Sentinel for infinite scroll */}
-                <div ref={scrollRef} className="h-4 w-full" />
             </Card >
 
             {/* View Dialog */}

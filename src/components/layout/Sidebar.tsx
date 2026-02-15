@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -28,6 +28,7 @@ import {
     GraduationCap,
     ClipboardList,
     BookOpen,
+    BookOpenCheck,
     MessageSquare,
     PenTool,
     Monitor,
@@ -40,6 +41,7 @@ import {
     School,
     Sparkles,
     FileCheck,
+    Trash2,
 } from 'lucide-react'
 
 interface NavItem {
@@ -56,14 +58,12 @@ const adminNavItems: NavItem[] = [
     { title: 'Staff Management', href: '/admin/staff', icon: <UserCog className="h-5 w-5" />, category: 'Management' },
     { title: 'Students Details', href: '/admin/students-details', icon: <GraduationCap className="h-5 w-5" />, category: 'Management' },
     { title: 'Teachers Details', href: '/admin/teachers-details', icon: <School className="h-5 w-5" />, category: 'Management' },
-    { title: 'Attendance', href: '/admin/attendance', icon: <ClipboardList className="h-5 w-5" />, category: 'Operations' },
     { title: 'Bus Routes', href: '/admin/bus-routes', icon: <Bus className="h-5 w-5" />, category: 'Operations' },
     { title: 'Students Timetable', href: '/admin/students-timetable', icon: <Calendar className="h-5 w-5" />, category: 'Operations' },
     { title: 'Teachers Timetable', href: '/admin/teachers-timetable', icon: <CalendarDays className="h-5 w-5" />, category: 'Operations' },
     { title: 'Resource Inventory', href: '/admin/inventory', icon: <Package className="h-5 w-5" />, category: 'Operations' },
     { title: 'Fee Management', href: '/admin/fees', icon: <DollarSign className="h-5 w-5" />, category: 'Finance' },
     { title: 'Event Calendar', href: '/admin/events', icon: <CalendarDays className="h-5 w-5" />, category: 'Events' },
-    { title: 'Question Papers', href: '/admin/question-papers', icon: <FileCheck className="h-5 w-5" />, category: 'Resources' },
     { title: 'Teachers Leaderboard', href: '/admin/teachers-leaderboard', icon: <Trophy className="h-5 w-5" />, category: 'Analytics' },
     { title: 'Students Leaderboard', href: '/admin/students-leaderboard', icon: <Trophy className="h-5 w-5" />, category: 'Analytics' },
     { title: 'Reports', href: '/admin/reports', icon: <FileText className="h-5 w-5" />, category: 'Analytics' },
@@ -76,7 +76,7 @@ const teacherNavItems: NavItem[] = [
     { title: 'Quiz Scheduler', href: '/teacher/quiz-scheduler', icon: <HelpCircle className="h-5 w-5" />, category: 'Teaching' },
     { title: 'Homework', href: '/teacher/homework', icon: <BookOpen className="h-5 w-5" />, category: 'Teaching' },
     { title: 'Materials', href: '/teacher/materials', icon: <FileText className="h-5 w-5" />, category: 'Resources' },
-    { title: 'Question Generator', href: '/teacher/question-generator', icon: <FileQuestion className="h-5 w-5" />, category: 'Resources' },
+    { title: 'Question Uploader', href: '/teacher/question-generator', icon: <FileQuestion className="h-5 w-5" />, category: 'Resources' },
     { title: 'Question Papers', href: '/teacher/question-papers', icon: <FileCheck className="h-5 w-5" />, category: 'Resources' },
     { title: 'Students Timetable', href: '/teacher/students-timetable', icon: <Calendar className="h-5 w-5" />, category: 'Schedule' },
     { title: 'Teachers Timetable', href: '/teacher/teachers-timetable', icon: <CalendarDays className="h-5 w-5" />, category: 'Schedule' },
@@ -98,9 +98,19 @@ const studentNavItems: NavItem[] = [
     { title: 'Reports', href: '/student/reports', icon: <FileText className="h-5 w-5" />, category: 'Records' },
 ]
 
+const superAdminNavItems: NavItem[] = [
+    { title: 'Schools', href: '/super-admin?tab=schools', icon: <School className="h-5 w-5" />, category: 'Overview' },
+    { title: 'Catalog', href: '/super-admin?tab=catalog', icon: <BookOpen className="h-5 w-5" />, category: 'Overview' },
+    { title: 'Question Uploader', href: '/super-admin?tab=question-uploader', icon: <FileQuestion className="h-5 w-5" />, category: 'Resources' },
+    { title: 'Materials', href: '/super-admin?tab=materials', icon: <BookOpenCheck className="h-5 w-5" />, category: 'Resources' },
+    { title: 'Settings', href: '/super-admin?tab=settings', icon: <Settings className="h-5 w-5" />, category: 'Management' },
+    { title: 'Trash', href: '/super-admin?tab=trash', icon: <Trash2 className="h-5 w-5" />, category: 'Management' },
+]
+
 export function Sidebar() {
     const [collapsed, setCollapsed] = useState(false)
     const pathname = usePathname()
+    const searchParams = useSearchParams()
     const { userRole } = useAuth()
 
     // Collapse sidebar on mobile by default
@@ -122,8 +132,9 @@ export function Sidebar() {
     const getNavItems = (): NavItem[] => {
         switch (userRole) {
             case 'admin':
-            case 'super_admin':
                 return adminNavItems
+            case 'super_admin':
+                return superAdminNavItems
             case 'teacher':
                 return teacherNavItems
             case 'student':
@@ -133,11 +144,31 @@ export function Sidebar() {
         }
     }
 
+    const isNavItemActive = (href: string) => {
+        if (!href.includes('?')) {
+            return pathname === href
+        }
+
+        const [targetPath, query] = href.split('?')
+        if (pathname !== targetPath) return false
+
+        const params = new URLSearchParams(query)
+        for (const [key, value] of params.entries()) {
+            if (searchParams.get(key) !== value) return false
+        }
+        return true
+    }
+
     const roleConfig = {
         admin: {
             gradient: 'from-violet-600 via-purple-600 to-indigo-600',
             accentColor: 'violet',
             glowColor: 'rgba(139, 92, 246, 0.3)',
+        },
+        super_admin: {
+            gradient: 'from-rose-600 via-red-600 to-orange-500',
+            accentColor: 'rose',
+            glowColor: 'rgba(225, 29, 72, 0.3)',
         },
         teacher: {
             gradient: 'from-emerald-500 via-teal-500 to-cyan-600',
@@ -230,7 +261,7 @@ export function Sidebar() {
                                     <Separator className="my-2" />
                                 )}
                                 {items.map((item) => {
-                                    const isActive = pathname === item.href
+                                    const isActive = isNavItemActive(item.href)
 
                                     if (collapsed) {
                                         return (

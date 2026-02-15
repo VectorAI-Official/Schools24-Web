@@ -6,7 +6,7 @@ export interface AdminUser {
     id: string;
     email: string;
     full_name: string;
-    role: 'super_admin' | 'admin' | 'teacher' | 'student';
+    role: 'super_admin' | 'admin' | 'teacher' | 'student' | 'staff';
     phone?: string;
     created_at: string;
     last_login?: string;
@@ -43,6 +43,8 @@ interface UpdateUserParams {
     full_name?: string;
     role?: string;
     phone?: string;
+    department?: string;
+    password?: string;
 }
 
 export function useUsers(role: string = 'all', search: string = '', pageSize: number = 20) {
@@ -57,9 +59,10 @@ export function useUsers(role: string = 'all', search: string = '', pageSize: nu
             return api.get<UsersResponse>(`/admin/users?${params.toString()}`);
         },
         initialPageParam: 1,
-        getNextPageParam: (lastPage) => {
+        getNextPageParam: (lastPage, allPages) => {
             const totalPages = Math.ceil(lastPage.total / lastPage.page_size);
-            return lastPage.page < totalPages ? lastPage.page + 1 : undefined;
+            const nextPage = allPages.length + 1;
+            return nextPage <= totalPages ? nextPage : undefined;
         }
     });
 }

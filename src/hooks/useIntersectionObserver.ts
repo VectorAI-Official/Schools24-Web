@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface UseIntersectionObserverProps {
     threshold?: number
@@ -11,10 +11,19 @@ export function useIntersectionObserver({
     root = null,
     rootMargin = '0%',
 }: UseIntersectionObserverProps = {}) {
-    const ref = useRef<any>(null)
+    const [node, setNode] = useState<Element | null>(null)
     const [inView, setInView] = useState(false)
 
+    const ref = useCallback((element: Element | null) => {
+        setNode(element)
+    }, [])
+
     useEffect(() => {
+        if (!node) {
+            setInView(false)
+            return
+        }
+
         const observer = new IntersectionObserver(
             ([entry]) => {
                 setInView(entry.isIntersecting)
@@ -26,18 +35,13 @@ export function useIntersectionObserver({
             }
         )
 
-        const currentRef = ref.current
-
-        if (currentRef) {
-            observer.observe(currentRef)
-        }
+        observer.observe(node)
 
         return () => {
-            if (currentRef) {
-                observer.unobserve(currentRef)
-            }
+            observer.unobserve(node)
+            observer.disconnect()
         }
-    }, [threshold, root, rootMargin])
+    }, [node, threshold, root, rootMargin])
 
     return { ref, inView }
 }

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, Calendar, Clock, FileText, Users, Edit, Trash2 } from 'lucide-react'
 import { mockQuizzes } from '@/lib/mockData'
+import { SUBJECTS_LIST } from '@/lib/constants'
 
 export default function ExamSchedulerPage() {
     const exams = [
@@ -36,7 +37,7 @@ export default function ExamSchedulerPage() {
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2"><Label>Exam Title</Label><Input placeholder="Enter exam title" /></div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2"><Label>Subject</Label><Select><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="math">Mathematics</SelectItem><SelectItem value="science">Science</SelectItem></SelectContent></Select></div>
+                                <div className="grid gap-2"><Label>Subject</Label><Select><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent>{SUBJECTS_LIST.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
                                 <div className="grid gap-2"><Label>Class</Label><Select><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="10-A">10-A</SelectItem><SelectItem value="10-B">10-B</SelectItem></SelectContent></Select></div>
                             </div>
                             <div className="grid grid-cols-3 gap-4">

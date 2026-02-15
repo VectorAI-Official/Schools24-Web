@@ -1,10 +1,9 @@
 "use client"
 
-import { useRef, useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Search, Edit2, Trash2, MoreVertical, Mail, Phone as PhoneIcon, Eye, EyeOff } from 'lucide-react'
 import { useInfiniteSchoolUsers, useCreateUser, useUpdateUser, useDeleteUser, User } from '@/hooks/useSchools'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
-import { useStudents, useStudentMutations, Student as StudentRecord } from '@/hooks/useAdminStudents'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -23,19 +22,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from '@/components/ui/tabs'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -73,7 +60,6 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
     const createUserMutation = useCreateUser()
     const updateUserMutation = useUpdateUser()
     const deleteUserMutation = useDeleteUser()
-    const { updateStudent } = useStudentMutations()
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -86,53 +72,10 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
         password: '',
         phone: '',
     })
-    const [studentFormData, setStudentFormData] = useState({
-        // Academic
-        admission_number: '',
-        class_id: '',
-        roll_number: '',
-        section: '',
-        admission_date: '',
-        academic_year: '',
-        // Personal
-        date_of_birth: '',
-        gender: '',
-        blood_group: '',
-        address: '',
-        // Parent & Contact
-        parent_name: '',
-        parent_phone: '',
-        parent_email: '',
-        emergency_contact: '',
-    })
-    const [studentSearch, setStudentSearch] = useState('')
-    const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null)
 
-    const { data: studentsData } = useStudents(studentSearch, 10, schoolId, {
-        enabled: role === 'student' && isDialogOpen && !!studentSearch,
-    })
-    const students = studentsData?.pages.flatMap(page => page.students) || []
 
     const resetForm = () => {
         setFormData({ full_name: '', email: '', password: '', phone: '' })
-        setStudentFormData({
-            admission_number: '',
-            class_id: '',
-            roll_number: '',
-            section: '',
-            admission_date: '',
-            academic_year: '',
-            date_of_birth: '',
-            gender: '',
-            blood_group: '',
-            address: '',
-            parent_name: '',
-            parent_phone: '',
-            parent_email: '',
-            emergency_contact: '',
-        })
-        setStudentSearch('')
-        setSelectedStudent(null)
         setEditingUser(null)
     }
 
@@ -149,78 +92,43 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
             password: '', // Password empty on edit
             phone: user.phone || '',
         })
-        if (role === 'student') {
-            setStudentSearch(user.email)
-        }
         setIsDialogOpen(true)
     }
 
-    useEffect(() => {
-        if (role !== 'student' || !editingUser) return
 
-        const matched = students.find(s => s.user_id === editingUser.id || s.email === editingUser.email)
-        if (!matched) return
-
-        setSelectedStudent(matched)
-        setStudentFormData({
-            admission_number: matched.admission_number || '',
-            class_id: matched.class_id || '',
-            roll_number: matched.roll_number || '',
-            section: matched.section || '',
-            admission_date: matched.admission_date ? matched.admission_date.split('T')[0] : '',
-            academic_year: matched.academic_year || '',
-            date_of_birth: matched.date_of_birth ? matched.date_of_birth.split('T')[0] : '',
-            gender: matched.gender || '',
-            blood_group: matched.blood_group || '',
-            address: matched.address || '',
-            parent_name: matched.parent_name || '',
-            parent_phone: matched.parent_phone || '',
-            parent_email: matched.parent_email || '',
-            emergency_contact: matched.emergency_contact || '',
-        })
-    }, [role, editingUser, students])
 
     const handleSubmit = async () => {
         try {
             if (editingUser) {
+                if (formData.password && formData.password.length < 6) {
+                    alert('Password must be at least 6 characters.')
+                    return
+                }
                 // Update
                 await updateUserMutation.mutateAsync({
                     id: editingUser.id,
+                    school_id: schoolId,
                     full_name: formData.full_name,
                     email: formData.email,
                     phone: formData.phone,
                     password: formData.password || undefined // Only send if changed
                 })
-
-                if (role === 'student' && selectedStudent) {
-                    const payload = {
-                        full_name: formData.full_name,
-                        email: formData.email,
-                        admission_number: studentFormData.admission_number,
-                        roll_number: studentFormData.roll_number || undefined,
-                        class_id: studentFormData.class_id || undefined,
-                        section: studentFormData.section || undefined,
-                        admission_date: studentFormData.admission_date || undefined,
-                        academic_year: studentFormData.academic_year || undefined,
-                        date_of_birth: studentFormData.date_of_birth || undefined,
-                        gender: studentFormData.gender || undefined,
-                        blood_group: studentFormData.blood_group || undefined,
-                        address: studentFormData.address || undefined,
-                        parent_name: studentFormData.parent_name || undefined,
-                        parent_phone: studentFormData.parent_phone || undefined,
-                        parent_email: studentFormData.parent_email || undefined,
-                        emergency_contact: studentFormData.emergency_contact || undefined,
-                    }
-                    await updateStudent({ id: selectedStudent.id, data: payload })
-                }
             } else {
+                if (!formData.password) {
+                    alert('Password is required when creating a user.')
+                    return
+                }
+                if (formData.password.length < 6) {
+                    alert('Password must be at least 6 characters.')
+                    return
+                }
                 // Create
                 await createUserMutation.mutateAsync({
                     school_id: schoolId,
                     role: role,
                     full_name: formData.full_name,
                     email: formData.email,
-                    password: formData.password || undefined, // will auto-gen if empty
+                    password: formData.password,
                     phone: formData.phone
                 })
             }
@@ -240,7 +148,7 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
 
         if (confirm(`Are you sure you want to delete ${user.full_name}? This action is permanent.`)) {
             try {
-                await deleteUserMutation.mutateAsync(user.id)
+                await deleteUserMutation.mutateAsync({ userId: user.id, schoolId: schoolId })
             } catch (err) {
                 // Error already handled in hook (onError)
                 console.warn('Silent deletion error (likely already deleted):', err)
@@ -368,7 +276,7 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
 
             {/* Add/Edit Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-                <DialogContent>
+                <DialogContent className="max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>{editingUser ? 'Edit User' : `Add New ${role.charAt(0).toUpperCase() + role.slice(1)}`}</DialogTitle>
                         <DialogDescription>
@@ -402,22 +310,21 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
                                     type={showPassword ? "text" : "password"}
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    placeholder={editingUser ? "Unchanged" : "Auto-generated if empty"}
+                                    placeholder={editingUser ? "Leave empty to keep current" : "Minimum 6 characters"}
                                     className="pr-10"
                                 />
-                                <Button
+                                <button
                                     type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
                                     onClick={() => setShowPassword(!showPassword)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                     {showPassword ? (
                                         <EyeOff className="h-4 w-4 text-muted-foreground" />
                                     ) : (
                                         <Eye className="h-4 w-4 text-muted-foreground" />
                                     )}
-                                </Button>
+                                </button>
                             </div>
                         </div>
                         <div className="grid gap-2">
@@ -430,174 +337,7 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
                         </div>
                     </div>
 
-                    {editingUser && role === 'student' && (
-                        <div className="space-y-4 pt-2">
-                            <div>
-                                <DialogTitle>Edit Student Details</DialogTitle>
-                                <DialogDescription>
-                                    Update all student information.
-                                </DialogDescription>
-                            </div>
 
-                            <Tabs defaultValue="academic" className="w-full">
-                                <TabsList className="grid w-full grid-cols-3">
-                                    <TabsTrigger value="academic">Academic Info</TabsTrigger>
-                                    <TabsTrigger value="personal">Personal Details</TabsTrigger>
-                                    <TabsTrigger value="parent">Parent & Contact</TabsTrigger>
-                                </TabsList>
-
-                                <TabsContent value="academic" className="space-y-4 py-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="grid gap-2">
-                                            <Label>Admission Number</Label>
-                                            <Input
-                                                value={studentFormData.admission_number}
-                                                onChange={(e) => setStudentFormData({ ...studentFormData, admission_number: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Class ID</Label>
-                                            <Input
-                                                value={studentFormData.class_id}
-                                                onChange={(e) => setStudentFormData({ ...studentFormData, class_id: e.target.value })}
-                                                placeholder="Class ID"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="grid gap-2">
-                                            <Label>Roll Number</Label>
-                                            <Input
-                                                value={studentFormData.roll_number}
-                                                onChange={(e) => setStudentFormData({ ...studentFormData, roll_number: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Section</Label>
-                                            <Select
-                                                value={studentFormData.section}
-                                                onValueChange={(val) => setStudentFormData({ ...studentFormData, section: val })}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Section" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {['A', 'B', 'C', 'D', 'E'].map(s => (
-                                                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="grid gap-2">
-                                            <Label>Admission Date</Label>
-                                            <Input
-                                                type="date"
-                                                value={studentFormData.admission_date}
-                                                onChange={(e) => setStudentFormData({ ...studentFormData, admission_date: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Academic Year</Label>
-                                            <Input
-                                                value={studentFormData.academic_year}
-                                                placeholder="e.g. 2024-2025"
-                                                onChange={(e) => setStudentFormData({ ...studentFormData, academic_year: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-                                </TabsContent>
-
-                                <TabsContent value="personal" className="space-y-4 py-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="grid gap-2">
-                                            <Label>Date of Birth</Label>
-                                            <Input
-                                                type="date"
-                                                value={studentFormData.date_of_birth}
-                                                onChange={(e) => setStudentFormData({ ...studentFormData, date_of_birth: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Gender</Label>
-                                            <Select
-                                                value={studentFormData.gender}
-                                                onValueChange={(val) => setStudentFormData({ ...studentFormData, gender: val })}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Gender" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="male">Male</SelectItem>
-                                                    <SelectItem value="female">Female</SelectItem>
-                                                    <SelectItem value="other">Other</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label>Blood Group</Label>
-                                        <Select
-                                            value={studentFormData.blood_group}
-                                            onValueChange={(val) => setStudentFormData({ ...studentFormData, blood_group: val })}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(bg => (
-                                                    <SelectItem key={bg} value={bg}>{bg}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label>Address</Label>
-                                        <Input
-                                            value={studentFormData.address}
-                                            placeholder="Full residential address"
-                                            onChange={(e) => setStudentFormData({ ...studentFormData, address: e.target.value })}
-                                        />
-                                    </div>
-                                </TabsContent>
-
-                                <TabsContent value="parent" className="space-y-4 py-4">
-                                    <div className="grid gap-2">
-                                        <Label>Parent/Guardian Name</Label>
-                                        <Input
-                                            value={studentFormData.parent_name}
-                                            onChange={(e) => setStudentFormData({ ...studentFormData, parent_name: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="grid gap-2">
-                                            <Label>Parent Phone</Label>
-                                            <Input
-                                                value={studentFormData.parent_phone}
-                                                onChange={(e) => setStudentFormData({ ...studentFormData, parent_phone: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Parent Email</Label>
-                                            <Input
-                                                value={studentFormData.parent_email}
-                                                onChange={(e) => setStudentFormData({ ...studentFormData, parent_email: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label>Emergency Contact</Label>
-                                        <Input
-                                            value={studentFormData.emergency_contact}
-                                            placeholder="Alternative phone number"
-                                            onChange={(e) => setStudentFormData({ ...studentFormData, emergency_contact: e.target.value })}
-                                        />
-                                    </div>
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-                    )}
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>

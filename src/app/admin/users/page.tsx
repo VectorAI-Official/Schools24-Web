@@ -71,13 +71,17 @@ import {
     Loader2,
     Check,
     X,
-    Minus
+    Minus,
+    EyeOff
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useUsers, useUserStats, useCreateUser, useUpdateUser, useDeleteUser, AdminUser } from '@/hooks/useAdminUsers'
 import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, SchoolClass } from '@/hooks/useClasses'
+import { useAdminCatalogClasses } from '@/hooks/useAdminCatalogClasses'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 // import { useDebounce } from '@/hooks/useDebounce'
 // I will just use simple useEffect debounce or just separate state for debounced search.
 import { useEffect } from 'react'
@@ -137,6 +141,17 @@ const getAcademicYears = () => {
     return years
 }
 
+const parseGradeFromClassName = (name: string): number | null => {
+    const normalized = name.trim().toUpperCase()
+    if (normalized === 'LKG') return -1
+    if (normalized === 'UKG') return 0
+    const match = name.match(/\d+/)
+    if (!match) return null
+    const parsed = parseInt(match[0], 10)
+    if (Number.isNaN(parsed) || parsed < 1) return null
+    return parsed
+}
+
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -145,6 +160,10 @@ export default function UsersPage() {
     const [academicYear, setAcademicYear] = useState(getCurrentAcademicYear())
     const [newGrade, setNewGrade] = useState<number | null>(null)
     const [editingSection, setEditingSection] = useState<{ id: string; value: string } | null>(null)
+    const [isInchargeDialogOpen, setIsInchargeDialogOpen] = useState(false)
+    const [selectedClassForIncharge, setSelectedClassForIncharge] = useState<SchoolClass | null>(null)
+    const [teacherSearch, setTeacherSearch] = useState('')
+    const [debouncedTeacherSearch, setDebouncedTeacherSearch] = useState('')
 
     // Pagination state
     const pageSize = 20
@@ -156,6 +175,13 @@ export default function UsersPage() {
         }, 500)
         return () => clearTimeout(timer)
     }, [searchQuery])
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedTeacherSearch(teacherSearch)
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [teacherSearch])
 
     // Queries
     const {
@@ -170,21 +196,64 @@ export default function UsersPage() {
     const { data: statsData, isLoading: statsLoading } = useUserStats()
 
     const { data: classesData, isLoading: classesLoading } = useClasses(academicYear)
+    const { data: catalogClassesData } = useAdminCatalogClasses(true)
     const createClass = useCreateClass()
     const updateClass = useUpdateClass()
     const deleteClass = useDeleteClass()
+
+    const { data: classInchargeTeachers = [], isLoading: isClassInchargeTeachersLoading } = useQuery({
+        queryKey: ['class-incharge-teachers', debouncedTeacherSearch, isInchargeDialogOpen],
+        enabled: isInchargeDialogOpen,
+        queryFn: async () => {
+            const params = new URLSearchParams()
+            if (debouncedTeacherSearch) params.append('search', debouncedTeacherSearch)
+            params.append('page', '1')
+            params.append('page_size', '20')
+            params.append('status', 'active')
+
+            const response = await api.get<{ teachers: Array<{ id: string; name: string; email: string; department?: string | null }> }>(
+                `/admin/teachers?${params.toString()}`
+            )
+            return response.teachers || []
+        },
+        staleTime: 30 * 1000,
+    })
 
     // Mutations
     const createUser = useCreateUser()
     const updateUser = useUpdateUser()
     const deleteUser = useDeleteUser()
 
-    const users = data?.pages.flatMap(page => page.users) || []
+    const users = useMemo(() => {
+        const allUsers = data?.pages.flatMap(page => page.users) || []
+        const seen = new Set<string>()
+        const uniqueUsers: AdminUser[] = []
+
+        for (const user of allUsers) {
+            if (!user?.id || seen.has(user.id)) continue
+            seen.add(user.id)
+            uniqueUsers.push(user)
+        }
+
+        return uniqueUsers.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', undefined, { sensitivity: 'base' }))
+    }, [data])
     const totalUsersCount = data?.pages[0]?.total || 0
     const classes = classesData?.classes || []
+    const catalogClasses = catalogClassesData?.classes || []
+
+    const catalogClassNameByGrade = useMemo(() => {
+        const map = new Map<number, string>()
+        for (const item of catalogClasses) {
+            const grade = parseGradeFromClassName(item.name)
+            if (grade !== null && !map.has(grade)) {
+                map.set(grade, item.name)
+            }
+        }
+        return map
+    }, [catalogClasses])
 
     // Infinite Scroll Logic (Intersection Observer)
-    const { ref: scrollRef, inView } = useIntersectionObserver()
+    const { ref: scrollRef, inView } = useIntersectionObserver({ threshold: 0.1 })
 
     useEffect(() => {
         if (inView && hasNextPage && !isFetchingNextPage) {
@@ -192,6 +261,7 @@ export default function UsersPage() {
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
     const filteredUsers = users
+    const fetchTriggerIndex = filteredUsers.length > 0 ? Math.max(0, Math.floor(filteredUsers.length * 0.8) - 1) : -1
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -204,13 +274,18 @@ export default function UsersPage() {
         role: string;
         phone: string;
         department: string;
+        password: string;
     }>({
         name: '',
         email: '',
         role: 'student',
         phone: '',
-        department: ''
+        department: '',
+        password: ''
     })
+    const [editPassword, setEditPassword] = useState('')
+    const [showAddPassword, setShowAddPassword] = useState(false)
+    const [showEditPassword, setShowEditPassword] = useState(false)
 
     // Computed Stats (Naive implementation based on current view or basic assumption)
     // Real stats should come from Dashboard API.
@@ -233,6 +308,13 @@ export default function UsersPage() {
     const handleEditUser = () => {
         if (!selectedUser) return
 
+        if (editPassword && editPassword.length < 6) {
+            toast.error('Invalid password', {
+                description: 'Password must be at least 6 characters'
+            })
+            return
+        }
+
         updateUser.mutate({
             id: selectedUser.id,
             full_name: selectedUser.full_name,
@@ -240,15 +322,27 @@ export default function UsersPage() {
             role: selectedUser.role,
             phone: selectedUser.phone,
             department: selectedUser.department,
+            password: editPassword || undefined,
         }, {
-            onSuccess: () => setIsEditDialogOpen(false)
+            onSuccess: () => {
+                setIsEditDialogOpen(false)
+                setEditPassword('')
+                setShowEditPassword(false)
+            }
         })
     }
 
     const handleAddUser = () => {
-        if (!newUser.name || !newUser.email) {
+        if (!newUser.name || !newUser.email || !newUser.password) {
             toast.error('Missing fields', {
-                description: 'Please fill in Name and Email'
+                description: 'Please fill in Name, Email, and Password'
+            })
+            return
+        }
+
+        if (newUser.password.length < 6) {
+            toast.error('Invalid password', {
+                description: 'Password must be at least 6 characters'
             })
             return
         }
@@ -259,7 +353,7 @@ export default function UsersPage() {
             role: newUser.role,
             phone: newUser.phone,
             department: newUser.department,
-            // password auto-generated by backend
+            password: newUser.password,
         }, {
             onSuccess: () => {
                 setIsAddDialogOpen(false)
@@ -268,8 +362,10 @@ export default function UsersPage() {
                     email: '',
                     role: 'student',
                     phone: '',
-                    department: ''
+                    department: '',
+                    password: ''
                 })
+                setShowAddPassword(false)
             }
         })
     }
@@ -350,17 +446,24 @@ export default function UsersPage() {
     }, [classes])
 
     const availableGrades = useMemo(() => {
-        const all = Array.from({ length: 12 }, (_, i) => i + 1)
+        const all = Array.from(
+            new Set(
+                catalogClasses
+                    .map((item) => parseGradeFromClassName(item.name))
+                    .filter((grade): grade is number => grade !== null)
+            )
+        ).sort((a, b) => a - b)
         const existing = new Set(classes.map(c => c.grade))
         return all.filter(g => !existing.has(g))
-    }, [classes])
+    }, [catalogClasses, classes])
 
     const handleAddSection = (grade: number) => {
         const gradeClasses = classesByGrade.get(grade) || []
         const existingLabels = gradeClasses.map(c => c.section || '')
         const nextLabel = getNextSectionLabel(existingLabels)
+        const className = catalogClassNameByGrade.get(grade) || `Class ${grade}`
         createClass.mutate({
-            name: `Grade ${grade}`,
+            name: className,
             grade,
             section: nextLabel,
             academic_year: academicYear,
@@ -397,6 +500,39 @@ export default function UsersPage() {
         if (!newGrade) return
         handleAddSection(newGrade)
         setNewGrade(null)
+    }
+
+    const openInchargeDialog = (cls: SchoolClass) => {
+        setSelectedClassForIncharge(cls)
+        setTeacherSearch('')
+        setDebouncedTeacherSearch('')
+        setIsInchargeDialogOpen(true)
+    }
+
+    const handleAssignIncharge = (teacherId: string) => {
+        if (!selectedClassForIncharge) return
+        updateClass.mutate(
+            { id: selectedClassForIncharge.id, class_teacher_id: teacherId },
+            {
+                onSuccess: () => {
+                    setIsInchargeDialogOpen(false)
+                    setSelectedClassForIncharge(null)
+                }
+            }
+        )
+    }
+
+    const handleClearIncharge = () => {
+        if (!selectedClassForIncharge) return
+        updateClass.mutate(
+            { id: selectedClassForIncharge.id, class_teacher_id: '' },
+            {
+                onSuccess: () => {
+                    setIsInchargeDialogOpen(false)
+                    setSelectedClassForIncharge(null)
+                }
+            }
+        )
     }
 
     return (
@@ -551,8 +687,8 @@ export default function UsersPage() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredUsers.map((user) => (
-                                        <TableRow key={user.id} className="hover:bg-muted/50">
+                                    filteredUsers.map((user, index) => (
+                                        <TableRow key={user.id} className="hover:bg-muted/50" ref={index === fetchTriggerIndex ? scrollRef : undefined}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
@@ -604,6 +740,7 @@ export default function UsersPage() {
                                                         <DropdownMenuItem
                                                             onClick={() => {
                                                                 setSelectedUser(user)
+                                                                setEditPassword('')
                                                                 setIsEditDialogOpen(true)
                                                             }}
                                                         >
@@ -640,8 +777,6 @@ export default function UsersPage() {
                                 Loading more...
                             </div>
                         )}
-                        {/* Sentinel for infinite scroll */}
-                        <div ref={scrollRef} className="h-4 w-full" />
                     </div>
                 </CardContent>
             </Card>
@@ -677,7 +812,7 @@ export default function UsersPage() {
                                 onValueChange={(value) => setNewGrade(parseInt(value, 10))}
                             >
                                 <SelectTrigger className="w-[140px]">
-                                    <SelectValue placeholder="Add Grade" />
+                                    <SelectValue placeholder="Add Class" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {availableGrades.length === 0 && (
@@ -685,7 +820,7 @@ export default function UsersPage() {
                                     )}
                                     {availableGrades.map(grade => (
                                         <SelectItem key={grade} value={grade.toString()}>
-                                            Grade {grade}
+                                            {catalogClassNameByGrade.get(grade) || `Class ${grade}`}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -695,10 +830,13 @@ export default function UsersPage() {
                                 disabled={!newGrade || createClass.isPending}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
-                                Add Grade
+                                Add Class
                             </Button>
                         </div>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                        Class options are loaded from centralized backend catalog.
+                    </p>
 
                     <ScrollArea className="h-[420px] pr-4">
                         <div className="space-y-4">
@@ -709,7 +847,7 @@ export default function UsersPage() {
                                 </div>
                             ) : classesByGrade.size === 0 ? (
                                 <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                                    No classes found for this academic year. Add a grade to get started.
+                                    No classes found for this academic year. Add a class to get started.
                                 </div>
                             ) : (
                                 Array.from(classesByGrade.entries())
@@ -718,8 +856,10 @@ export default function UsersPage() {
                                         <div key={grade} className="rounded-lg border p-4">
                                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                                                 <div>
-                                                    <p className="text-sm text-muted-foreground">Grade</p>
-                                                    <p className="text-lg font-semibold">Grade {grade}</p>
+                                                    <p className="text-sm text-muted-foreground">Class</p>
+                                                    <p className="text-lg font-semibold">
+                                                        {gradeClasses[0]?.name || catalogClassNameByGrade.get(grade) || `Class ${grade}`}
+                                                    </p>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Button
@@ -745,7 +885,7 @@ export default function UsersPage() {
 
                                             <div className="mt-4 flex flex-wrap gap-2">
                                                 {gradeClasses.map((cls) => (
-                                                    <div key={cls.id} className="flex items-center gap-2 rounded-full border px-3 py-1 text-sm">
+                                                    <div key={cls.id} className="flex items-center gap-3 rounded-lg border px-3 py-2 text-sm">
                                                         {editingSection?.id === cls.id ? (
                                                             <>
                                                                 <Input
@@ -787,6 +927,13 @@ export default function UsersPage() {
                                                                 >
                                                                     <X className="h-4 w-4" />
                                                                 </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant={cls.class_teacher_id ? "default" : "outline"}
+                                                                    onClick={() => openInchargeDialog(cls)}
+                                                                >
+                                                                    {cls.class_teacher_name?.trim() || 'Not Assigned'}
+                                                                </Button>
                                                             </>
                                                         )}
                                                     </div>
@@ -803,6 +950,85 @@ export default function UsersPage() {
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsClassDialogOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isInchargeDialogOpen}
+                onOpenChange={(open) => {
+                    setIsInchargeDialogOpen(open)
+                    if (!open) {
+                        setSelectedClassForIncharge(null)
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-[560px]">
+                    <DialogHeader>
+                        <DialogTitle>Assign Class Incharge</DialogTitle>
+                        <DialogDescription>
+                            {selectedClassForIncharge
+                                ? `Class ${selectedClassForIncharge.grade}${selectedClassForIncharge.section ? `-${selectedClassForIncharge.section}` : ''}`
+                                : 'Select a teacher for this class'}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-3">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Search teacher by name or email"
+                                value={teacherSearch}
+                                onChange={(e) => setTeacherSearch(e.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
+
+                        <ScrollArea className="h-[260px] rounded-md border">
+                            <div className="p-2 space-y-2">
+                                {isClassInchargeTeachersLoading ? (
+                                    <div className="flex items-center justify-center py-8 text-muted-foreground">
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Loading teachers...
+                                    </div>
+                                ) : classInchargeTeachers.length === 0 ? (
+                                    <div className="py-8 text-center text-sm text-muted-foreground">
+                                        No teachers found.
+                                    </div>
+                                ) : (
+                                    classInchargeTeachers.map((teacher) => (
+                                        <div key={teacher.id} className="flex items-center justify-between rounded-md border p-3">
+                                            <div>
+                                                <p className="font-medium">{teacher.name}</p>
+                                                <p className="text-xs text-muted-foreground">{teacher.email}</p>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleAssignIncharge(teacher.id)}
+                                                disabled={updateClass.isPending}
+                                            >
+                                                Select
+                                            </Button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        {selectedClassForIncharge?.class_teacher_id && (
+                            <Button
+                                variant="outline"
+                                onClick={handleClearIncharge}
+                                disabled={updateClass.isPending}
+                            >
+                                Not Assigned
+                            </Button>
+                        )}
+                        <Button variant="outline" onClick={() => setIsInchargeDialogOpen(false)}>
                             Close
                         </Button>
                     </DialogFooter>
@@ -856,7 +1082,16 @@ export default function UsersPage() {
             </Dialog>
 
             {/* Edit Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <Dialog
+                open={isEditDialogOpen}
+                onOpenChange={(open) => {
+                    setIsEditDialogOpen(open)
+                    if (!open) {
+                        setEditPassword('')
+                        setShowEditPassword(false)
+                    }
+                }}
+            >
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Edit User</DialogTitle>
@@ -917,6 +1152,27 @@ export default function UsersPage() {
                                     onChange={(e) => setSelectedUser({ ...selectedUser, department: e.target.value })}
                                 />
                             </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-password">New Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="edit-password"
+                                        type={showEditPassword ? "text" : "password"}
+                                        value={editPassword}
+                                        onChange={(e) => setEditPassword(e.target.value)}
+                                        placeholder="Leave blank to keep current password"
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEditPassword((prev) => !prev)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        aria-label={showEditPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showEditPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                     <DialogFooter>
@@ -952,7 +1208,13 @@ export default function UsersPage() {
             </AlertDialog>
 
             {/* Add User Dialog */}
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <Dialog
+                open={isAddDialogOpen}
+                onOpenChange={(open) => {
+                    setIsAddDialogOpen(open)
+                    if (!open) setShowAddPassword(false)
+                }}
+            >
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Add New User</DialogTitle>
@@ -1004,6 +1266,27 @@ export default function UsersPage() {
                                 onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
                                 placeholder="+1 234 567 890"
                             />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="add-password">Password</Label>
+                            <div className="relative">
+                                <Input
+                                    id="add-password"
+                                    type={showAddPassword ? "text" : "password"}
+                                    value={newUser.password}
+                                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                                    placeholder="Minimum 6 characters"
+                                    className="pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddPassword((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    aria-label={showAddPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showAddPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>

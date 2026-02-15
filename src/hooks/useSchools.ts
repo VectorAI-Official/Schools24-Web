@@ -10,6 +10,9 @@ export interface School {
     contact_email?: string;
     is_active: boolean;
     created_at: string;
+    deleted_at?: string;
+    deleted_by?: string;
+    deleted_by_name?: string;
     admin_count?: number; // Optional, if backend provides it
     stats?: {
         students: number;
@@ -34,6 +37,7 @@ export interface CreateSchoolParams {
     address?: string;
     contact_email?: string;
     admins: AdminParams[];
+    password: string; // Super admin password verification
 }
 
 export function useSchools(enabled: boolean = true) {
@@ -124,7 +128,12 @@ export interface CreateUserParams {
 export function useCreateUser() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateUserParams) => api.post('/admin/users', data),
+        mutationFn: (data: CreateUserParams) => {
+            const params = new URLSearchParams();
+            if (data.school_id) params.append('school_id', data.school_id);
+            const qs = params.toString();
+            return api.post(`/admin/users${qs ? `?${qs}` : ''}`, data);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
             toast.success('User created successfully');
@@ -142,12 +151,18 @@ export interface UpdateUserParams {
     password?: string;
     phone?: string;
     is_active?: boolean;
+    school_id?: string;
 }
 
 export function useUpdateUser() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, ...data }: UpdateUserParams) => api.put(`/admin/users/${id}`, data),
+        mutationFn: ({ id, school_id, ...data }: UpdateUserParams) => {
+            const params = new URLSearchParams();
+            if (school_id) params.append('school_id', school_id);
+            const qs = params.toString();
+            return api.put(`/admin/users/${id}${qs ? `?${qs}` : ''}`, data);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
             toast.success('User updated successfully');
@@ -161,7 +176,12 @@ export function useUpdateUser() {
 export function useDeleteUser() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (userId: string) => api.delete(`/admin/users/${userId}`),
+        mutationFn: ({ userId, schoolId }: { userId: string; schoolId?: string }) => {
+            const params = new URLSearchParams();
+            if (schoolId) params.append('school_id', schoolId);
+            const qs = params.toString();
+            return api.delete(`/admin/users/${userId}${qs ? `?${qs}` : ''}`);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
             toast.success('User deleted successfully');
@@ -185,7 +205,55 @@ export function useCreateSchool() {
             toast.success('School created successfully');
         },
         onError: (error: any) => {
-            toast.error('Failed to create school', { description: error.message });
+            const message = error.message || 'Failed to create school'
+            toast.error('Failed to create school', { description: message });
+        }
+    });
+}
+
+export function useDeleteSchool() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ schoolId, password }: { schoolId: string; password: string }) => 
+            api.delete(`/super-admin/schools/${schoolId}`, { body: JSON.stringify({ password }) }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['schools'] });
+            queryClient.invalidateQueries({ queryKey: ['deleted-schools'] });
+            toast.success('School moved to trash', {
+                description: 'Can be restored within 24 hours'
+            });
+        },
+        onError: (error: any) => {
+            const message = error.message || 'Failed to delete school'
+            toast.error('Failed to delete school', { description: message });
+        }
+    });
+}
+
+export function useDeletedSchools(enabled: boolean = true) {
+    return useQuery({
+        queryKey: ['deleted-schools'],
+        queryFn: async () => {
+            const response = await api.get<SchoolsResponse>('/super-admin/schools/trash');
+            return response.schools;
+        },
+        enabled,
+    });
+}
+
+export function useRestoreSchool() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ schoolId, password }: { schoolId: string; password: string }) => 
+            api.post(`/super-admin/schools/${schoolId}/restore`, { password }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['schools'] });
+            queryClient.invalidateQueries({ queryKey: ['deleted-schools'] });
+            toast.success('School restored successfully');
+        },
+        onError: (error: any) => {
+            const message = error.message || 'Failed to restore school'
+            toast.error('Failed to restore school', { description: message });
         }
     });
 }

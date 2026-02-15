@@ -73,11 +73,14 @@ export default function AdminDashboard() {
     })
 
     const stats = dashboardData || {
+        total_users: 0,
         total_students: 0,
         total_teachers: 0,
+        total_classes: 0,
         fee_collection: { total_collected: 0, total_pending: 0 },
         upcoming_events: [],
         inventory_alerts: [],
+        recent_activity: [],
     };
 
     const upcomingEvents = stats.upcoming_events?.length > 0 ? stats.upcoming_events : mockEvents.slice(0, 4);

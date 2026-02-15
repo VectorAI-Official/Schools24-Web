@@ -1,5 +1,7 @@
 "use client"
 
+import { getSubjectColor } from '@/lib/constants'
+
 import React, { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +27,7 @@ import {
 import { Download, Printer, Calendar, Plus, Edit, Trash2, Save, User, MapPin, Settings, Clock, BookOpen, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useClasses } from '@/hooks/useClasses'
+import { sortSchoolClasses } from '@/lib/classOrdering'
 import { useTeachers } from '@/hooks/useAdminTeachers'
 import { useClassSubjects, useCreateSubject, useUpdateSubject, useDeleteSubject, type CreateSubjectRequest } from '@/hooks/useClassSubjects'
 import {
@@ -49,23 +52,6 @@ const getCurrentAcademicYear = () => {
     return `${year}-${year + 1}`
 }
 
-const getSubjectColor = (subject: string) => {
-    const colors: { [key: string]: string } = {
-        'Mathematics': 'from-blue-500 to-cyan-500',
-        'Physics': 'from-violet-500 to-purple-500',
-        'Chemistry': 'from-green-500 to-emerald-500',
-        'English': 'from-orange-500 to-amber-500',
-        'Hindi': 'from-pink-500 to-rose-500',
-        'History': 'from-red-500 to-rose-500',
-        'Geography': 'from-teal-500 to-cyan-500',
-        'Computer Science': 'from-slate-500 to-gray-500',
-        'Physical Education': 'from-lime-500 to-green-500',
-        'Biology': 'from-emerald-500 to-green-500',
-        'Science': 'from-green-500 to-emerald-500',
-    }
-    return colors[subject] || 'from-gray-500 to-slate-500'
-}
-
 const formatTime = (time: string) => {
     const [hours, minutes] = time.split(':')
     const h = parseInt(hours)
@@ -78,6 +64,19 @@ const formatTimeSlot = (startTime: string, endTime: string) => {
     return `${formatTime(startTime)} - ${formatTime(endTime)}`
 }
 
+const getDisplayClassLabel = (cls: { name?: string | null; grade?: number | null; section?: string | null }) => {
+    const baseName = (cls.name || '').trim() || (typeof cls.grade === 'number' ? `Class ${cls.grade}` : 'Class')
+    const section = (cls.section || '').trim()
+    if (!section) return baseName
+
+    const upperBase = baseName.toUpperCase()
+    const upperSection = section.toUpperCase()
+    if (upperBase.endsWith(`-${upperSection}`) || upperBase.endsWith(` ${upperSection}`)) {
+        return baseName
+    }
+    return `${baseName}-${section}`
+}
+
 export default function StudentsTimetablePage() {
     const searchParams = useSearchParams()
     const { user, isLoading } = useAuth()
@@ -87,7 +86,7 @@ export default function StudentsTimetablePage() {
     const academicYear = getCurrentAcademicYear()
 
     const { data: classesData } = useClasses(academicYear)
-    const classOptions = useMemo(() => classesData?.classes || [], [classesData])
+    const classOptions = useMemo(() => sortSchoolClasses(classesData?.classes || []), [classesData?.classes])
     const [selectedClassId, setSelectedClassId] = useState('')
 
     useEffect(() => {
@@ -152,9 +151,7 @@ export default function StudentsTimetablePage() {
 
     const timetableEntries = classTimetableData?.timetable || []
     const selectedClass = useMemo(() => classOptions.find(c => c.id === selectedClassId), [classOptions, selectedClassId])
-    const selectedClassLabel = selectedClass
-        ? `${selectedClass.name}${selectedClass.section ? `-${selectedClass.section}` : ''}`
-        : ''
+    const selectedClassLabel = selectedClass ? getDisplayClassLabel(selectedClass) : ''
 
     const [tempConfig, setTempConfig] = useState({
         days: dayConfigs,
@@ -175,7 +172,7 @@ export default function StudentsTimetablePage() {
 
     const handlePrint = () => {
         window.print()
-        toast.success('Print dialog opened', { description: `Printing timetable for Class ${selectedClassLabel}` })
+        toast.success('Print dialog opened', { description: `Printing timetable for ${selectedClassLabel}` })
     }
 
     const handleExport = () => {
@@ -194,7 +191,7 @@ export default function StudentsTimetablePage() {
         a.href = url
         a.download = `timetable-${selectedClassLabel}.csv`
         a.click()
-        toast.success('Export completed', { description: `Timetable for Class ${selectedClassLabel} exported to CSV` })
+        toast.success('Export completed', { description: `Timetable for ${selectedClassLabel} exported to CSV` })
     }
 
     const handleSlotClick = (dayOfWeek: number, periodIndex: number) => {
@@ -335,8 +332,8 @@ export default function StudentsTimetablePage() {
 
         // Validate grade_levels: must not be empty and must include current class grade
         if (!subjectForm.grade_levels || subjectForm.grade_levels.length === 0) {
-            toast.error('Grade levels cannot be empty', {
-                description: 'Please specify at least one grade level'
+            toast.error('Class levels cannot be empty', {
+                description: 'Please specify at least one class level'
             })
             return
         }
@@ -344,8 +341,8 @@ export default function StudentsTimetablePage() {
         // Ensure current class grade is included
         const currentGrade = selectedClass?.grade
         if (currentGrade && !subjectForm.grade_levels.includes(currentGrade)) {
-            toast.error(`Grade ${currentGrade} must be included`, {
-                description: 'The subject must be available for the current class grade'
+            toast.error(`Class ${currentGrade} must be included`, {
+                description: 'The subject must be available for the current class'
             })
             return
         }
@@ -406,7 +403,7 @@ export default function StudentsTimetablePage() {
                         <SelectContent>
                             {classOptions.map((cls) => (
                                 <SelectItem key={cls.id} value={cls.id}>
-                                    Class {cls.name}{cls.section ? `-${cls.section}` : ''}
+                                    {getDisplayClassLabel(cls)}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -703,7 +700,7 @@ export default function StudentsTimetablePage() {
                             Subjects for {selectedClassLabel}
                         </DialogTitle>
                         <DialogDescription className="flex items-center justify-between">
-                            <span>Manage subjects for this class based on grade level</span>
+                            <span>Manage subjects for this class based on class level</span>
                             <Button onClick={() => handleOpenSubjectForm()} size="sm">
                                 <Plus className="h-4 w-4 mr-1" />
                                 Add Subject
@@ -738,7 +735,7 @@ export default function StudentsTimetablePage() {
                                                         )}
                                                         {subject.grade_levels && subject.grade_levels.length > 0 && (
                                                             <Badge variant="outline" className="text-xs">
-                                                                Grades: {subject.grade_levels.join(', ')}
+                                                                Classes: {subject.grade_levels.join(', ')}
                                                             </Badge>
                                                         )}
                                                     </div>
@@ -826,7 +823,7 @@ export default function StudentsTimetablePage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="grade_levels">
-                                    Grade Levels * (comma-separated)
+                                    Class Levels * (comma-separated)
                                     {selectedClass?.grade && (
                                         <span className="text-xs text-muted-foreground ml-1">
                                             (must include {selectedClass.grade})

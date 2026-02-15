@@ -13,6 +13,7 @@ import { Download, Printer, Calendar, Edit, Trash2, Save, User, MapPin, AlertTri
 import { useAuth } from '@/contexts/AuthContext'
 import { useTeachers } from '@/hooks/useAdminTeachers'
 import { useSubjects } from '@/hooks/useSubjects'
+import { sortSchoolClasses } from '@/lib/classOrdering'
 import { useClasses } from '@/hooks/useClasses'
 import {
     useAdminTimetableConfig,
@@ -90,7 +91,7 @@ export default function TeachersTimetablePage() {
     const { data: subjectsData } = useSubjects({ enabled: canLoad, schoolId })
     const subjects = subjectsData?.subjects || []
     const { data: classesData } = useClasses(academicYear)
-    const classOptions = useMemo(() => classesData?.classes || [], [classesData])
+    const classOptions = useMemo(() => sortSchoolClasses(classesData?.classes || []), [classesData?.classes])
 
     const upsertSlot = useUpsertTimetableSlot()
     const deleteSlot = useDeleteTimetableSlot()

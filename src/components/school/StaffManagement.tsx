@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -116,7 +116,7 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
     )
 
     // Infinite Scroll Logic (Intersection Observer)
-    const { ref: scrollRef, inView } = useIntersectionObserver()
+    const { ref: scrollRef, inView } = useIntersectionObserver({ threshold: 0.1 })
 
     useEffect(() => {
         if (inView && hasNextPage && !isFetchingNextPage) {
@@ -259,11 +259,17 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
         toast.success('Staff data exported successfully')
     }
 
-    const filteredStaff = staffList.filter((member: Staff) => {
-        const matchesDepartment = departmentFilter === 'all' || member.department === departmentFilter
-        const matchesStaffType = staffTypeFilter === 'all' || member.staffType === staffTypeFilter
-        return matchesDepartment && matchesStaffType
-    })
+    const filteredStaff = useMemo(() => {
+        return staffList
+            .filter((member: Staff) => {
+                const matchesDepartment = departmentFilter === 'all' || member.department === departmentFilter
+                const matchesStaffType = staffTypeFilter === 'all' || member.staffType === staffTypeFilter
+                return matchesDepartment && matchesStaffType
+            })
+            .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
+    }, [staffList, departmentFilter, staffTypeFilter])
+
+    const fetchTriggerIndex = filteredStaff.length > 0 ? Math.max(0, Math.floor(filteredStaff.length * 0.8) - 1) : -1
 
     const totalSalary = staffList.reduce(
         (acc: number, curr: Staff) => acc + (Number(curr?.salary ?? 0) || 0),
@@ -512,8 +518,8 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredStaff.map((member: Staff) => (
-                                        <TableRow key={member.id} className="hover:bg-muted/50">
+                                    filteredStaff.map((member: Staff, index: number) => (
+                                        <TableRow key={member.id} className="hover:bg-muted/50" ref={index === fetchTriggerIndex ? scrollRef : undefined}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
@@ -565,8 +571,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                             </TableBody>
                         </Table>
                     </div>
-                    {/* Sentinel for infinite scroll */}
-                    <div ref={scrollRef} className="h-4 w-full" />
                     {isFetchingNextPage && (
                         <div className="flex justify-center p-4">
                             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

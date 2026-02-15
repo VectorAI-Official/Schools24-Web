@@ -149,7 +149,7 @@ export default function ReportsPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Grade Distribution</CardTitle>
+                        <CardTitle>Class Distribution</CardTitle>
                         <CardDescription>Student grades across school</CardDescription>
                     </CardHeader>
                     <CardContent>

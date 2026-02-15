@@ -34,6 +34,7 @@ import { toast } from 'sonner'
 import { useStudents, useStudentMutations } from '@/hooks/useAdminStudents'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { sortClassLabels } from '@/lib/classOrdering'
 
 // Imported Components
 import { StatsCards } from '@/components/admin/students/StatsCards'
@@ -74,7 +75,7 @@ export default function StudentsDetailsPage() {
     }, [students]);
 
     // Infinite Scroll Logic (Intersection Observer)
-    const { ref: scrollRef, inView } = useIntersectionObserver()
+    const { ref: scrollRef, inView } = useIntersectionObserver({ threshold: 0.1 })
 
     useEffect(() => {
         if (inView && hasNextPage && !isFetchingNextPage) {
@@ -97,17 +98,11 @@ export default function StudentsDetailsPage() {
         // const matchesSearch = ... 
         const matchesClass = classFilter === 'all' || student.class_name === classFilter
         // Fee filtering logic would go here if fees were real
-        const matchesFee = feeFilter === 'all' || (student.status || 'pending') === feeFilter
+        const matchesFee = feeFilter === 'all' || (student.fees?.status || 'pending') === feeFilter
         return matchesClass && matchesFee
-    }).sort((a, b) => {
-        // Prioritize incomplete profiles
-        const isAMissing = !a.full_name || !a.email || !a.class_name || !a.roll_number || !a.parent_name || !a.parent_phone
-        const isBMissing = !b.full_name || !b.email || !b.class_name || !b.roll_number || !b.parent_name || !b.parent_phone
+    }).sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', undefined, { sensitivity: 'base' }))
 
-        if (isAMissing && !isBMissing) return -1
-        if (!isAMissing && isBMissing) return 1
-        return 0 // Keep existing order (which should be alphabetical from backend)
-    })
+    const fetchTriggerIndex = filteredStudents.length > 0 ? Math.max(0, Math.floor(filteredStudents.length * 0.8) - 1) : -1
 
     // Calculate real stats from student data
     const stats = {
@@ -120,7 +115,13 @@ export default function StudentsDetailsPage() {
             : 0,
     }
 
-    const classes = [...new Set(students.filter(s => s && s.class_name).map(s => s.class_name))].sort()
+    const classes = sortClassLabels([
+        ...new Set(
+            students
+                .map(s => s?.class_name)
+                .filter((className): className is string => Boolean(className))
+        )
+    ])
 
     // Handlers
     const handleAddStudent = (newStudentData: any) => {
@@ -293,6 +294,8 @@ export default function StudentsDetailsPage() {
                     <StudentTable
                         students={filteredStudents}
                         totalStudents={stats.total}
+                        fetchTriggerIndex={fetchTriggerIndex}
+                        fetchTriggerRef={scrollRef}
                         onView={(s: any) => { setSelectedStudent(s); setIsViewDialogOpen(true) }}
                         onEdit={(s: any) => { setSelectedStudent(s); setIsEditDialogOpen(true) }}
                         onDelete={(s: any) => { setSelectedStudent(s); setIsDeleteDialogOpen(true) }}

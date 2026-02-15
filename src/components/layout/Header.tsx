@@ -16,7 +16,7 @@ import {
     DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Bell, Search, Moon, Sun, LogOut, User, Settings, Monitor, Check, School } from 'lucide-react'
+import { Bell, Search, Moon, Sun, LogOut, Settings, Monitor, Check, School } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { getInitials } from '@/lib/utils'
 
@@ -86,10 +86,6 @@ export function Header() {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Profile</span>
-                        </DropdownMenuItem>
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
                                 <Settings className="mr-2 h-4 w-4" />

@@ -10,6 +10,8 @@ export interface SchoolClass {
   academic_year: string;
   room_number?: string | null;
   total_students?: number;
+  class_teacher_id?: string | null;
+  class_teacher_name?: string;
 }
 
 interface ClassesResponse {
@@ -31,6 +33,7 @@ interface UpdateClassPayload {
   section?: string | null;
   academic_year?: string;
   room_number?: string | null;
+  class_teacher_id?: string | null;
 }
 
 export function useClasses(academicYear?: string) {

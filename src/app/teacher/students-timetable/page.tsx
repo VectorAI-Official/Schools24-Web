@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Download, Printer, Calendar, User, MapPin } from 'lucide-react'
 import { useTeacherClassTimetable, useTeacherClasses, useTeacherTimetableConfig } from '@/hooks/useTimetableView'
 import { toast } from 'sonner'
+import { sortTeacherClassRows } from '@/lib/classOrdering'
 
 const fallbackDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -53,8 +54,9 @@ export default function TeacherStudentsTimetablePage() {
     const academicYear = getCurrentAcademicYear()
     const { data: configData } = useTeacherTimetableConfig()
     const { data: classesData } = useTeacherClasses()
-    const classOptions = useMemo(() => classesData?.classes || [], [classesData])
+    const classOptions = useMemo(() => sortTeacherClassRows(classesData?.classes || []), [classesData?.classes])
     const [selectedClassId, setSelectedClassId] = useState('')
+    const hasClasses = classOptions.length > 0
 
     useEffect(() => {
         if (!selectedClassId && classOptions.length > 0) {
@@ -84,12 +86,14 @@ export default function TeacherStudentsTimetablePage() {
     }, [periodsConfig])
 
     const handlePrint = () => {
+        if (!selectedClassId) return
         window.print()
         const selectedClass = classOptions.find(cls => cls.class_id === selectedClassId)
         toast.success('Print dialog opened', { description: `Printing timetable for Class ${selectedClass?.class_name || ''}` })
     }
 
     const handleExport = () => {
+        if (!selectedClassId) return
         const csvContent = [
             ['Time', ...dayConfigs.map(d => d.day_name)].join(','),
             ...timeSlots.map(slot =>
@@ -119,7 +123,7 @@ export default function TeacherStudentsTimetablePage() {
                 </div>
                 <div className="flex items-center gap-1 flex-wrap">
                     <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-                        <SelectTrigger className="w-[90px] sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs">
+                        <SelectTrigger className="w-[90px] sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs" disabled={!hasClasses}>
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent>
@@ -132,21 +136,31 @@ export default function TeacherStudentsTimetablePage() {
                         <Calendar className="mr-1 h-3 w-3" />
                         2025-26
                     </Badge>
-                    <Button variant="outline" size="sm" onClick={handlePrint} className="h-7 sm:h-8 px-2 hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-all">
+                    <Button variant="outline" size="sm" onClick={handlePrint} className="h-7 sm:h-8 px-2 hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-all" disabled={!hasClasses}>
                         <Printer className="h-4 w-4" />
                     </Button>
                     <Button
                         size="sm"
                         onClick={handleExport}
                         className="h-7 sm:h-8 px-2 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 border-0 shadow-lg shadow-teal-500/20"
+                        disabled={!hasClasses}
                     >
                         <Download className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
 
+            {!hasClasses && (
+                <Card className="border-0 shadow-lg">
+                    <CardContent className="py-12 text-center text-muted-foreground">
+                        <p className="text-sm font-medium">No classes assigned yet</p>
+                        <p className="text-xs mt-1">Ask the admin to assign a class. This page will update after refresh.</p>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Timetable Card */}
-            <Card className="border-0 shadow-lg flex-1 flex flex-col overflow-hidden min-h-0">
+            <Card className="border-0 shadow-lg flex-1 flex flex-col overflow-hidden min-h-0" style={{ opacity: hasClasses ? 1 : 0.5 }}>
                 <CardContent className="flex-1 p-0 overflow-x-auto overflow-y-hidden">
                     <div
                         className="h-full grid"

@@ -1,34 +1,28 @@
 "use client"
 
 import { useMemo, useRef, useState } from "react"
+import { useEffect } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 import { Wand2, FileText, Upload, File, X, FileUp, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
-import { compareClassLabels } from "@/lib/classOrdering"
 
 interface QuestionDocument {
     id: string
     title: string
-    topic?: string
     subject?: string
     class_level?: string
     question_type: string
     difficulty?: string
-    num_questions?: number
     context?: string
     file_name: string
     file_size: number
@@ -36,10 +30,21 @@ interface QuestionDocument {
     uploaded_at: string
 }
 
-interface TimetableEntry {
-    class_id: string
-    class_name?: string
-    subject_name?: string
+interface GlobalClassOption {
+    id: string
+    name: string
+    sort_order: number
+}
+
+interface GlobalSubjectOption {
+    id: string
+    name: string
+    code: string
+}
+
+interface AssignmentItem {
+    class: GlobalClassOption
+    subjects: GlobalSubjectOption[]
 }
 
 const STORAGE_KEYS = {
@@ -66,14 +71,7 @@ function formatFileSize(bytes: number) {
     return `${n.toFixed(idx === 0 ? 0 : 2)} ${units[idx]}`
 }
 
-function getCurrentAcademicYear() {
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = now.getMonth() + 1
-    return month < 4 ? `${year - 1}-${year}` : `${year}-${year + 1}`
-}
-
-export default function QuestionGeneratorPage() {
+export function QuestionUploaderForm() {
     const queryClient = useQueryClient()
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -81,58 +79,59 @@ export default function QuestionGeneratorPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
     const [title, setTitle] = useState("")
-    const [subject, setSubject] = useState("")
-    const [classLevel, setClassLevel] = useState("")
+    const [subjectId, setSubjectId] = useState("")
+    const [classId, setClassId] = useState("")
     const [questionType, setQuestionType] = useState("")
     const [difficulty, setDifficulty] = useState("medium")
     const [contextText, setContextText] = useState("")
     const [lastUploaded, setLastUploaded] = useState<QuestionDocument | null>(null)
-    const academicYear = getCurrentAcademicYear()
 
-    const { data: timetableData } = useQuery({
-        queryKey: ["teacher-question-generator-timetable", academicYear],
-        queryFn: () => {
-            const params = new URLSearchParams()
-            params.append("academic_year", academicYear)
-            return api.get<{ timetable: TimetableEntry[] }>(`/teacher/timetable?${params.toString()}`)
-        },
+    const classesQuery = useQuery({
+        queryKey: ["super-admin-catalog-classes-for-uploader"],
+        queryFn: () => api.get<{ classes: GlobalClassOption[] }>("/super-admin/catalog/classes"),
+        staleTime: 60_000,
     })
 
-    const classOptions = useMemo(() => {
-        const map = new Map<string, string>()
-        for (const row of timetableData?.timetable || []) {
-            if (!row.class_id) continue
-            if (!map.has(row.class_id)) {
-                map.set(row.class_id, row.class_name || row.class_id)
-            }
-        }
-        return Array.from(map.entries())
-            .map(([id, name]) => ({ id, name }))
-            .sort((a, b) => compareClassLabels(a.name, b.name))
-    }, [timetableData])
+    const subjectsQuery = useQuery({
+        queryKey: ["super-admin-catalog-subjects-for-uploader"],
+        queryFn: () => api.get<{ subjects: GlobalSubjectOption[] }>("/super-admin/catalog/subjects"),
+        staleTime: 60_000,
+    })
+    const assignmentsQuery = useQuery({
+        queryKey: ["super-admin-catalog-assignments-for-uploader"],
+        queryFn: () => api.get<{ assignments: AssignmentItem[] }>("/super-admin/catalog/assignments"),
+        staleTime: 60_000,
+    })
 
-    const subjectOptions = useMemo(() => {
-        if (!classLevel) return []
-        const set = new Set<string>()
-        for (const row of timetableData?.timetable || []) {
-            if (row.class_id !== classLevel) continue
-            const subjectName = (row.subject_name || "").trim()
-            if (subjectName) set.add(subjectName)
-        }
-        return Array.from(set).sort((a, b) => a.localeCompare(b))
-    }, [classLevel, timetableData])
-
-    const selectedClassName = useMemo(
-        () => classOptions.find((cls) => cls.id === classLevel)?.name || "",
-        [classOptions, classLevel]
+    const classes = useMemo(
+        () => [...(classesQuery.data?.classes || [])].sort((a, b) => (a.sort_order - b.sort_order) || a.name.localeCompare(b.name)),
+        [classesQuery.data?.classes]
+    )
+    const subjects = useMemo(
+        () => [...(subjectsQuery.data?.subjects || [])].sort((a, b) => a.name.localeCompare(b.name)),
+        [subjectsQuery.data?.subjects]
+    )
+    const availableSubjects = useMemo(() => {
+        if (!classId) return subjects
+        const assignment = (assignmentsQuery.data?.assignments || []).find((item) => item.class.id === classId)
+        if (!assignment) return []
+        return [...assignment.subjects].sort((a, b) => a.name.localeCompare(b.name))
+    }, [assignmentsQuery.data?.assignments, classId, subjects])
+    const selectedClass = useMemo(
+        () => classes.find((item) => item.id === classId) || null,
+        [classes, classId]
+    )
+    const selectedSubject = useMemo(
+        () => availableSubjects.find((item) => item.id === subjectId) || null,
+        [availableSubjects, subjectId]
     )
 
     const uploadMutation = useMutation({
         mutationFn: async (): Promise<{ document: QuestionDocument }> => {
             if (!selectedFile) throw new Error("Upload a file first")
             if (!title.trim()) throw new Error("Title is required")
-            if (!subject) throw new Error("Subject is required")
-            if (!classLevel) throw new Error("Class level is required")
+            if (!selectedSubject) throw new Error("Subject is required")
+            if (!selectedClass) throw new Error("Class is required")
             if (!questionType) throw new Error("Select question type")
             if (!difficulty) throw new Error("Difficulty is required")
 
@@ -142,14 +141,14 @@ export default function QuestionGeneratorPage() {
             const formData = new FormData()
             formData.append("file", selectedFile)
             formData.append("title", title.trim() || selectedFile.name.replace(/\.[^.]+$/, ""))
-            formData.append("subject", subject)
-            formData.append("class_level", selectedClassName || classLevel)
+            formData.append("subject", selectedSubject.name)
+            formData.append("class_level", selectedClass.name)
             formData.append("question_type", questionType)
             formData.append("difficulty", difficulty)
             formData.append("context", contextText.trim())
 
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1"
-            const response = await fetch(`${baseUrl}/teacher/question-documents`, {
+            const response = await fetch(`${baseUrl}/super-admin/question-documents`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -170,8 +169,8 @@ export default function QuestionGeneratorPage() {
             setLastUploaded({
                 id: "",
                 title: fallbackTitle,
-                subject: subject || undefined,
-                class_level: selectedClassName || classLevel || undefined,
+                subject: selectedSubject?.name || undefined,
+                class_level: selectedClass?.name || undefined,
                 question_type: questionType,
                 difficulty: difficulty || undefined,
                 context: contextText.trim() || undefined,
@@ -182,13 +181,13 @@ export default function QuestionGeneratorPage() {
             })
             setSelectedFile(null)
             setTitle("")
-            setSubject("")
-            setClassLevel("")
+            setSubjectId("")
+            setClassId("")
             setQuestionType("")
             setDifficulty("medium")
             setContextText("")
             if (fileInputRef.current) fileInputRef.current.value = ""
-            queryClient.invalidateQueries({ queryKey: ["teacher-question-documents"] })
+            queryClient.invalidateQueries({ queryKey: ["super-admin-question-documents"] })
         },
         onError: (error: unknown) => {
             const message = error instanceof Error ? error.message : "Please try again"
@@ -239,9 +238,9 @@ export default function QuestionGeneratorPage() {
     return (
         <div className="space-y-6">
             <Card className="border-dashed border-2 overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10">
+                <CardHeader className="bg-gradient-to-r from-rose-500/10 via-red-500/10 to-orange-500/10">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 shadow-lg">
                             <Upload className="h-6 w-6 text-white" />
                         </div>
                         <div>
@@ -252,9 +251,7 @@ export default function QuestionGeneratorPage() {
                 </CardHeader>
                 <CardContent className="p-6">
                     <div
-                        className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-300 ${dragActive
-                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20"
-                            : "border-muted-foreground/25 hover:border-muted-foreground/50"
+                        className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-300 ${dragActive ? "border-rose-500 bg-rose-50 dark:bg-rose-950/20" : "border-muted-foreground/25 hover:border-muted-foreground/50"
                             }`}
                         onDragEnter={handleDrag}
                         onDragLeave={handleDrag}
@@ -273,11 +270,9 @@ export default function QuestionGeneratorPage() {
                         />
 
                         <div className="flex flex-col items-center justify-center text-center space-y-4">
-                            <div className={`flex h-20 w-20 items-center justify-center rounded-full transition-all duration-300 ${dragActive
-                                ? "bg-emerald-100 dark:bg-emerald-900/30 scale-110"
-                                : "bg-muted"
+                            <div className={`flex h-20 w-20 items-center justify-center rounded-full transition-all duration-300 ${dragActive ? "bg-rose-100 dark:bg-rose-900/30 scale-110" : "bg-muted"
                                 }`}>
-                                <FileUp className={`h-10 w-10 transition-colors ${dragActive ? "text-emerald-600" : "text-muted-foreground"}`} />
+                                <FileUp className={`h-10 w-10 transition-colors ${dragActive ? "text-rose-600" : "text-muted-foreground"}`} />
                             </div>
 
                             <div>
@@ -339,53 +334,54 @@ export default function QuestionGeneratorPage() {
             <div className="grid gap-6 lg:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Generate Questions</CardTitle>
-                        <CardDescription>Configure your question parameters</CardDescription>
+                        <CardTitle>Question Uploader</CardTitle>
+                        <CardDescription>Configure your question metadata and upload</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="grid gap-2">
                             <Label htmlFor="title">Title</Label>
-                            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Unit Test - Algebra" />
+                            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Midterm Model Paper" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="subject">Subject</Label>
-                                <Select
-                                    value={subject}
-                                    onValueChange={setSubject}
-                                    disabled={!classLevel || subjectOptions.length === 0}
-                                >
+                                <Label>Subject</Label>
+                                <Select value={subjectId} onValueChange={setSubjectId} disabled={!classId}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder={!classLevel ? "Select class first" : "Select subject"} />
+                                        <SelectValue placeholder={classId ? "Select subject" : "Select class first"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {subjectOptions.map((subj) => (
-                                            <SelectItem key={subj} value={subj}>
-                                                {subj}
-                                            </SelectItem>
-                                        ))}
+                                        {subjectsQuery.isLoading || assignmentsQuery.isLoading ? (
+                                            <SelectItem value="__loading_subjects" disabled>Loading subjects...</SelectItem>
+                                        ) : availableSubjects.length === 0 ? (
+                                            <SelectItem value="__no_subjects" disabled>No subjects found</SelectItem>
+                                        ) : (
+                                            availableSubjects.map((subj) => (
+                                                <SelectItem key={subj.id} value={subj.id}>{subj.name}</SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="class">Class Level</Label>
-                                <Select
-                                    value={classLevel}
-                                    onValueChange={(value) => {
-                                        setClassLevel(value)
-                                        setSubject("")
-                                    }}
-                                >
+                                <Label>Class</Label>
+                                <Select value={classId} onValueChange={(value) => {
+                                    setClassId(value)
+                                    setSubjectId("")
+                                }}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select class" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {classOptions.map((cls) => (
-                                            <SelectItem key={cls.id} value={cls.id}>
-                                                {cls.name}
-                                            </SelectItem>
-                                        ))}
+                                        {classesQuery.isLoading ? (
+                                            <SelectItem value="__loading_classes" disabled>Loading classes...</SelectItem>
+                                        ) : classes.length === 0 ? (
+                                            <SelectItem value="__no_classes" disabled>No classes found</SelectItem>
+                                        ) : (
+                                            classes.map((grade) => (
+                                                <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -411,9 +407,9 @@ export default function QuestionGeneratorPage() {
                         <div className="grid gap-2">
                             <Label>Difficulty Level</Label>
                             <div className="flex gap-2">
-                                <Button variant={difficulty === "easy" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("easy")}>Easy</Button>
-                                <Button variant={difficulty === "medium" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("medium")}>Medium</Button>
-                                <Button variant={difficulty === "hard" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("hard")}>Hard</Button>
+                                <Button type="button" variant={difficulty === "easy" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("easy")}>Easy</Button>
+                                <Button type="button" variant={difficulty === "medium" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("medium")}>Medium</Button>
+                                <Button type="button" variant={difficulty === "hard" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("hard")}>Hard</Button>
                             </div>
                         </div>
 
@@ -435,8 +431,8 @@ export default function QuestionGeneratorPage() {
                                 uploadMutation.isPending ||
                                 !selectedFile ||
                                 !title.trim() ||
-                                !subject ||
-                                !classLevel ||
+                                !selectedSubject ||
+                                !selectedClass ||
                                 !questionType
                             }
                         >
@@ -511,7 +507,6 @@ export default function QuestionGeneratorPage() {
                                         <span className="font-medium">{new Date(previewDocument.uploaded_at).toLocaleString()}</span>
                                     </div>
                                 </div>
-                                {previewDocument.topic ? <p className="text-sm">Topic: {previewDocument.topic}</p> : null}
                                 {previewDocument.context ? <p className="text-sm text-muted-foreground">{previewDocument.context}</p> : null}
                             </div>
                         )}
@@ -520,4 +515,37 @@ export default function QuestionGeneratorPage() {
             </div>
         </div>
     )
+}
+
+export default function SuperAdminQuestionGeneratorPage() {
+    const { isLoading, isAuthenticated, userRole } = useAuth()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (!isLoading && isAuthenticated && userRole === "super_admin") {
+            router.replace("/super-admin?tab=question-uploader")
+        }
+    }, [isAuthenticated, isLoading, router, userRole])
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
+
+    if (!isAuthenticated) {
+        return null
+    }
+
+    if (userRole !== "super_admin") {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-muted-foreground">Access denied.</p>
+            </div>
+        )
+    }
+
+    return null
 }

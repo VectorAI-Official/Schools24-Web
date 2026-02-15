@@ -29,13 +29,7 @@ const PLATFORM_INFO = `
 
 🔗 Quick Links:
    • Documentation: https://docs.schools24.com
-   • API Reference: https://api.schools24.com/docs
    • Support: support@schools24.com
-
-🛠️ For Developers:
-   • Frontend: Next.js 14 + React 18 + TypeScript
-   • Backend: Go + Gin + PostgreSQL
-   • Authentication: JWT with session management
 
 💡 Tip: Use %cSchools24.debug()%c in console to toggle debug mode.
 

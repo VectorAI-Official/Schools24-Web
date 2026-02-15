@@ -106,7 +106,7 @@ export function ViewStudentDialog({ open, onOpenChange, student, schoolId }: Vie
                             <div className="p-4 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-center">
                                 <Award className="h-8 w-8 mx-auto mb-2" />
                                 <p className="text-2xl font-bold">{student.current_grade || 'X'}</p>
-                                <p className="text-sm opacity-90">Current Grade</p>
+                                <p className="text-sm opacity-90">Current Class</p>
                             </div>
                             <div className="p-4 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white text-center">
                                 <CheckCircle2 className="h-8 w-8 mx-auto mb-2" />

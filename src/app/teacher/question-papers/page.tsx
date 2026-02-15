@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,103 +22,199 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 import {
     FileText,
     Download,
     Printer,
     Search,
     Filter,
-    MoreVertical,
     Eye,
     File,
     Calendar,
     User,
-    GraduationCap
+    GraduationCap,
+    Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { api } from '@/lib/api'
+import { compareClassLabels } from '@/lib/classOrdering'
+
+interface QuestionDocument {
+    id: string
+    title: string
+    subject?: string
+    class_level?: string
+    file_name: string
+    file_size: number
+    mime_type: string
+    teacher_name?: string
+    uploaded_at: string
+}
+
+interface QuestionDocumentsPage {
+    documents: QuestionDocument[]
+    page: number
+    page_size: number
+    has_more: boolean
+    next_page: number
+    order: 'asc' | 'desc'
+}
+
+interface TimetableEntry {
+    class_id: string
+    class_name?: string
+    subject_name?: string
+}
 
 interface QuestionPaper {
     id: string
     name: string
+    fileName: string
     subject: string
     class: string
     uploadedBy: string
     uploadedAt: Date
     fileType: 'pdf' | 'doc' | 'docx'
     fileSize: number
+    mimeType: string
 }
 
-// Sample data
-const samplePapers: QuestionPaper[] = [
-    {
-        id: '1',
-        name: 'Mathematics Mid-Term Exam 2024',
-        subject: 'Mathematics',
-        class: 'Class 10',
-        uploadedBy: 'Mr. Sharma',
-        uploadedAt: new Date('2024-01-15'),
-        fileType: 'pdf',
-        fileSize: 2457600
-    },
-    {
-        id: '2',
-        name: 'Science Quarterly Test',
-        subject: 'Science',
-        class: 'Class 9',
-        uploadedBy: 'Ms. Priya',
-        uploadedAt: new Date('2024-01-20'),
-        fileType: 'docx',
-        fileSize: 1843200
-    },
-    {
-        id: '3',
-        name: 'English Literature Final Exam',
-        subject: 'English',
-        class: 'Class 12',
-        uploadedBy: 'Mr. Das',
-        uploadedAt: new Date('2024-01-25'),
-        fileType: 'pdf',
-        fileSize: 3145728
-    },
-    {
-        id: '4',
-        name: 'History Unit Test - Chapter 5',
-        subject: 'History',
-        class: 'Class 11',
-        uploadedBy: 'Mrs. Gupta',
-        uploadedAt: new Date('2024-01-28'),
-        fileType: 'doc',
-        fileSize: 1536000
-    },
-    {
-        id: '5',
-        name: 'Physics Practice Paper',
-        subject: 'Physics',
-        class: 'Class 12',
-        uploadedBy: 'Mr. Kumar',
-        uploadedAt: new Date('2024-01-30'),
-        fileType: 'pdf',
-        fileSize: 2867200
-    },
-]
+function getFileType(fileName: string): 'pdf' | 'doc' | 'docx' {
+    const name = fileName.toLowerCase()
+    if (name.endsWith('.pdf')) return 'pdf'
+    if (name.endsWith('.doc')) return 'doc'
+    return 'docx'
+}
+
+function getCurrentAcademicYear() {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+    return month < 4 ? `${year - 1}-${year}` : `${year}-${year + 1}`
+}
 
 export default function TeacherQuestionPapersPage() {
-    const [papers] = useState<QuestionPaper[]>(samplePapers)
     const [searchQuery, setSearchQuery] = useState('')
+    const [debouncedSearch, setDebouncedSearch] = useState('')
     const [subjectFilter, setSubjectFilter] = useState('all')
     const [classFilter, setClassFilter] = useState('all')
+    const [previewOpen, setPreviewOpen] = useState(false)
+    const [previewPaper, setPreviewPaper] = useState<QuestionPaper | null>(null)
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+    const [previewLoading, setPreviewLoading] = useState(false)
+    const academicYear = getCurrentAcademicYear()
 
-    const filteredPapers = papers.filter(paper => {
-        const matchesSearch = paper.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            paper.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesSubject = subjectFilter === 'all' || paper.subject === subjectFilter
-        const matchesClass = classFilter === 'all' || paper.class === classFilter
-        return matchesSearch && matchesSubject && matchesClass
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300)
+        return () => clearTimeout(timer)
+    }, [searchQuery])
+
+    const { data: timetableData } = useQuery({
+        queryKey: ['teacher-question-papers-timetable', academicYear],
+        queryFn: () => api.get<{ timetable: TimetableEntry[] }>(`/teacher/timetable?academic_year=${encodeURIComponent(academicYear)}`),
+        staleTime: 60 * 1000,
     })
+
+    const {
+        data,
+        isLoading,
+        hasNextPage,
+        fetchNextPage,
+        isFetchingNextPage,
+    } = useInfiniteQuery({
+        queryKey: ['teacher-question-documents', 'infinite', 20, 'asc', subjectFilter, classFilter, debouncedSearch],
+        initialPageParam: 1,
+        queryFn: ({ pageParam }) => {
+            const params = new URLSearchParams()
+            params.set('page', String(pageParam))
+            params.set('page_size', '20')
+            params.set('order', 'asc')
+            if (subjectFilter !== 'all') {
+                params.set('subject', subjectFilter === 'unspecified' ? '__unspecified__' : subjectFilter)
+            }
+            if (classFilter !== 'all') {
+                params.set('class_level', classFilter === 'unspecified' ? '__unspecified__' : classFilter)
+            }
+            if (debouncedSearch) {
+                params.set('search', debouncedSearch)
+            }
+            return api.get<QuestionDocumentsPage>(`/teacher/question-documents?${params.toString()}`)
+        },
+        getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.next_page : undefined),
+    })
+
+    useEffect(() => {
+        const onScroll = () => {
+            if (!hasNextPage || isFetchingNextPage) return
+
+            const el = document.documentElement
+            const scrollTop = window.scrollY || el.scrollTop
+            const viewportBottom = scrollTop + window.innerHeight
+            const threshold = el.scrollHeight * 0.8
+
+            if (viewportBottom >= threshold) {
+                fetchNextPage()
+            }
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true })
+        return () => window.removeEventListener('scroll', onScroll)
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+    const papers = useMemo<QuestionPaper[]>(() => {
+        const docs = data?.pages.flatMap((page) => page.documents) || []
+        return docs.map((doc) => ({
+            id: doc.id,
+            name: doc.title || doc.file_name,
+            fileName: doc.file_name,
+            subject: doc.subject || 'General',
+            class: doc.class_level || 'Unspecified',
+            uploadedBy: doc.teacher_name || 'You',
+            uploadedAt: new Date(doc.uploaded_at),
+            fileType: getFileType(doc.file_name),
+            fileSize: doc.file_size,
+            mimeType: doc.mime_type,
+        }))
+    }, [data])
+
+    const filteredPapers = papers
+
+    const getToken = () => {
+        if (typeof window === 'undefined') return null
+        const remember = localStorage.getItem('School24_remember') === 'true'
+        const storage = remember ? localStorage : sessionStorage
+        return (
+            storage.getItem('School24_token') ||
+            localStorage.getItem('School24_token') ||
+            sessionStorage.getItem('School24_token')
+        )
+    }
+
+    const fetchDocumentBlob = async (paper: QuestionPaper, mode: 'view' | 'download') => {
+        const token = getToken()
+        if (!token) throw new Error('Session expired. Please login again.')
+
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1'
+        const response = await fetch(`${baseUrl}/teacher/question-documents/${paper.id}/${mode}`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}))
+            throw new Error(err.error || err.message || `Request failed (${response.status})`)
+        }
+
+        return response.blob()
+    }
 
     const formatFileSize = (bytes: number) => {
         if (bytes === 0) return '0 Bytes'
@@ -152,32 +249,105 @@ export default function TeacherQuestionPapersPage() {
         }
     }
 
-    const handleDownload = (paper: QuestionPaper) => {
-        // Simulate download
-        const link = document.createElement('a')
-        link.href = '#'
-        link.download = paper.name + '.' + paper.fileType
-        link.click()
-        console.log(`Downloading: ${paper.name}`)
+    const handleDownload = async (paper: QuestionPaper) => {
+        try {
+            const blob = await fetchDocumentBlob(paper, 'download')
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = paper.fileName || paper.name
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+            URL.revokeObjectURL(url)
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Download failed'
+            toast.error('Download failed', { description: message })
+        }
     }
 
-    const handlePrint = (paper: QuestionPaper) => {
-        // Simulate print - in real app, would open print dialog for the document
-        console.log(`Printing: ${paper.name}`)
-        window.print()
+    const handleView = async (paper: QuestionPaper) => {
+        setPreviewPaper(paper)
+        setPreviewOpen(true)
+
+        if (paper.fileType !== 'pdf') {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl)
+                setPreviewUrl(null)
+            }
+            return
+        }
+
+        setPreviewLoading(true)
+        try {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl)
+                setPreviewUrl(null)
+            }
+            const blob = await fetchDocumentBlob(paper, 'view')
+            const url = URL.createObjectURL(blob)
+            setPreviewUrl(url)
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Preview failed'
+            toast.error('Preview failed', { description: message })
+        } finally {
+            setPreviewLoading(false)
+        }
     }
 
-    const handleView = (paper: QuestionPaper) => {
-        // Simulate view - in real app, would open document in new tab or modal
-        console.log(`Viewing: ${paper.name}`)
+    const handlePrint = async (paper: QuestionPaper) => {
+        if (paper.fileType !== 'pdf') {
+            toast.error('Print unavailable', { description: 'Printing is supported only for PDF documents.' })
+            return
+        }
+        try {
+            const blob = await fetchDocumentBlob(paper, 'view')
+            const url = URL.createObjectURL(blob)
+            const printWindow = window.open(url, '_blank', 'noopener,noreferrer')
+            if (!printWindow) {
+                URL.revokeObjectURL(url)
+                throw new Error('Popup blocked. Please allow popups for printing.')
+            }
+
+            printWindow.addEventListener('load', () => {
+                printWindow.focus()
+                printWindow.print()
+                setTimeout(() => URL.revokeObjectURL(url), 30000)
+            })
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Print failed'
+            toast.error('Print failed', { description: message })
+        }
     }
 
-    const subjects = [...new Set(papers.map(p => p.subject))]
-    const classes = [...new Set(papers.map(p => p.class))]
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl)
+            }
+        }
+    }, [previewUrl])
+
+    const subjects = useMemo(() => {
+        const set = new Set<string>()
+        for (const row of timetableData?.timetable || []) {
+            const trimmed = (row.subject_name || '').trim()
+            if (trimmed) set.add(trimmed)
+        }
+        return [...set].sort((a, b) => a.localeCompare(b))
+    }, [timetableData?.timetable])
+
+    const classes = useMemo(() => {
+        const set = new Set<string>()
+        for (const row of timetableData?.timetable || []) {
+            const trimmed = (row.class_name || '').trim()
+            if (trimmed) set.add(trimmed)
+        }
+        return [...set].sort((a, b) => compareClassLabels(a, b))
+    }, [timetableData?.timetable])
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
@@ -195,7 +365,6 @@ export default function TeacherQuestionPapersPage() {
                 </div>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-4">
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent" />
@@ -220,7 +389,7 @@ export default function TeacherQuestionPapersPage() {
                                 <File className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">{papers.filter(p => p.fileType === 'pdf').length}</p>
+                                <p className="text-2xl font-bold">{papers.filter((p) => p.fileType === 'pdf').length}</p>
                                 <p className="text-sm text-muted-foreground">PDF Files</p>
                             </div>
                         </div>
@@ -235,7 +404,7 @@ export default function TeacherQuestionPapersPage() {
                                 <File className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">{papers.filter(p => p.fileType === 'doc' || p.fileType === 'docx').length}</p>
+                                <p className="text-2xl font-bold">{papers.filter((p) => p.fileType === 'doc' || p.fileType === 'docx').length}</p>
                                 <p className="text-sm text-muted-foreground">Word Files</p>
                             </div>
                         </div>
@@ -258,11 +427,10 @@ export default function TeacherQuestionPapersPage() {
                 </Card>
             </div>
 
-            {/* Filters */}
             <Card>
                 <CardContent className="p-4">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                        <div className="relative flex-1">
+                    <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+                        <div className="relative flex-1 min-w-[280px]">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search by name or uploader..."
@@ -271,28 +439,32 @@ export default function TeacherQuestionPapersPage() {
                                 className="pl-9"
                             />
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3 xl:w-auto">
                             <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                                <SelectTrigger className="w-[150px]">
+                                <SelectTrigger className="w-full sm:w-[180px]">
                                     <Filter className="h-4 w-4 mr-2" />
                                     <SelectValue placeholder="Subject" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Subjects</SelectItem>
-                                    {subjects.map(subject => (
-                                        <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                                    {subjects.map((subject) => (
+                                        <SelectItem key={subject} value={subject === 'Unspecified' ? 'unspecified' : subject}>
+                                            {subject}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <Select value={classFilter} onValueChange={setClassFilter}>
-                                <SelectTrigger className="w-[150px]">
+                                <SelectTrigger className="w-full sm:w-[180px]">
                                     <GraduationCap className="h-4 w-4 mr-2" />
                                     <SelectValue placeholder="Class" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Classes</SelectItem>
-                                    {classes.map(cls => (
-                                        <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                                    {classes.map((cls) => (
+                                        <SelectItem key={cls} value={cls === 'Unspecified' ? 'unspecified' : cls}>
+                                            {cls}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -301,7 +473,6 @@ export default function TeacherQuestionPapersPage() {
                 </CardContent>
             </Card>
 
-            {/* Papers Table */}
             <Card>
                 <CardHeader>
                     <CardTitle>Question Papers Library</CardTitle>
@@ -322,7 +493,13 @@ export default function TeacherQuestionPapersPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredPapers.length === 0 ? (
+                                {isLoading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                                            Loading question papers...
+                                        </TableCell>
+                                    </TableRow>
+                                ) : filteredPapers.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center py-12">
                                             <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
@@ -368,7 +545,7 @@ export default function TeacherQuestionPapersPage() {
                                                 {formatFileSize(paper.fileSize)}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center justify-end gap-2">
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
@@ -392,36 +569,12 @@ export default function TeacherQuestionPapersPage() {
                                                         size="icon"
                                                         className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
                                                         onClick={() => handlePrint(paper)}
-                                                        title="Print"
+                                                        title={paper.fileType === 'pdf' ? 'Print PDF' : 'Print available only for PDF'}
+                                                        disabled={paper.fileType !== 'pdf'}
                                                     >
                                                         <Printer className="h-4 w-4" />
                                                     </Button>
                                                 </div>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 opacity-100 group-hover:opacity-0 absolute right-4"
-                                                        >
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => handleView(paper)}>
-                                                            <Eye className="h-4 w-4 mr-2" />
-                                                            View
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => handleDownload(paper)}>
-                                                            <Download className="h-4 w-4 mr-2" />
-                                                            Download
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => handlePrint(paper)}>
-                                                            <Printer className="h-4 w-4 mr-2" />
-                                                            Print
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -429,8 +582,69 @@ export default function TeacherQuestionPapersPage() {
                             </TableBody>
                         </Table>
                     </div>
+                    {isFetchingNextPage ? (
+                        <div className="flex items-center justify-center py-4 text-muted-foreground text-sm gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Loading next 20 rows...
+                        </div>
+                    ) : null}
                 </CardContent>
             </Card>
+
+            <Dialog
+                open={previewOpen}
+                onOpenChange={(open) => {
+                    setPreviewOpen(open)
+                    if (!open) {
+                        setPreviewPaper(null)
+                        if (previewUrl) {
+                            URL.revokeObjectURL(previewUrl)
+                            setPreviewUrl(null)
+                        }
+                    }
+                }}
+            >
+                <DialogContent className="max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>{previewPaper?.name || 'Document Preview'}</DialogTitle>
+                        <DialogDescription>Preview metadata and document details</DialogDescription>
+                    </DialogHeader>
+                    {previewPaper ? (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div><span className="text-muted-foreground">File name:</span> {previewPaper.fileName}</div>
+                                <div><span className="text-muted-foreground">Type:</span> {previewPaper.fileType.toUpperCase()}</div>
+                                <div><span className="text-muted-foreground">Size:</span> {formatFileSize(previewPaper.fileSize)}</div>
+                                <div><span className="text-muted-foreground">Uploaded by:</span> {previewPaper.uploadedBy}</div>
+                                <div><span className="text-muted-foreground">Subject:</span> {previewPaper.subject}</div>
+                                <div><span className="text-muted-foreground">Class:</span> {previewPaper.class}</div>
+                                <div className="col-span-2"><span className="text-muted-foreground">Uploaded at:</span> {previewPaper.uploadedAt.toLocaleString()}</div>
+                            </div>
+
+                            {previewPaper.fileType === 'pdf' ? (
+                                <div className="border rounded-md overflow-hidden h-[65vh] bg-muted/20">
+                                    {previewLoading ? (
+                                        <div className="h-full flex items-center justify-center text-muted-foreground gap-2">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Loading preview...
+                                        </div>
+                                    ) : previewUrl ? (
+                                        <iframe src={previewUrl} className="w-full h-full" title="PDF Preview" />
+                                    ) : (
+                                        <div className="h-full flex items-center justify-center text-muted-foreground">
+                                            Preview unavailable
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="border rounded-md p-6 text-sm text-muted-foreground">
+                                    Inline preview is available only for PDF documents. You can still download this file.
+                                </div>
+                            )}
+                        </div>
+                    ) : null}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

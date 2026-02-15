@@ -60,10 +60,9 @@ const initialFormData: EventFormData = {
 
 export default function EventsPage() {
     const { user, isLoading, userRole } = useAuth()
-    const searchParams = useSearchParams()
-    const schoolId = searchParams.get('school_id') || undefined
-    const isSuperAdmin = userRole === 'super_admin'
-    const canLoad = !!user && !isLoading && (!isSuperAdmin || !!schoolId)
+    const schoolId = undefined
+    const isNormalAdmin = userRole === 'admin'
+    const canLoad = !!user && !isLoading && isNormalAdmin
 
     const [date, setDate] = useState<Date | undefined>(new Date())
     const [formData, setFormData] = useState<EventFormData>(initialFormData)
@@ -193,7 +192,7 @@ export default function EventsPage() {
             date: event.date,
             time: event.startTime || '',
             location: event.location || '',
-            description: event.description,
+            description: event.description || '',
         })
         setIsEditDialogOpen(true)
     }
@@ -255,11 +254,12 @@ export default function EventsPage() {
                     <p className="text-muted-foreground mt-1">Manage school events, holidays, and important dates</p>
                 </div>
                 <div className="flex gap-3">
-                    <Button variant="outline" onClick={handleExport} className="hover:bg-muted transition-colors">
+                    <Button variant="outline" onClick={handleExport} className="hover:bg-muted transition-colors" disabled={!canLoad}>
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
                     <Button
+                        disabled={!canLoad}
                         onClick={() => {
                             if (date) {
                                 // Reset form first
@@ -550,7 +550,14 @@ export default function EventsPage() {
                     </CardHeader>
                     <CardContent className="p-0 flex-1 overflow-hidden">
                         <div className="h-full overflow-y-auto p-6 space-y-3 custom-scrollbar">
-                            {events.length === 0 && !isFetchingNextPage ? (
+                            {!canLoad ? (
+                                <div className="text-center py-16">
+                                    <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
+                                    <p className="text-muted-foreground max-w-sm mx-auto">
+                                        Events can only be viewed and managed by the logged-in school admin.
+                                    </p>
+                                </div>
+                            ) : events.length === 0 && !isFetchingNextPage ? (
                                 <div className="text-center py-16">
                                     <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 mb-4">
                                         <CalendarDays className="h-10 w-10 text-muted-foreground" />

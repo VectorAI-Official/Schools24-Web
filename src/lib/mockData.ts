@@ -736,7 +736,7 @@ export const subjectPerformanceData = [
     { subject: 'Science', score: 82 },
     { subject: 'English', score: 78 },
     { subject: 'Hindi', score: 80 },
-    { subject: 'Social Studies', score: 75 },
+    { subject: 'Social Studies', score: 75 }
 ];
 
 export const leaderboardData = {

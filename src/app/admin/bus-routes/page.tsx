@@ -115,11 +115,13 @@ export default function BusRoutesPage() {
     const deleteRoute = useDeleteBusRoute()
 
     const routes = useMemo(() => data?.pages.flatMap(page => page.routes) || [], [data])
-    const filteredRoutes = routes
+    const filteredRoutes = useMemo(() => {
+        return [...routes].sort((a, b) => (a.routeNumber || '').localeCompare((b.routeNumber || ''), undefined, { numeric: true, sensitivity: 'base' }))
+    }, [routes])
+    const fetchTriggerIndex = filteredRoutes.length > 0 ? Math.max(0, Math.floor(filteredRoutes.length * 0.8) - 1) : -1
 
     // Infinite Scroll
-    // Infinite Scroll
-    const { ref: loadMoreRef, inView } = useIntersectionObserver()
+    const { ref: loadMoreRef, inView } = useIntersectionObserver({ threshold: 0.1 })
 
     useEffect(() => {
         if (inView && hasNextPage && !isFetchingNextPage) {
@@ -556,6 +558,7 @@ export default function BusRoutesPage() {
                     filteredRoutes.map((route, index) => (
                         <Card
                             key={route.id}
+                            ref={index === fetchTriggerIndex ? loadMoreRef : undefined}
                             className={`group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden stagger-${index + 1} animate-slide-up relative`}
                         >
                             {route.currentStudents > route.capacity && (
@@ -684,10 +687,9 @@ export default function BusRoutesPage() {
                 }
             </div>
 
-            {/* Load More Trigger */}
-            {(hasNextPage || isFetchingNextPage) && (
-                <div ref={loadMoreRef} className="py-4 flex justify-center w-full">
-                    {isFetchingNextPage && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+            {isFetchingNextPage && (
+                <div className="py-4 flex justify-center w-full">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
             )}
 
