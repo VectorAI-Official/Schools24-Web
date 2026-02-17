@@ -2,514 +2,446 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
 import {
     Trophy,
-    BookOpen,
     Calendar,
-    DollarSign,
+    Users,
+    HelpCircle,
+    BookOpen,
+    Award,
     Clock,
-    CheckCircle,
-    AlertCircle,
-    TrendingUp,
-    FileText,
-    Play,
-    ArrowRight,
+    Crown,
     Sparkles,
+    TrendingUp,
+    Flame,
     Target,
     Zap,
-    Medal,
-    Bus,
-    MessageSquare,
+    GraduationCap,
+    FlaskConical,
+    Calculator,
+    Globe,
+    Languages,
+    MessageCircle,
+    Star,
+    ArrowUpRight,
 } from 'lucide-react'
-import {
-    RadialBarChart,
-    RadialBar,
-    ResponsiveContainer,
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Cell,
-} from 'recharts'
-import { dashboardStats, mockQuizzes, mockTimetable, mockStudents } from '@/lib/mockData'
-import { formatCurrency } from '@/lib/utils'
+import { mockStudents } from '@/lib/mockData'
 
-const attendanceData = [{ name: 'Attendance', value: dashboardStats.student.attendance, fill: '#10b981' }]
+// Subject data with progress and icons — refined professional palette
+const subjectProgress = [
+    { name: 'Science', progress: 80, color: '#0d9488', bgColor: '#ccfbf1', icon: FlaskConical, iconColor: '#0d9488', accentColor: '#14b8a6' },
+    { name: 'Maths', progress: 70, color: '#4f46e5', bgColor: '#e0e7ff', icon: Calculator, iconColor: '#4f46e5', accentColor: '#6366f1' },
+    { name: 'Social', progress: 60, color: '#0284c7', bgColor: '#e0f2fe', icon: Globe, iconColor: '#0284c7', accentColor: '#0ea5e9' },
+    { name: 'English', progress: 50, color: '#7c3aed', bgColor: '#f3e8ff', icon: BookOpen, iconColor: '#7c3aed', accentColor: '#a855f7' },
+    { name: 'Hindi', progress: 40, color: '#ea580c', bgColor: '#ffedd5', icon: Languages, iconColor: '#ea580c', accentColor: '#f97316' },
+]
 
-const COLORS = ['#f97316', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+// Leaderboard data with Lucide icons
+const leaderboardData = [
+    { rank: 1, name: 'Charlie Brown', badge: 'Gold', badgeColor: '#d97706' },
+    { rank: 2, name: 'Alice Johnson', badge: 'Silver', badgeColor: '#64748b' },
+    { rank: 3, name: 'Grace Lee', badge: 'Bronze', badgeColor: '#b45309' },
+    { rank: 4, name: 'Bob Smith', badge: '', badgeColor: '' },
+    { rank: 5, name: 'Eve Davis', badge: '', badgeColor: '' },
+    { rank: 6, name: 'Henry Clark', badge: '', badgeColor: '' },
+    { rank: 7, name: 'Diana Prince', badge: '', badgeColor: '' },
+    { rank: 8, name: 'Frank Wilson', badge: '', badgeColor: '' },
+]
+
+// Quick action buttons — refined muted palette
+const quickActions = [
+    { icon: Clock, label: 'Time Table', href: '/student/timetable', color: '#e0e7ff', iconColor: '#4f46e5' },
+    { icon: Calendar, label: 'Schools Schedule', href: '/student/events', color: '#ccfbf1', iconColor: '#0d9488' },
+    { icon: Users, label: 'Class Group', href: '/student/class-group', color: '#ffedd5', iconColor: '#ea580c' },
+    { icon: HelpCircle, label: 'Quiz', href: '/student/quizzes', color: '#f3e8ff', iconColor: '#7c3aed' },
+    { icon: BookOpen, label: 'Learn', href: '/student/materials', color: '#e0f2fe', iconColor: '#0284c7' },
+    { icon: Award, label: 'Rewards', href: '/student/rewards', color: '#fef08a', iconColor: '#a16207' },
+]
+
+// Motivational quotes
+const quotes = [
+    { text: "All our dreams can come true, if we have the courage to pursue them.", author: "Walt Disney" },
+    { text: "Education is the passport to the future, for tomorrow belongs to those who prepare for it today.", author: "Malcolm X" },
+    { text: "The beautiful thing about learning is that nobody can take it away from you.", author: "B.B. King" },
+]
 
 export default function StudentDashboard() {
     const router = useRouter()
     const [mounted, setMounted] = useState(false)
+    const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
+    const [currentStreak, setCurrentStreak] = useState(7)
     const student = mockStudents[0]
-    const todayClasses = mockTimetable.filter(slot => slot.day === 'Monday').slice(0, 3)
-    const upcomingQuizzes = mockQuizzes.filter(q => q.status === 'upcoming').slice(0, 3)
 
     useEffect(() => {
         setMounted(true)
+        // Rotate quotes every 10 seconds
+        const quoteInterval = setInterval(() => {
+            setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length)
+        }, 10000)
+        return () => clearInterval(quoteInterval)
     }, [])
 
-    const quickLinks = [
-        { icon: <Play className="h-5 w-5" />, label: 'Join Class', href: '/student/timetable', color: 'from-orange-500 to-rose-500', shadow: 'shadow-orange-500/25' },
-        { icon: <FileText className="h-5 w-5" />, label: 'Take Quiz', href: '/student/quizzes', color: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/25' },
-        { icon: <BookOpen className="h-5 w-5" />, label: 'Study Material', href: '/student/materials', color: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/25' },
-        { icon: <Calendar className="h-5 w-5" />, label: 'View Schedule', href: '/student/timetable', color: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/25' },
-    ]
-
-    const handleQuickLinkClick = (href: string) => {
+    const handleQuickAction = (href: string) => {
         router.push(href)
     }
 
-    const handleViewAllQuizzes = () => {
-        router.push('/student/quizzes')
+    const handleViewLeaderboard = () => {
+        router.push('/student/leaderboard')
     }
 
-    const handlePayNow = () => {
-        router.push('/student/fees')
-    }
+    // Calculate overall progress
+    const overallProgress = Math.round(
+        subjectProgress.reduce((acc, sub) => acc + sub.progress, 0) / subjectProgress.length
+    )
 
-    const handleViewAttendance = () => {
-        router.push('/student/attendance')
+    if (!mounted) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="relative">
+                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-teal-600"></div>
+                    <GraduationCap className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-teal-600" />
+                </div>
+            </div>
+        )
     }
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            {/* Welcome Banner with Premium Gradient */}
-            <Card className="overflow-hidden border-0 shadow-2xl">
-                <CardContent className="p-0">
-                    <div className="relative bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 p-8 text-white overflow-hidden">
-                        {/* Decorative Elements */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-24 -translate-x-24" />
-                        <div className="absolute top-1/2 right-1/4 animate-float">
-                            <Sparkles className="h-8 w-8 text-white/30" />
-                        </div>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 p-4 md:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] mx-auto">
+                {/* Left Column - Subject Progress */}
+                <div className="lg:col-span-3 space-y-4">
 
-                        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                            <div>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-white/80 text-sm">Good Morning!</span>
-                                    <Zap className="h-4 w-4 text-yellow-200 animate-pulse" />
-                                </div>
-                                <h1 className="text-4xl font-bold mb-3">Welcome back, {student.name.split(' ')[0]}! 👋</h1>
-                                <p className="text-white/90 text-lg">Class {student.class}-{student.section} • Roll No: {student.rollNumber}</p>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="text-center px-8 py-4 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 transition-transform hover:scale-105">
-                                    <div className="flex items-center justify-center gap-1">
-                                        <Medal className="h-5 w-5 text-yellow-200" />
-                                        <p className="text-4xl font-bold">{student.performance.rank}</p>
-                                    </div>
-                                    <p className="text-sm text-white/80 mt-1">Class Rank</p>
-                                </div>
-                                <div className="text-center px-8 py-4 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 transition-transform hover:scale-105">
-                                    <p className="text-4xl font-bold">{student.grade}</p>
-                                    <p className="text-sm text-white/80 mt-1">Grade</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Quick Links with Vibrant Colors */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {quickLinks.map((link, index) => (
-                    <Card
-                        key={index}
-                        className="group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
-                        onClick={() => handleQuickLinkClick(link.href)}
-                    >
-                        <CardContent className="p-6 flex flex-col items-center text-center relative">
-                            <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${link.color} text-white mb-4 shadow-lg ${link.shadow} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                                {link.icon}
-                            </div>
-                            <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{link.label}</p>
-                            <ArrowRight className="h-4 w-4 mt-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0" />
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            {/* Stats Grid with Enhanced Design */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30">
-                                <CheckCircle className="h-7 w-7" />
-                            </div>
-                            <div>
-                                <p className="text-3xl font-bold text-green-700 dark:text-green-400">{student.attendance}%</p>
-                                <p className="text-sm text-muted-foreground">Attendance</p>
-                            </div>
-                        </div>
-                        <Progress value={student.attendance} className="mt-4 h-2" />
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="mt-3 w-full text-green-600 hover:text-green-700 hover:bg-green-100/50"
-                            onClick={handleViewAttendance}
-                        >
-                            View Details <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30">
-                                <Trophy className="h-7 w-7" />
-                            </div>
-                            <div>
-                                <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">#{student.performance.rank}</p>
-                                <p className="text-sm text-muted-foreground">of {student.performance.totalStudents} students</p>
-                            </div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="mt-4 w-full text-amber-600 hover:text-amber-700 hover:bg-amber-100/50"
-                            onClick={() => router.push('/student/leaderboard')}
-                        >
-                            View Leaderboard <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30">
-                                <FileText className="h-7 w-7" />
-                            </div>
-                            <div>
-                                <p className="text-3xl font-bold text-violet-700 dark:text-violet-400">{dashboardStats.student.upcomingQuizzes}</p>
-                                <p className="text-sm text-muted-foreground">Upcoming Quizzes</p>
-                            </div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="mt-4 w-full text-violet-600 hover:text-violet-700 hover:bg-violet-100/50"
-                            onClick={handleViewAllQuizzes}
-                        >
-                            Take Quiz <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                <Card className={`card-hover border-0 shadow-lg ${student.fees.status === 'paid' ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50' : 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50'}`}>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${student.fees.status === 'paid' ? 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-green-500/30' : 'bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/30'} text-white shadow-lg`}>
-                                <DollarSign className="h-7 w-7" />
-                            </div>
-                            <div>
-                                <p className={`text-3xl font-bold ${student.fees.status === 'paid' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{formatCurrency(student.fees.pending)}</p>
-                                <p className="text-sm text-muted-foreground">Pending Fees</p>
-                            </div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`mt-4 w-full ${student.fees.status === 'paid' ? 'text-green-600 hover:text-green-700 hover:bg-green-100/50' : 'text-red-600 hover:text-red-700 hover:bg-red-100/50'}`}
-                            onClick={handlePayNow}
-                        >
-                            {student.fees.pending > 0 ? 'Pay Now' : 'View Details'} <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Main Content Grid */}
-            <div className="grid gap-6 lg:grid-cols-3">
-                {/* Today's Classes */}
-                <Card className="border-0 shadow-lg overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                        <div className="flex items-center gap-2">
-                            <Clock className="h-5 w-5" />
-                            <CardTitle className="text-white">Today's Classes</CardTitle>
-                        </div>
-                        <CardDescription className="text-blue-100">Your schedule for today</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                        <div className="space-y-3">
-                            {todayClasses.map((slot, index) => (
-                                <div
-                                    key={slot.id}
-                                    className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md ${index === 0 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-transparent bg-muted/50 hover:border-blue-200'
-                                        }`}
-                                >
-                                    <div className="flex flex-col items-center justify-center min-w-[70px] text-center">
-                                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{slot.startTime}</span>
-                                        <span className="text-xs text-muted-foreground">{slot.endTime}</span>
-                                    </div>
-                                    <div className="h-12 w-1 rounded-full bg-gradient-to-b from-blue-500 to-cyan-500" />
-                                    <div className="flex-1">
-                                        <p className="font-semibold">{slot.subject}</p>
-                                        <p className="text-sm text-muted-foreground">{slot.teacher}</p>
-                                    </div>
-                                    <Badge variant={index === 0 ? 'default' : 'secondary'} className={index === 0 ? 'bg-blue-500 animate-pulse' : ''}>
-                                        {index === 0 ? '🔴 Live' : `Room ${slot.room}`}
-                                    </Badge>
-                                </div>
-                            ))}
-                        </div>
-                        <Button
-                            className="w-full mt-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-0"
-                            onClick={() => router.push('/student/timetable')}
-                        >
-                            View Full Schedule <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                {/* Subject Performance Chart */}
-                <Card className="lg:col-span-2 border-0 shadow-lg">
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <Target className="h-5 w-5 text-primary" />
-                                    <CardTitle>Subject Performance</CardTitle>
-                                </div>
-                                <CardDescription>Your scores across subjects</CardDescription>
-                            </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
+                    {/* Subject Progress Cards */}
+                    {subjectProgress.map((subject, index) => {
+                        const IconComponent = subject.icon
+                        return (
+                            <Card
+                                key={subject.name}
+                                className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 bg-white group overflow-hidden"
+                                style={{ borderLeft: `3px solid ${subject.accentColor}` }}
                                 onClick={() => router.push('/student/performance')}
                             >
-                                View Details
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {mounted && (
-                            <div className="h-[300px] w-full" style={{ minHeight: '300px', minWidth: '0' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={student.performance.subjects}>
-                                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                        <XAxis dataKey="name" className="text-xs" />
-                                        <YAxis domain={[0, 100]} className="text-xs" />
-                                        <Tooltip
-                                            contentStyle={{
-                                                backgroundColor: 'hsl(var(--card))',
-                                                border: '1px solid hsl(var(--border))',
-                                                borderRadius: '12px',
-                                                boxShadow: '0 10px 40px -15px rgba(0,0,0,0.2)',
-                                            }}
-                                            formatter={(value: number | undefined) => [`${value ?? 0}%`, 'Score']}
-                                            cursor={false}
-                                        />
-                                        <Bar dataKey="score" radius={[8, 8, 0, 0]}>
-                                            {student.performance.subjects.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        )}
-                        <div className="grid grid-cols-5 gap-2 mt-4">
-                            {student.performance.subjects.map((subject, index) => (
-                                <div key={subject.name} className="text-center p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
-                                    <p className="text-xs font-medium truncate text-muted-foreground">{subject.name}</p>
-                                    <p className="text-xl font-bold mt-1" style={{ color: COLORS[index % COLORS.length] }}>{subject.grade}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Bottom Row */}
-            <div className="grid gap-6 lg:grid-cols-2">
-                {/* Upcoming Quizzes */}
-                <Card className="border-0 shadow-lg">
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-violet-500" />
-                                <CardTitle>Upcoming Quizzes</CardTitle>
-                            </div>
-                            <Button variant="ghost" size="sm" onClick={handleViewAllQuizzes}>
-                                View All <ArrowRight className="ml-1 h-4 w-4" />
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {upcomingQuizzes.map((quiz, index) => (
-                                <div
-                                    key={quiz.id}
-                                    className={`flex items-center gap-4 p-4 rounded-xl border hover:border-violet-300 hover:bg-violet-50/50 dark:hover:bg-violet-950/30 transition-all duration-300 cursor-pointer stagger-${index + 1} animate-slide-up`}
-                                    onClick={handleViewAllQuizzes}
-                                >
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/20">
-                                        <FileText className="h-6 w-6" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold truncate">{quiz.title}</p>
-                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                            <span>{quiz.subject}</span>
-                                            <span>•</span>
-                                            <span>{quiz.questions} questions</span>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div
+                                            className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
+                                            style={{ backgroundColor: subject.bgColor }}
+                                        >
+                                            <IconComponent
+                                                className="w-5 h-5"
+                                                style={{ color: subject.iconColor }}
+                                            />
                                         </div>
+                                        <div className="flex-1">
+                                            <span className="font-semibold text-slate-800 text-sm tracking-wide">{subject.name}</span>
+                                        </div>
+                                        {subject.progress >= 70 && (
+                                            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 text-[10px] font-bold uppercase tracking-wider">
+                                                <TrendingUp className="w-3 h-3 mr-1" />
+                                                Good
+                                            </Badge>
+                                        )}
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-medium text-violet-600 dark:text-violet-400">{quiz.scheduledDate}</p>
-                                        <Badge variant="secondary" className="mt-1">{quiz.duration} mins</Badge>
+                                    <div className="relative">
+                                        <Progress
+                                            value={subject.progress}
+                                            className="h-2.5 bg-slate-100 rounded-full"
+                                        />
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                                    <div className="flex items-center justify-between mt-2.5">
+                                        <p className="text-xs font-medium text-slate-500">{subject.progress}% Complete</p>
+                                        <p className="text-[10px] text-slate-400 font-medium">{100 - subject.progress}% remaining</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )
+                    })}
+                </div>
 
-                {/* Fee Status */}
-                <Card className="border-0 shadow-lg overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-                        <div className="flex items-center gap-2">
-                            <DollarSign className="h-5 w-5" />
-                            <CardTitle className="text-white">Fee Status</CardTitle>
-                        </div>
-                        <CardDescription className="text-emerald-100">Current academic year</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-4xl font-bold text-foreground">{formatCurrency(student.fees.paid)}</p>
-                                    <p className="text-sm text-muted-foreground mt-1">Paid out of {formatCurrency(student.fees.total)}</p>
+                {/* Center Column - Quote + Quick Actions + Progress */}
+                <div className="lg:col-span-6 space-y-6">
+                    {/* Motivational Quote Card */}
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-teal-100/80 via-emerald-100/50 to-cyan-100/40 overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-300/40 to-emerald-300/40 rounded-full -translate-y-20 translate-x-20" />
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-cyan-300/30 to-teal-300/30 rounded-full translate-y-16 -translate-x-16" />
+                        <CardContent className="p-6 relative z-10">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 mt-1">
+                                    <div className="w-1 h-12 bg-gradient-to-b from-teal-400 to-emerald-400 rounded-full" />
                                 </div>
-                                <Badge
-                                    variant={student.fees.status === 'paid' ? 'success' : student.fees.status === 'partial' ? 'warning' : 'destructive'}
-                                    className="text-sm px-4 py-2 font-semibold"
-                                >
-                                    {student.fees.status === 'paid' ? '✓ Fully Paid' : student.fees.status === 'partial' ? '◐ Partially Paid' : '! Pending'}
+                                <div className="flex-1">
+                                    <p className="text-base font-medium text-slate-600 italic leading-relaxed transition-opacity duration-300 min-h-[3.5rem]">
+                                        &ldquo;{quotes[currentQuoteIndex].text}&rdquo;
+                                    </p>
+                                    <p className="mt-3 text-teal-600 font-semibold text-sm tracking-wide">— {quotes[currentQuoteIndex].author}</p>
+                                </div>
+                            </div>
+                            {/* Quote navigation dots */}
+                            <div className="flex justify-center gap-2 mt-5">
+                                {quotes.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        className={`h-1.5 rounded-full transition-all duration-300 ${index === currentQuoteIndex
+                                            ? 'bg-teal-500 w-6'
+                                            : 'bg-teal-200 hover:bg-teal-300 w-1.5'
+                                            }`}
+                                        onClick={() => setCurrentQuoteIndex(index)}
+                                    />
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Quick Actions Grid */}
+                    <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-5">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm tracking-wide uppercase">
+                                    <Zap className="w-4 h-4 text-amber-500" />
+                                    Quick Actions
+                                </h3>
+                                <Badge variant="outline" className="text-slate-500 border-slate-200 text-[10px] font-bold uppercase tracking-wider">
+                                    6 shortcuts
                                 </Badge>
                             </div>
+                            <div className="grid grid-cols-3 gap-3">
+                                {quickActions.map((action, index) => (
+                                    <button
+                                        key={action.label}
+                                        className="flex flex-col items-center gap-2.5 p-4 rounded-xl bg-slate-50/50 hover:bg-white hover:shadow-md transition-all duration-300 hover:-translate-y-1 group border border-slate-100 hover:border-slate-200"
+                                        onClick={() => handleQuickAction(action.href)}
+                                    >
+                                        <div
+                                            className="w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-sm"
+                                            style={{ backgroundColor: action.color }}
+                                        >
+                                            <action.icon
+                                                className="w-7 h-7 transition-transform"
+                                                style={{ color: action.iconColor }}
+                                            />
+                                        </div>
+                                        <span className="text-xs font-semibold text-slate-600 text-center group-hover:text-slate-800 transition-colors tracking-wide">
+                                            {action.label}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                            <Progress value={(student.fees.paid / student.fees.total) * 100} className="h-3" />
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 text-center border border-green-200 dark:border-green-800">
-                                    <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-500" />
-                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(student.fees.paid)}</p>
-                                    <p className="text-sm text-muted-foreground">Paid</p>
+                    {/* Progress Banner */}
+                    <Card className="border-0 shadow-lg bg-gradient-to-r from-teal-50 via-teal-100/60 to-emerald-100/50 overflow-hidden relative">
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-teal-200/50 via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-emerald-200/40 via-transparent to-transparent" />
+                        <CardContent className="p-6 relative z-10">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/30">
+                                        <Target className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Overall Progress</p>
+                                        <p className="text-2xl font-bold text-slate-800 mt-0.5">{overallProgress}% Complete</p>
+                                    </div>
                                 </div>
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50 text-center border border-red-200 dark:border-red-800">
-                                    <AlertCircle className="h-6 w-6 mx-auto mb-2 text-red-500" />
-                                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(student.fees.pending)}</p>
-                                    <p className="text-sm text-muted-foreground">Pending</p>
+                                <div className="text-right">
+                                    <p className="text-3xl font-bold text-teal-500">{5 - subjectProgress.filter(s => s.progress >= 80).length}</p>
+                                    <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Subjects to master</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2.5 text-slate-600 bg-teal-100/60 rounded-lg p-3 border border-teal-200">
+                                <ArrowUpRight className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                <span className="text-sm font-medium">Great job! You&apos;re {overallProgress}% through your assessments. Keep going!</span>
+                                <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Professional Seamless Assessment Tracker - Static In-Flow */}
+                    <div className="relative mt-16 w-full
+                                    transition-all duration-500 ease-out 
+                                    animate-in slide-in-from-bottom-5 fade-in
+                                    group/tracker select-none">
+
+                        {/* Inner Container for Padding */}
+                        <div className="px-0 pt-12">
+                            {/* Floating Labels - Appear ABOVE the bar on hover */}
+                            <div className="absolute top-0 left-0 w-full px-2 flex justify-between items-end 
+                                            opacity-0 translate-y-2 pointer-events-none
+                                            group-hover/tracker:opacity-100 group-hover/tracker:translate-y-0 group-hover/tracker:pointer-events-auto
+                                            transition-all duration-500 ease-out z-20">
+                                {[
+                                    { label: 'FA 1', status: 'completed' },
+                                    { label: 'FA 2', status: 'completed' },
+                                    { label: 'SA 1', status: 'completed' },
+                                    { label: 'FA 3', status: 'upcoming' },
+                                    { label: 'FA 4', status: 'upcoming' },
+                                    { label: 'SA 2', status: 'upcoming' },
+                                ].map((exam, i) => (
+                                    <div
+                                        key={exam.label}
+                                        className={`
+                                            flex flex-col items-center gap-1
+                                            ${exam.status === 'completed' ? 'text-emerald-600' : 'text-slate-500'}
+                                        `}
+                                    >
+                                        <div className={`
+                                            px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md border transform transition-transform duration-300
+                                            ${exam.status === 'completed'
+                                                ? 'bg-emerald-100/95 border-emerald-300 shadow-emerald-500/15 text-emerald-700'
+                                                : 'bg-white/95 border-slate-200 shadow-slate-500/10 text-slate-600'
+                                            }
+                                        `}>
+                                            {exam.status === 'completed' && <span className="mr-1 text-[10px]">✓</span>}
+                                            {exam.label}
+                                        </div>
+                                        {/* Connectivity Line */}
+                                        <div className={`w-0.5 h-2 rounded-full ${exam.status === 'completed' ? 'bg-emerald-400' : 'bg-slate-300'}`} />
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* The Main Bar Container */}
+                            <div className="relative h-3 w-full bg-slate-200/50 rounded-full cursor-pointer overflow-visible mt-1">
+
+                                {/* Bar Background / Track */}
+                                <div className="absolute inset-0 rounded-full overflow-hidden shadow-inner bg-slate-100 border border-slate-200">
+                                    {/* Section Dividers */}
+                                    <div className="absolute inset-0 w-full flex z-10 opacity-20">
+                                        {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="flex-1 border-r border-slate-400 last:border-0" />)}
+                                    </div>
+
+                                    {/* Active Gradient Fill */}
+                                    <div
+                                        className="h-full bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400 relative transition-all duration-1000 ease-out group-hover/tracker:brightness-110"
+                                        style={{ width: '50%' }}
+                                    >
+                                        {/* Animated Shine */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent w-full -translate-x-full animate-[shimmer_2s_infinite]" />
+                                    </div>
+                                </div>
+
+                                {/* Glow Effect behind the active part (visible on hover) */}
+                                <div
+                                    className="absolute top-0 left-0 h-full blur-lg bg-teal-400/35 rounded-full transition-opacity duration-500 opacity-0 group-hover/tracker:opacity-100 -z-10"
+                                    style={{ width: '50%' }}
+                                />
+                            </div>
+
+                            {/* Bottom Legend / Status */}
+                            <div className="flex justify-between mt-2.5">
+                                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold group-hover/tracker:text-slate-600 transition-colors">Start</span>
+
+                                <div className="flex items-center gap-2 opacity-60 group-hover/tracker:opacity-100 transition-opacity duration-300">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600">3 of 6 Completed</span>
+                                </div>
+
+                                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold group-hover/tracker:text-slate-600 transition-colors">Finish</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Column - Leaderboard */}
+                <div className="lg:col-span-3">
+                    <Card className="border-0 shadow-sm bg-white overflow-hidden sticky top-6">
+                        <CardContent className="p-5">
+                            {/* Leaderboard Header */}
+                            <div className="flex items-center justify-between mb-5">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                                        <Crown className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold text-slate-800 tracking-tight">Leaderboard</h3>
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Top performers</p>
+                                    </div>
+                                </div>
+                                <Trophy className="w-7 h-7 text-amber-500 animate-bounce" />
+                            </div>
+
+                            {/* Your Rank Banner */}
+                            <div className="bg-gradient-to-r from-teal-100/80 to-emerald-100/70 rounded-xl p-3.5 mb-4 border border-teal-300/50">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold shadow-lg shadow-teal-500/30 text-sm">
+                                        {student.performance.rank}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Your Rank</p>
+                                        <p className="font-semibold text-slate-800 text-sm">#{student.performance.rank} of {student.performance.totalStudents}</p>
+                                    </div>
+                                    <TrendingUp className="w-5 h-5 text-emerald-500" />
                                 </div>
                             </div>
 
-                            {student.fees.pending > 0 && (
-                                <Button
-                                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0 shadow-lg shadow-emerald-500/20"
-                                    onClick={handlePayNow}
-                                >
-                                    <DollarSign className="mr-2 h-4 w-4" />
-                                    Pay Now
-                                </Button>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                            {/* Leaderboard List */}
+                            <div className="space-y-1.5">
+                                {leaderboardData.map((item, index) => (
+                                    <div
+                                        key={item.rank}
+                                        className={`flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 hover:shadow-sm hover:-translate-x-1 cursor-pointer ${item.rank <= 3
+                                            ? item.rank === 1
+                                                ? 'bg-amber-50/80 border border-amber-200/60'
+                                                : item.rank === 2
+                                                    ? 'bg-slate-50 border border-slate-200/60'
+                                                    : 'bg-orange-50/60 border border-orange-200/60'
+                                            : 'bg-slate-50/50 hover:bg-slate-100 border border-transparent'
+                                            }`}
+                                    >
+                                        {/* Rank Badge */}
+                                        <div
+                                            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-sm ${item.rank === 1
+                                                ? 'bg-gradient-to-br from-amber-400 to-amber-600'
+                                                : item.rank === 2
+                                                    ? 'bg-gradient-to-br from-slate-400 to-slate-600'
+                                                    : item.rank === 3
+                                                        ? 'bg-gradient-to-br from-orange-400 to-orange-600'
+                                                        : 'bg-gradient-to-br from-slate-300 to-slate-500'
+                                                }`}
+                                        >
+                                            {item.rank}
+                                        </div>
+
+                                        {/* Name and Badge */}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-slate-700 truncate text-sm">{item.name}</p>
+                                            {item.badge && (
+                                                <div className="flex items-center gap-1 mt-0.5">
+                                                    <Trophy className="w-3 h-3" style={{ color: item.badgeColor }} />
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: item.badgeColor }}>
+                                                        {item.badge}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Icon based on rank */}
+                                        {item.rank <= 3 ? (
+                                            <Award className="w-4 h-4" style={{ color: item.badgeColor }} />
+                                        ) : (
+                                            <Star className="w-4 h-4 text-amber-400" />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* View Full Leaderboard Button */}
+                            <Button
+                                className="w-full mt-5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold py-6 rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-sm tracking-wide"
+                                onClick={handleViewLeaderboard}
+                            >
+                                <Trophy className="w-4 h-4 mr-2" />
+                                View Full Leaderboard
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-
-            {/* Attendance Overview */}
-            <Card className="border-0 shadow-lg">
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <Calendar className="h-5 w-5 text-blue-500" />
-                                <CardTitle>Attendance Overview</CardTitle>
-                            </div>
-                            <CardDescription>Your attendance statistics</CardDescription>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={handleViewAttendance}>
-                            View Full Report
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-col md:flex-row items-center gap-8">
-                        <div className="relative w-52 h-52" style={{ minHeight: '208px', minWidth: '208px' }}>
-                            {mounted && (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="100%" data={attendanceData} startAngle={90} endAngle={-270}>
-                                        <RadialBar dataKey="value" cornerRadius={10} fill="url(#attendanceGradient)" background={{ fill: 'hsl(var(--muted))' }} />
-                                        <defs>
-                                            <linearGradient id="attendanceGradient" x1="0" y1="0" x2="1" y2="1">
-                                                <stop offset="0%" stopColor="#10b981" />
-                                                <stop offset="100%" stopColor="#059669" />
-                                            </linearGradient>
-                                        </defs>
-                                    </RadialBarChart>
-                                </ResponsiveContainer>
-                            )}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <p className="text-4xl font-bold text-green-600 dark:text-green-400">{student.attendance}%</p>
-                                <p className="text-sm text-muted-foreground">Attendance</p>
-                            </div>
-                        </div>
-                        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="text-center p-5 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border border-green-200 dark:border-green-800 transition-transform hover:scale-105">
-                                <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-500" />
-                                <p className="text-3xl font-bold text-green-600 dark:text-green-400">156</p>
-                                <p className="text-sm text-muted-foreground">Present</p>
-                            </div>
-                            <div className="text-center p-5 rounded-2xl bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50 border border-red-200 dark:border-red-800 transition-transform hover:scale-105">
-                                <AlertCircle className="h-6 w-6 mx-auto mb-2 text-red-500" />
-                                <p className="text-3xl font-bold text-red-600 dark:text-red-400">8</p>
-                                <p className="text-sm text-muted-foreground">Absent</p>
-                            </div>
-                            <div className="text-center p-5 rounded-2xl bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/50 dark:to-amber-950/50 border border-yellow-200 dark:border-yellow-800 transition-transform hover:scale-105">
-                                <Clock className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
-                                <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">4</p>
-                                <p className="text-sm text-muted-foreground">Late</p>
-                            </div>
-                            <div className="text-center p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 border border-blue-200 dark:border-blue-800 transition-transform hover:scale-105">
-                                <TrendingUp className="h-6 w-6 mx-auto mb-2 text-blue-500" />
-                                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">2</p>
-                                <p className="text-sm text-muted-foreground">Excused</p>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Quick Actions Footer */}
-            <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-                <CardContent className="p-6">
-                    <div className="flex flex-wrap items-center justify-center gap-4">
-                        <Button variant="outline" className="gap-2" onClick={() => router.push('/student/bus-route')}>
-                            <Bus className="h-4 w-4" /> My Bus Route
-                        </Button>
-                        <Button variant="outline" className="gap-2" onClick={() => router.push('/student/events')}>
-                            <Calendar className="h-4 w-4" /> Events
-                        </Button>
-                        <Button variant="outline" className="gap-2" onClick={() => router.push('/student/reports')}>
-                            <FileText className="h-4 w-4" /> Reports
-                        </Button>
-                        <Button variant="outline" className="gap-2" onClick={() => router.push('/student/feedback')}>
-                            <MessageSquare className="h-4 w-4" /> Feedback
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     )
 }

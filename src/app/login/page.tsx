@@ -39,7 +39,7 @@ const roleData: RoleDataItem[] = [
     {
         role: 'admin',
         title: 'Admin',
-        email: 'admin@school24.com',
+        email: 'admin@schools24.com',
         password: 'admin123',
         icon: Shield,
         gradient: 'from-violet-600 via-indigo-600 to-blue-700',
@@ -50,7 +50,7 @@ const roleData: RoleDataItem[] = [
     {
         role: 'teacher',
         title: 'Teacher',
-        email: 'teacher@school24.com',
+        email: 'teacher@schools24.com',
         password: 'teacher123',
         icon: BookOpen,
         gradient: 'from-teal-500 via-emerald-500 to-green-600',
@@ -61,7 +61,7 @@ const roleData: RoleDataItem[] = [
     {
         role: 'student',
         title: 'Student',
-        email: 'student@school24.com',
+        email: 'student@schools24.com',
         password: 'student123',
         icon: Award,
         gradient: 'from-orange-500 via-amber-500 to-yellow-600',
@@ -322,7 +322,7 @@ export default function LoginPage() {
                                 </div>
                                 <div className="text-left">
                                     <h1 className="font-bold text-5xl md:text-6xl bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
-                                        School24
+                                        schools24
                                     </h1>
                                     <p className="text-base text-slate-600 dark:text-slate-400 mt-2 font-medium">
                                         Education Management System
@@ -333,7 +333,7 @@ export default function LoginPage() {
 
                         {/* Features */}
                         <div className="space-y-4">
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Why Choose School24?</h3>
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Why Choose schools24?</h3>
                             {[
                                 { icon: Users, title: 'Collaborative Learning', desc: 'Connect teachers, students, and parents seamlessly', delay: '0.1s' },
                                 { icon: Calendar, title: 'Smart Scheduling', desc: 'Automated timetables and attendance tracking', delay: '0.2s' },
@@ -376,7 +376,7 @@ export default function LoginPage() {
                                 </div>
                                 <div className="text-left">
                                     <h1 className="font-bold text-3xl bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
-                                        School24
+                                        schools24
                                     </h1>
                                     <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                                         Education Management
@@ -422,7 +422,7 @@ export default function LoginPage() {
                                             <Input
                                                 id="email"
                                                 type="email"
-                                                placeholder="your.email@school24.com"
+                                                placeholder="your.email@schools24.com"
                                                 {...register('email')}
                                                 className={`h-11 text-base bg-white dark:bg-slate-700 border-2 rounded-xl transition-all duration-300 shadow-sm focus:shadow-md ${errors.email
                                                     ? 'border-red-500 focus-visible:ring-4 focus-visible:ring-red-500/20 focus-visible:border-red-500'
@@ -697,7 +697,7 @@ export default function LoginPage() {
                                 </Link>
                             </p>
                             <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                                © 2026 School24. All rights reserved.
+                                © 2026 schools24. All rights reserved.
                             </p>
                         </div>
                     </div>

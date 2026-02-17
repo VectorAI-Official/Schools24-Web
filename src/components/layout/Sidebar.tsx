@@ -197,7 +197,7 @@ export function Sidebar() {
                                     "font-bold text-xl tracking-tight",
                                     `bg-gradient-to-r ${config.gradient} bg-clip-text text-transparent`
                                 )}>
-                                    School24
+                                    schools24
                                 </span>
                                 <div className="flex items-center gap-1.5">
                                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-semibold uppercase tracking-wider">

@@ -62,7 +62,7 @@ const stats = [
 
 const testimonials = [
   {
-    quote: "School24 transformed how we manage our school. The admin dashboard is incredibly intuitive.",
+    quote: "schools24 transformed how we manage our school. The admin dashboard is incredibly intuitive.",
     author: "Dr. Priya Sharma",
     role: "Principal, Delhi Public School",
     rating: 5,
@@ -91,7 +91,7 @@ export default function LandingPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20">
               <GraduationCap className="h-6 w-6 text-white" />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">School24</span>
+            <span className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">schools24</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -275,7 +275,7 @@ export default function LandingPage() {
               Loved by <span className="text-gradient">Thousands</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              See what our users have to say about their experience with School24.
+              See what our users have to say about their experience with schools24.
             </p>
           </div>
 
@@ -311,7 +311,7 @@ export default function LandingPage() {
                   Ready to Transform Your School?
                 </h2>
                 <p className="text-indigo-100 max-w-2xl mx-auto mb-8 relative z-10">
-                  Join thousands of schools already using School24 to streamline their operations
+                  Join thousands of schools already using schools24 to streamline their operations
                   and enhance educational outcomes.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
@@ -340,7 +340,7 @@ export default function LandingPage() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
                   <GraduationCap className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="font-bold text-xl">School24</span>
+                <span className="font-bold text-xl">schools24</span>
               </Link>
               <p className="text-muted-foreground text-sm">
                 Empowering schools with modern technology for better education.
@@ -383,7 +383,7 @@ export default function LandingPage() {
           </div>
 
           <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-            <p>© 2026 School24. All rights reserved.</p>
+            <p>© 2026 schools24. All rights reserved.</p>
           </div>
         </div>
       </footer>

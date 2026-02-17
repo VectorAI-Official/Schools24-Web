@@ -25,9 +25,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Mock credentials for demo
 const mockCredentials = {
-    admin: { email: 'admin@school24.com', password: 'admin123', user: { id: '1', name: 'Admin User', email: 'admin@school24.com', role: 'admin' as UserRole } },
-    teacher: { email: 'teacher@school24.com', password: 'teacher123', user: { id: '2', name: 'Rajesh Kumar', email: 'rajesh@school24.com', role: 'teacher' as UserRole } },
-    student: { email: 'student@school24.com', password: 'student123', user: { id: '3', name: 'Amit Singh', email: 'amit@school24.com', role: 'student' as UserRole } },
+    admin: { email: 'admin@schools24.com', password: 'admin123', user: { id: '1', name: 'Admin User', email: 'admin@schools24.com', role: 'admin' as UserRole } },
+    teacher: { email: 'teacher@schools24.com', password: 'teacher123', user: { id: '2', name: 'Rajesh Kumar', email: 'rajesh@schools24.com', role: 'teacher' as UserRole } },
+    student: { email: 'student@schools24.com', password: 'student123', user: { id: '3', name: 'Amit Singh', email: 'amit@schools24.com', role: 'student' as UserRole } },
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -38,12 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         // Check for stored auth on mount
-        const storedUser = localStorage.getItem('School24_user')
+        const storedUser = localStorage.getItem('schools24_user')
         if (storedUser) {
             try {
                 setUser(JSON.parse(storedUser))
             } catch {
-                localStorage.removeItem('School24_user')
+                localStorage.removeItem('schools24_user')
             }
         }
         setIsLoading(false)
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         for (const cred of Object.values(mockCredentials)) {
             if (cred.email === email && cred.password === password) {
                 setUser(cred.user)
-                localStorage.setItem('School24_user', JSON.stringify(cred.user))
+                localStorage.setItem('schools24_user', JSON.stringify(cred.user))
                 return true
             }
         }
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = () => {
         setUser(null)
-        localStorage.removeItem('School24_user')
+        localStorage.removeItem('schools24_user')
         router.push('/login')
     }
 

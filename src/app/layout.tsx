@@ -9,12 +9,12 @@ import { Toaster } from "@/components/ui/sonner";
 const fontClassName = "font-sans";
 
 export const metadata: Metadata = {
-  title: "School24 - Comprehensive School Management System",
+  title: "schools24 - Comprehensive School Management System",
   description: "A modern, full-featured school management system for administrators, teachers, and students.",
   keywords: ["school management", "education", "student portal", "teacher portal", "admin dashboard"],
-  authors: [{ name: "School24" }],
-  creator: "School24",
-  publisher: "School24",
+  authors: [{ name: "schools24" }],
+  creator: "schools24",
+  publisher: "schools24",
   icons: {
     icon: [
       { url: "/icon.png", sizes: "512x512", type: "image/png" },
@@ -26,14 +26,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://school24.com",
-    title: "School24 - Comprehensive School Management System",
+    url: "https://schools24.com",
+    title: "schools24 - Comprehensive School Management System",
     description: "A modern, full-featured school management system for administrators, teachers, and students.",
-    siteName: "School24",
+    siteName: "schools24",
   },
   twitter: {
     card: "summary_large_image",
-    title: "School24 - Comprehensive School Management System",
+    title: "schools24 - Comprehensive School Management System",
     description: "A modern, full-featured school management system for administrators, teachers, and students.",
   },
 };

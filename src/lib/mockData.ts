@@ -1,4 +1,4 @@
-// Mock Data for School24 School Management System
+// Mock Data for schools24 School Management System
 
 export type UserRole = 'admin' | 'teacher' | 'student' | 'non-teaching';
 
@@ -222,11 +222,11 @@ export interface Feedback {
 
 // Mock Users
 export const mockUsers: User[] = [
-    { id: '1', name: 'Admin User', email: 'admin@School24.com', role: 'admin', phone: '+91 9876543210', status: 'active' },
-    { id: '2', name: 'Rajesh Kumar', email: 'rajesh@School24.com', role: 'teacher', department: 'Mathematics', status: 'active' },
-    { id: '3', name: 'Priya Sharma', email: 'priya@School24.com', role: 'teacher', department: 'Science', status: 'active' },
-    { id: '4', name: 'Amit Singh', email: 'amit@School24.com', role: 'student', class: '10-A', rollNumber: '1001', status: 'active' },
-    { id: '5', name: 'Sneha Patel', email: 'sneha@School24.com', role: 'student', class: '10-A', rollNumber: '1002', status: 'active' },
+    { id: '1', name: 'Admin User', email: 'admin@schools24.com', role: 'admin', phone: '+91 9876543210', status: 'active' },
+    { id: '2', name: 'Rajesh Kumar', email: 'rajesh@schools24.com', role: 'teacher', department: 'Mathematics', status: 'active' },
+    { id: '3', name: 'Priya Sharma', email: 'priya@schools24.com', role: 'teacher', department: 'Science', status: 'active' },
+    { id: '4', name: 'Amit Singh', email: 'amit@schools24.com', role: 'student', class: '10-A', rollNumber: '1001', status: 'active' },
+    { id: '5', name: 'Sneha Patel', email: 'sneha@schools24.com', role: 'student', class: '10-A', rollNumber: '1002', status: 'active' },
 ];
 
 // Mock Students
@@ -234,7 +234,7 @@ export const mockStudents: Student[] = [
     {
         id: '1',
         name: 'Amit Singh',
-        email: 'amit.singh@student.School24.com',
+        email: 'amit.singh@student.schools24.com',
         phone: '+91 9876543211',
         class: '10',
         section: 'A',
@@ -263,7 +263,7 @@ export const mockStudents: Student[] = [
     {
         id: '2',
         name: 'Sneha Patel',
-        email: 'sneha.patel@student.School24.com',
+        email: 'sneha.patel@student.schools24.com',
         phone: '+91 9876543213',
         class: '10',
         section: 'A',
@@ -292,7 +292,7 @@ export const mockStudents: Student[] = [
     {
         id: '3',
         name: 'Rahul Verma',
-        email: 'rahul.verma@student.School24.com',
+        email: 'rahul.verma@student.schools24.com',
         phone: '+91 9876543215',
         class: '10',
         section: 'B',
@@ -321,7 +321,7 @@ export const mockStudents: Student[] = [
     {
         id: '4',
         name: 'Meera Kapoor',
-        email: 'meera.kapoor@student.School24.com',
+        email: 'meera.kapoor@student.schools24.com',
         phone: '+91 9876543217',
         class: '9',
         section: 'A',
@@ -350,7 +350,7 @@ export const mockStudents: Student[] = [
     {
         id: '5',
         name: 'Arjun Mehta',
-        email: 'arjun.mehta@student.School24.com',
+        email: 'arjun.mehta@student.schools24.com',
         phone: '+91 9876543219',
         class: '9',
         section: 'B',
@@ -383,7 +383,7 @@ export const mockTeachers: Teacher[] = [
     {
         id: '1',
         name: 'Rajesh Kumar',
-        email: 'rajesh.kumar@School24.com',
+        email: 'rajesh.kumar@schools24.com',
         phone: '+91 9876543221',
         employeeId: 'TCH001',
         department: 'Mathematics',
@@ -399,7 +399,7 @@ export const mockTeachers: Teacher[] = [
     {
         id: '2',
         name: 'Priya Sharma',
-        email: 'priya.sharma@School24.com',
+        email: 'priya.sharma@schools24.com',
         phone: '+91 9876543222',
         employeeId: 'TCH002',
         department: 'Science',
@@ -415,7 +415,7 @@ export const mockTeachers: Teacher[] = [
     {
         id: '3',
         name: 'Ankit Gupta',
-        email: 'ankit.gupta@School24.com',
+        email: 'ankit.gupta@schools24.com',
         phone: '+91 9876543223',
         employeeId: 'TCH003',
         department: 'English',
@@ -431,7 +431,7 @@ export const mockTeachers: Teacher[] = [
     {
         id: '4',
         name: 'Sunita Devi',
-        email: 'sunita.devi@School24.com',
+        email: 'sunita.devi@schools24.com',
         phone: '+91 9876543224',
         employeeId: 'TCH004',
         department: 'Hindi',
@@ -447,7 +447,7 @@ export const mockTeachers: Teacher[] = [
     {
         id: '5',
         name: 'Vikram Joshi',
-        email: 'vikram.joshi@School24.com',
+        email: 'vikram.joshi@schools24.com',
         phone: '+91 9876543225',
         employeeId: 'TCH005',
         department: 'Social Studies',
@@ -468,7 +468,7 @@ export const mockStaff: Staff[] = [
     {
         id: '1',
         name: 'Rajesh Kumar',
-        email: 'rajesh.kumar@School24.com',
+        email: 'rajesh.kumar@schools24.com',
         phone: '+91 9876543221',
         employeeId: 'TCH001',
         staffType: 'teaching',
@@ -490,7 +490,7 @@ export const mockStaff: Staff[] = [
     {
         id: '2',
         name: 'Priya Sharma',
-        email: 'priya.sharma@School24.com',
+        email: 'priya.sharma@schools24.com',
         phone: '+91 9876543222',
         employeeId: 'TCH002',
         staffType: 'teaching',
@@ -512,7 +512,7 @@ export const mockStaff: Staff[] = [
     {
         id: '3',
         name: 'Ankit Gupta',
-        email: 'ankit.gupta@School24.com',
+        email: 'ankit.gupta@schools24.com',
         phone: '+91 9876543223',
         employeeId: 'TCH003',
         staffType: 'teaching',
@@ -534,7 +534,7 @@ export const mockStaff: Staff[] = [
     {
         id: '4',
         name: 'Sunita Devi',
-        email: 'sunita.devi@School24.com',
+        email: 'sunita.devi@schools24.com',
         phone: '+91 9876543224',
         employeeId: 'TCH004',
         staffType: 'teaching',
@@ -556,7 +556,7 @@ export const mockStaff: Staff[] = [
     {
         id: '5',
         name: 'Vikram Joshi',
-        email: 'vikram.joshi@School24.com',
+        email: 'vikram.joshi@schools24.com',
         phone: '+91 9876543225',
         employeeId: 'TCH005',
         staffType: 'teaching',
@@ -579,7 +579,7 @@ export const mockStaff: Staff[] = [
     {
         id: '6',
         name: 'Ramesh Verma',
-        email: 'ramesh.verma@School24.com',
+        email: 'ramesh.verma@schools24.com',
         phone: '+91 9876543226',
         employeeId: 'NTS001',
         staffType: 'non-teaching',
@@ -598,7 +598,7 @@ export const mockStaff: Staff[] = [
     {
         id: '7',
         name: 'Meena Kumari',
-        email: 'meena.kumari@School24.com',
+        email: 'meena.kumari@schools24.com',
         phone: '+91 9876543227',
         employeeId: 'NTS002',
         staffType: 'non-teaching',
@@ -617,7 +617,7 @@ export const mockStaff: Staff[] = [
     {
         id: '8',
         name: 'Suresh Yadav',
-        email: 'suresh.yadav@School24.com',
+        email: 'suresh.yadav@schools24.com',
         phone: '+91 9876543228',
         employeeId: 'NTS003',
         staffType: 'non-teaching',
@@ -636,7 +636,7 @@ export const mockStaff: Staff[] = [
     {
         id: '9',
         name: 'Kavita Singh',
-        email: 'kavita.singh@School24.com',
+        email: 'kavita.singh@schools24.com',
         phone: '+91 9876543229',
         employeeId: 'NTS004',
         staffType: 'non-teaching',
@@ -655,7 +655,7 @@ export const mockStaff: Staff[] = [
     {
         id: '10',
         name: 'Dinesh Kumar',
-        email: 'dinesh.kumar@School24.com',
+        email: 'dinesh.kumar@schools24.com',
         phone: '+91 9876543230',
         employeeId: 'NTS005',
         staffType: 'non-teaching',
@@ -674,7 +674,7 @@ export const mockStaff: Staff[] = [
     {
         id: '11',
         name: 'Anjali Reddy',
-        email: 'anjali.reddy@School24.com',
+        email: 'anjali.reddy@schools24.com',
         phone: '+91 9876543231',
         employeeId: 'NTS006',
         staffType: 'non-teaching',
@@ -693,7 +693,7 @@ export const mockStaff: Staff[] = [
     {
         id: '12',
         name: 'Mohan Lal',
-        email: 'mohan.lal@School24.com',
+        email: 'mohan.lal@schools24.com',
         phone: '+91 9876543232',
         employeeId: 'NTS007',
         staffType: 'non-teaching',
@@ -712,7 +712,7 @@ export const mockStaff: Staff[] = [
     {
         id: '13',
         name: 'Rekha Nair',
-        email: 'rekha.nair@School24.com',
+        email: 'rekha.nair@schools24.com',
         phone: '+91 9876543233',
         employeeId: 'NTS008',
         staffType: 'non-teaching',
