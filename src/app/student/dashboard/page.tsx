@@ -28,6 +28,7 @@ import {
     MessageCircle,
     Star,
     ArrowUpRight,
+    BookOpenCheck,
 } from 'lucide-react'
 import { mockStudents } from '@/lib/mockData'
 
@@ -56,7 +57,7 @@ const leaderboardData = [
 const quickActions = [
     { icon: Clock, label: 'Time Table', href: '/student/timetable', color: '#e0e7ff', iconColor: '#4f46e5' },
     { icon: Calendar, label: 'Schools Schedule', href: '/student/events', color: '#ccfbf1', iconColor: '#0d9488' },
-    { icon: Users, label: 'Class Group', href: '/student/class-group', color: '#ffedd5', iconColor: '#ea580c' },
+    { icon: BookOpenCheck, label: 'Homework', href: '/student/homework', color: '#ffedd5', iconColor: '#ea580c' },
     { icon: HelpCircle, label: 'Quiz', href: '/student/quizzes', color: '#f3e8ff', iconColor: '#7c3aed' },
     { icon: BookOpen, label: 'Learn', href: '/student/materials', color: '#e0f2fe', iconColor: '#0284c7' },
     { icon: Award, label: 'Rewards', href: '/student/rewards', color: '#fef08a', iconColor: '#a16207' },
@@ -111,11 +112,83 @@ export default function StudentDashboard() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 p-4 md:p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] mx-auto">
-                {/* Left Column - Subject Progress */}
-                <div className="lg:col-span-3 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 max-w-[1600px] mx-auto">
 
-                    {/* Subject Progress Cards */}
+                {/* ── MOBILE ORDER 1: Motivational Quote ───────────────── */}
+                <div className="order-1 lg:order-none lg:col-span-6 lg:col-start-4 lg:row-start-1">
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-teal-100/80 via-emerald-100/50 to-cyan-100/40 overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-300/40 to-emerald-300/40 rounded-full -translate-y-20 translate-x-20" />
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-cyan-300/30 to-teal-300/30 rounded-full translate-y-16 -translate-x-16" />
+                        <CardContent className="p-4 md:p-6 relative z-10">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 mt-1">
+                                    <div className="w-1 h-12 bg-gradient-to-b from-teal-400 to-emerald-400 rounded-full" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-base font-medium text-slate-600 italic leading-relaxed transition-opacity duration-300 min-h-[3.5rem]">
+                                        &ldquo;{quotes[currentQuoteIndex].text}&rdquo;
+                                    </p>
+                                    <p className="mt-3 text-teal-600 font-semibold text-sm tracking-wide">— {quotes[currentQuoteIndex].author}</p>
+                                </div>
+                            </div>
+                            {/* Quote navigation dots */}
+                            <div className="flex justify-center gap-2 mt-5">
+                                {quotes.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        className={`h-1.5 rounded-full transition-all duration-300 ${index === currentQuoteIndex
+                                            ? 'bg-teal-500 w-6'
+                                            : 'bg-teal-200 hover:bg-teal-300 w-1.5'
+                                            }`}
+                                        onClick={() => setCurrentQuoteIndex(index)}
+                                    />
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* ── MOBILE ORDER 2: Quick Actions ────────────────────── */}
+                <div className="order-2 lg:order-none lg:col-span-6 lg:col-start-4 lg:row-start-2">
+                    <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                        <CardContent className="p-4 md:p-6">
+                            <div className="flex items-center justify-between mb-5">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm tracking-wide uppercase">
+                                    <Zap className="w-4 h-4 text-amber-500" />
+                                    Quick Actions
+                                </h3>
+                                <Badge variant="outline" className="text-slate-500 border-slate-200 text-[10px] font-bold uppercase tracking-wider">
+                                    6 shortcuts
+                                </Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {quickActions.map((action, index) => (
+                                    <button
+                                        key={action.label}
+                                        className="flex flex-col items-center gap-2.5 p-4 rounded-xl bg-slate-50/50 hover:bg-white hover:shadow-md transition-all duration-300 hover:-translate-y-1 group border border-slate-100 hover:border-slate-200"
+                                        onClick={() => handleQuickAction(action.href)}
+                                    >
+                                        <div
+                                            className="w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-sm"
+                                            style={{ backgroundColor: action.color }}
+                                        >
+                                            <action.icon
+                                                className="w-7 h-7 transition-transform"
+                                                style={{ color: action.iconColor }}
+                                            />
+                                        </div>
+                                        <span className="text-xs font-semibold text-slate-600 text-center group-hover:text-slate-800 transition-colors tracking-wide">
+                                            {action.label}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* ── MOBILE ORDER 3: Subject Progress (Performance) ──── */}
+                <div className="order-3 lg:order-none lg:col-span-3 lg:row-span-4 lg:row-start-1 space-y-4">
                     {subjectProgress.map((subject, index) => {
                         const IconComponent = subject.icon
                         return (
@@ -162,82 +235,108 @@ export default function StudentDashboard() {
                     })}
                 </div>
 
-                {/* Center Column - Quote + Quick Actions + Progress */}
-                <div className="lg:col-span-6 space-y-6">
-                    {/* Motivational Quote Card */}
-                    <Card className="border-0 shadow-sm bg-gradient-to-br from-teal-100/80 via-emerald-100/50 to-cyan-100/40 overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-300/40 to-emerald-300/40 rounded-full -translate-y-20 translate-x-20" />
-                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-cyan-300/30 to-teal-300/30 rounded-full translate-y-16 -translate-x-16" />
-                        <CardContent className="p-6 relative z-10">
-                            <div className="flex items-start gap-4">
-                                <div className="flex-shrink-0 mt-1">
-                                    <div className="w-1 h-12 bg-gradient-to-b from-teal-400 to-emerald-400 rounded-full" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-base font-medium text-slate-600 italic leading-relaxed transition-opacity duration-300 min-h-[3.5rem]">
-                                        &ldquo;{quotes[currentQuoteIndex].text}&rdquo;
-                                    </p>
-                                    <p className="mt-3 text-teal-600 font-semibold text-sm tracking-wide">— {quotes[currentQuoteIndex].author}</p>
-                                </div>
-                            </div>
-                            {/* Quote navigation dots */}
-                            <div className="flex justify-center gap-2 mt-5">
-                                {quotes.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        className={`h-1.5 rounded-full transition-all duration-300 ${index === currentQuoteIndex
-                                            ? 'bg-teal-500 w-6'
-                                            : 'bg-teal-200 hover:bg-teal-300 w-1.5'
-                                            }`}
-                                        onClick={() => setCurrentQuoteIndex(index)}
-                                    />
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Quick Actions Grid */}
-                    <Card className="border-0 shadow-sm bg-white overflow-hidden">
-                        <CardContent className="p-6">
+                {/* ── MOBILE ORDER 4: Leaderboard ──────────────────────── */}
+                <div className="order-4 lg:order-none lg:col-span-3 lg:row-span-4 lg:row-start-1 lg:col-start-10">
+                    <Card className="border-0 shadow-sm bg-white overflow-hidden sticky top-6">
+                        <CardContent className="p-5">
+                            {/* Leaderboard Header */}
                             <div className="flex items-center justify-between mb-5">
-                                <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm tracking-wide uppercase">
-                                    <Zap className="w-4 h-4 text-amber-500" />
-                                    Quick Actions
-                                </h3>
-                                <Badge variant="outline" className="text-slate-500 border-slate-200 text-[10px] font-bold uppercase tracking-wider">
-                                    6 shortcuts
-                                </Badge>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                                        <Crown className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold text-slate-800 tracking-tight">Leaderboard</h3>
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Top performers</p>
+                                    </div>
+                                </div>
+                                <Trophy className="w-7 h-7 text-amber-500 animate-bounce" />
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
-                                {quickActions.map((action, index) => (
-                                    <button
-                                        key={action.label}
-                                        className="flex flex-col items-center gap-2.5 p-4 rounded-xl bg-slate-50/50 hover:bg-white hover:shadow-md transition-all duration-300 hover:-translate-y-1 group border border-slate-100 hover:border-slate-200"
-                                        onClick={() => handleQuickAction(action.href)}
+
+                            {/* Your Rank Banner */}
+                            <div className="bg-gradient-to-r from-teal-100/80 to-emerald-100/70 rounded-xl p-3.5 mb-4 border border-teal-300/50">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold shadow-lg shadow-teal-500/30 text-sm">
+                                        {student.performance.rank}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Your Rank</p>
+                                        <p className="font-semibold text-slate-800 text-sm">#{student.performance.rank} of {student.performance.totalStudents}</p>
+                                    </div>
+                                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                                </div>
+                            </div>
+
+                            {/* Leaderboard List */}
+                            <div className="space-y-1.5">
+                                {leaderboardData.map((item, index) => (
+                                    <div
+                                        key={item.rank}
+                                        className={`flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 hover:shadow-sm hover:-translate-x-1 cursor-pointer ${item.rank <= 3
+                                            ? item.rank === 1
+                                                ? 'bg-amber-50/80 border border-amber-200/60'
+                                                : item.rank === 2
+                                                    ? 'bg-slate-50 border border-slate-200/60'
+                                                    : 'bg-orange-50/60 border border-orange-200/60'
+                                            : 'bg-slate-50/50 hover:bg-slate-100 border border-transparent'
+                                            }`}
                                     >
+                                        {/* Rank Badge */}
                                         <div
-                                            className="w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-sm"
-                                            style={{ backgroundColor: action.color }}
+                                            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-sm ${item.rank === 1
+                                                ? 'bg-gradient-to-br from-amber-400 to-amber-600'
+                                                : item.rank === 2
+                                                    ? 'bg-gradient-to-br from-slate-400 to-slate-600'
+                                                    : item.rank === 3
+                                                        ? 'bg-gradient-to-br from-orange-400 to-orange-600'
+                                                        : 'bg-gradient-to-br from-slate-300 to-slate-500'
+                                                }`}
                                         >
-                                            <action.icon
-                                                className="w-7 h-7 transition-transform"
-                                                style={{ color: action.iconColor }}
-                                            />
+                                            {item.rank}
                                         </div>
-                                        <span className="text-xs font-semibold text-slate-600 text-center group-hover:text-slate-800 transition-colors tracking-wide">
-                                            {action.label}
-                                        </span>
-                                    </button>
+
+                                        {/* Name and Badge */}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-slate-700 truncate text-sm">{item.name}</p>
+                                            {item.badge && (
+                                                <div className="flex items-center gap-1 mt-0.5">
+                                                    <Trophy className="w-3 h-3" style={{ color: item.badgeColor }} />
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: item.badgeColor }}>
+                                                        {item.badge}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Icon based on rank */}
+                                        {item.rank <= 3 ? (
+                                            <Award className="w-4 h-4" style={{ color: item.badgeColor }} />
+                                        ) : (
+                                            <Star className="w-4 h-4 text-amber-400" />
+                                        )}
+                                    </div>
                                 ))}
                             </div>
+
+                            {/* View Full Leaderboard Button */}
+                            <Button
+                                className="w-full mt-5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold py-6 rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-sm tracking-wide"
+                                onClick={handleViewLeaderboard}
+                            >
+                                <Trophy className="w-4 h-4 mr-2" />
+                                View Full Leaderboard
+                            </Button>
                         </CardContent>
                     </Card>
+                </div>
 
+                {/* ── MOBILE ORDER 5: Overall Progress + Assessment Tracker ── */}
+                <div className="order-5 lg:order-none lg:col-span-6 lg:col-start-4 lg:row-start-3 space-y-6">
                     {/* Progress Banner */}
                     <Card className="border-0 shadow-lg bg-gradient-to-r from-teal-50 via-teal-100/60 to-emerald-100/50 overflow-hidden relative">
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-teal-200/50 via-transparent to-transparent" />
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-emerald-200/40 via-transparent to-transparent" />
-                        <CardContent className="p-6 relative z-10">
+                        <CardContent className="p-4 md:p-6 relative z-10">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/30">
@@ -249,7 +348,7 @@ export default function StudentDashboard() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-3xl font-bold text-teal-500">{5 - subjectProgress.filter(s => s.progress >= 80).length}</p>
+                                    <p className="text-xl md:text-3xl font-bold text-teal-500">{5 - subjectProgress.filter(s => s.progress >= 80).length}</p>
                                     <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Subjects to master</p>
                                 </div>
                             </div>
@@ -347,100 +446,6 @@ export default function StudentDashboard() {
                     </div>
                 </div>
 
-                {/* Right Column - Leaderboard */}
-                <div className="lg:col-span-3">
-                    <Card className="border-0 shadow-sm bg-white overflow-hidden sticky top-6">
-                        <CardContent className="p-5">
-                            {/* Leaderboard Header */}
-                            <div className="flex items-center justify-between mb-5">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                                        <Crown className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-base font-bold text-slate-800 tracking-tight">Leaderboard</h3>
-                                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Top performers</p>
-                                    </div>
-                                </div>
-                                <Trophy className="w-7 h-7 text-amber-500 animate-bounce" />
-                            </div>
-
-                            {/* Your Rank Banner */}
-                            <div className="bg-gradient-to-r from-teal-100/80 to-emerald-100/70 rounded-xl p-3.5 mb-4 border border-teal-300/50">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold shadow-lg shadow-teal-500/30 text-sm">
-                                        {student.performance.rank}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Your Rank</p>
-                                        <p className="font-semibold text-slate-800 text-sm">#{student.performance.rank} of {student.performance.totalStudents}</p>
-                                    </div>
-                                    <TrendingUp className="w-5 h-5 text-emerald-500" />
-                                </div>
-                            </div>
-
-                            {/* Leaderboard List */}
-                            <div className="space-y-1.5">
-                                {leaderboardData.map((item, index) => (
-                                    <div
-                                        key={item.rank}
-                                        className={`flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 hover:shadow-sm hover:-translate-x-1 cursor-pointer ${item.rank <= 3
-                                            ? item.rank === 1
-                                                ? 'bg-amber-50/80 border border-amber-200/60'
-                                                : item.rank === 2
-                                                    ? 'bg-slate-50 border border-slate-200/60'
-                                                    : 'bg-orange-50/60 border border-orange-200/60'
-                                            : 'bg-slate-50/50 hover:bg-slate-100 border border-transparent'
-                                            }`}
-                                    >
-                                        {/* Rank Badge */}
-                                        <div
-                                            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-sm ${item.rank === 1
-                                                ? 'bg-gradient-to-br from-amber-400 to-amber-600'
-                                                : item.rank === 2
-                                                    ? 'bg-gradient-to-br from-slate-400 to-slate-600'
-                                                    : item.rank === 3
-                                                        ? 'bg-gradient-to-br from-orange-400 to-orange-600'
-                                                        : 'bg-gradient-to-br from-slate-300 to-slate-500'
-                                                }`}
-                                        >
-                                            {item.rank}
-                                        </div>
-
-                                        {/* Name and Badge */}
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-slate-700 truncate text-sm">{item.name}</p>
-                                            {item.badge && (
-                                                <div className="flex items-center gap-1 mt-0.5">
-                                                    <Trophy className="w-3 h-3" style={{ color: item.badgeColor }} />
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: item.badgeColor }}>
-                                                        {item.badge}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Icon based on rank */}
-                                        {item.rank <= 3 ? (
-                                            <Award className="w-4 h-4" style={{ color: item.badgeColor }} />
-                                        ) : (
-                                            <Star className="w-4 h-4 text-amber-400" />
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* View Full Leaderboard Button */}
-                            <Button
-                                className="w-full mt-5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold py-6 rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-sm tracking-wide"
-                                onClick={handleViewLeaderboard}
-                            >
-                                <Trophy className="w-4 h-4 mr-2" />
-                                View Full Leaderboard
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
             </div>
         </div>
     )

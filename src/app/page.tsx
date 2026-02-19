@@ -94,7 +94,7 @@ export default function LandingPage() {
             <span className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">schools24</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-4 md:gap-8">
             <Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
               Features
             </Link>
@@ -146,7 +146,7 @@ export default function LandingPage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 mt-20 max-w-4xl mx-auto">
             {stats.map((stat, index) => (
               <div key={index} className="text-center animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                 <div className="text-3xl md:text-4xl font-bold text-gradient">{stat.value}</div>
@@ -169,10 +169,10 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {features.map((feature, index) => (
               <Card key={index} className="card-hover border-0 shadow-lg">
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white mb-4 shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
@@ -197,11 +197,11 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {/* Admin Card */}
             <Card className="overflow-hidden card-hover">
               <div className="h-2 gradient-primary" />
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white mb-4 shadow-lg shadow-indigo-500/20">
                   <Shield className="h-7 w-7" />
                 </div>
@@ -223,7 +223,7 @@ export default function LandingPage() {
             {/* Teacher Card */}
             <Card className="overflow-hidden card-hover">
               <div className="h-2 gradient-success" />
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white mb-4 shadow-lg shadow-teal-500/20">
                   <BookOpen className="h-7 w-7" />
                 </div>
@@ -245,7 +245,7 @@ export default function LandingPage() {
             {/* Student Card */}
             <Card className="overflow-hidden card-hover">
               <div className="h-2 gradient-warning" />
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-white mb-4 shadow-lg shadow-orange-500/20">
                   <Award className="h-7 w-7" />
                 </div>
@@ -279,10 +279,10 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="card-hover">
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                   <div className="flex gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star key={i} className="h-5 w-5 fill-yellow-500 text-yellow-500" />
@@ -334,7 +334,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t py-12 px-4">
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
             <div>
               <Link href="/" className="flex items-center gap-2 mb-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">

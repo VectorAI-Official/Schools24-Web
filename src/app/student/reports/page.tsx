@@ -66,11 +66,8 @@ export default function StudentReportsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                        <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                             My Reports
                         </h1>
                         <p className="text-muted-foreground">Academic and performance reports</p>
@@ -96,54 +93,54 @@ export default function StudentReportsPage() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-violet-500/10 rounded-full -translate-y-10 translate-x-10" />
                         <div className="flex flex-col items-center text-center">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30 mb-3">
                                 <GraduationCap className="h-7 w-7" />
                             </div>
-                            <p className="text-3xl font-bold text-violet-700 dark:text-violet-400">{student.grade}</p>
+                            <p className="text-xl md:text-3xl font-bold text-violet-700 dark:text-violet-400">{student.grade}</p>
                             <p className="text-sm text-muted-foreground">Overall Grade</p>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full -translate-y-10 translate-x-10" />
                         <div className="flex flex-col items-center text-center">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30 mb-3">
                                 <TrendingUp className="h-7 w-7" />
                             </div>
-                            <p className="text-3xl font-bold text-green-700 dark:text-green-400">{student.performance.averageScore}%</p>
+                            <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">{student.performance.averageScore}%</p>
                             <p className="text-sm text-muted-foreground">Average Score</p>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/50 dark:to-amber-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-500/10 rounded-full -translate-y-10 translate-x-10" />
                         <div className="flex flex-col items-center text-center">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/30 mb-3">
                                 <Award className="h-7 w-7" />
                             </div>
-                            <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-400">#{student.performance.rank}</p>
+                            <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">#{student.performance.rank}</p>
                             <p className="text-sm text-muted-foreground">Class Rank</p>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -translate-y-10 translate-x-10" />
                         <div className="flex flex-col items-center text-center">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30 mb-3">
                                 <BarChart3 className="h-7 w-7" />
                             </div>
-                            <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{student.attendance}%</p>
+                            <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{student.attendance}%</p>
                             <p className="text-sm text-muted-foreground">Attendance</p>
                         </div>
                     </CardContent>
@@ -159,7 +156,7 @@ export default function StudentReportsPage() {
                     </div>
                     <CardDescription className="text-blue-100">Your scores across all subjects</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                     {mounted && (
                         <div className="h-[350px]">
                             <ResponsiveContainer width="100%" height="100%">
@@ -233,7 +230,7 @@ export default function StudentReportsPage() {
                     <CardDescription>Download your academic reports</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         {reports.map((report, index) => (
                             <div
                                 key={report.name}
@@ -280,10 +277,10 @@ export default function StudentReportsPage() {
 
             {/* Report Summary Banner */}
             <Card className="border-0 shadow-2xl bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 text-white overflow-hidden">
-                <CardContent className="p-8 relative">
+                <CardContent className="p-4 md:p-8 relative">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16" />
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
                         <div className="text-center md:text-left">
                             <h3 className="text-2xl font-bold mb-2 flex items-center gap-2 justify-center md:justify-start">
                                 <CheckCircle className="h-7 w-7" />

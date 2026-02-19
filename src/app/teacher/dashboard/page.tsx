@@ -60,9 +60,9 @@ export default function TeacherDashboard() {
     return (
         <div className="space-y-6">
             {/* Page Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-700 to-emerald-600 dark:from-teal-400 dark:to-emerald-200 bg-clip-text text-transparent">Welcome back, Rajesh!</h1>
+                    <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-teal-700 to-emerald-600 dark:from-teal-400 dark:to-emerald-200 bg-clip-text text-transparent">Welcome back, Rajesh!</h1>
                     <p className="text-muted-foreground mt-1">Here's what's on your schedule today.</p>
                 </div>
                 <div className="flex gap-3">
@@ -78,10 +78,10 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {quickActions.map((action, index) => (
                     <Card key={index} className="card-hover cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-100/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-500 transition-all shadow-sm hover:shadow-md" onClick={() => window.location.href = action.href}>
-                        <CardContent className="p-6 flex flex-col items-center text-center">
+                        <CardContent className="p-4 md:p-6 flex flex-col items-center text-center">
                             <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${action.color} text-white mb-3 shadow-lg transition-transform hover:scale-110 duration-300`}>
                                 {action.icon}
                             </div>
@@ -92,9 +92,9 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="card-hover bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 border-teal-100/50 dark:border-teal-800/50 hover:border-teal-300 dark:hover:border-teal-500 transition-all shadow-sm hover:shadow-md">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center justify-between">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg shadow-teal-500/20">
                                 <BookOpen className="h-5 w-5" />
@@ -109,7 +109,7 @@ export default function TeacherDashboard() {
                 </Card>
 
                 <Card className="card-hover bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 border-teal-100/50 dark:border-teal-800/50 hover:border-teal-300 dark:hover:border-teal-500 transition-all shadow-sm hover:shadow-md">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center justify-between">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/20">
                                 <Users className="h-5 w-5" />
@@ -124,7 +124,7 @@ export default function TeacherDashboard() {
                 </Card>
 
                 <Card className="card-hover bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 border-teal-100/50 dark:border-teal-800/50 hover:border-teal-300 dark:hover:border-teal-500 transition-all shadow-sm hover:shadow-md">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center justify-between">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 text-white shadow-lg shadow-amber-500/20">
                                 <ClipboardCheck className="h-5 w-5" />
@@ -139,7 +139,7 @@ export default function TeacherDashboard() {
                 </Card>
 
                 <Card className="card-hover bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 border-teal-100/50 dark:border-teal-800/50 hover:border-teal-300 dark:hover:border-teal-500 transition-all shadow-sm hover:shadow-md">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center justify-between">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20">
                                 <TrendingUp className="h-5 w-5" />
@@ -157,7 +157,7 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Main Content */}
-            <div className="grid gap-6">
+            <div className="grid gap-4 md:gap-6">
 
                 {/* Class Performance Chart */}
                 <Card>
@@ -189,7 +189,7 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Bottom Row */}
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
                 {/* Upcoming Quizzes */}
                 <Card>
                     <CardHeader>

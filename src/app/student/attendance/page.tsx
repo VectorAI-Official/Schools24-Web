@@ -71,11 +71,8 @@ export default function StudentAttendancePage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                        <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                             My Attendance
                         </h1>
                         <p className="text-muted-foreground">Track your attendance record</p>
@@ -88,16 +85,16 @@ export default function StudentAttendancePage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full -translate-y-10 translate-x-10" />
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30">
                                 <CheckCircle className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-green-700 dark:text-green-400">156</p>
+                                <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">156</p>
                                 <p className="text-sm text-muted-foreground">Days Present</p>
                             </div>
                         </div>
@@ -105,14 +102,14 @@ export default function StudentAttendancePage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/10 rounded-full -translate-y-10 translate-x-10" />
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30">
                                 <XCircle className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-red-700 dark:text-red-400">8</p>
+                                <p className="text-xl md:text-3xl font-bold text-red-700 dark:text-red-400">8</p>
                                 <p className="text-sm text-muted-foreground">Days Absent</p>
                             </div>
                         </div>
@@ -120,14 +117,14 @@ export default function StudentAttendancePage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/50 dark:to-amber-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-500/10 rounded-full -translate-y-10 translate-x-10" />
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/30">
                                 <Clock className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-400">4</p>
+                                <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">4</p>
                                 <p className="text-sm text-muted-foreground">Late Arrivals</p>
                             </div>
                         </div>
@@ -135,14 +132,14 @@ export default function StudentAttendancePage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -translate-y-10 translate-x-10" />
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30">
                                 <Calendar className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{student.attendance}%</p>
+                                <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{student.attendance}%</p>
                                 <p className="text-sm text-muted-foreground">Attendance Rate</p>
                             </div>
                         </div>
@@ -159,7 +156,7 @@ export default function StudentAttendancePage() {
                     </div>
                     <CardDescription className="text-blue-100">Your attendance rate must be above 75% for exam eligibility</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="font-medium">Current Attendance Rate</span>

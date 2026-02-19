@@ -49,7 +49,7 @@ export default function StudentBusRoutePage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                        <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                             My Bus Route
                         </h1>
                         <p className="text-muted-foreground">View your school bus route and schedule</p>
@@ -84,8 +84,8 @@ export default function StudentBusRoutePage() {
                         </Badge>
                     </div>
                 </CardHeader>
-                <CardContent className="p-6">
-                    <div className="grid gap-6 md:grid-cols-2">
+                <CardContent className="p-4 md:p-6">
+                    <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
                         <div className="space-y-4">
                             <h3 className="font-semibold text-lg flex items-center gap-2">
                                 <User className="h-5 w-5 text-blue-500" />
@@ -160,8 +160,8 @@ export default function StudentBusRoutePage() {
                         <CardTitle className="text-white">Your Stop</CardTitle>
                     </div>
                 </CardHeader>
-                <CardContent className="p-6">
-                    <div className="flex items-center gap-6 p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
+                <CardContent className="p-4 md:p-6">
+                    <div className="flex items-center gap-4 md:gap-6 p-4 md:p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
                         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-xl animate-pulse-glow">
                             <MapPin className="h-10 w-10" />
                         </div>
@@ -170,7 +170,7 @@ export default function StudentBusRoutePage() {
                             <p className="text-muted-foreground mt-1">Your designated pickup/drop point</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">{myRoute.stops[1].time}</p>
+                            <p className="text-2xl md:text-4xl font-bold text-blue-600 dark:text-blue-400">{myRoute.stops[1].time}</p>
                             <p className="text-sm text-muted-foreground">Pickup Time</p>
                         </div>
                     </div>
@@ -239,7 +239,7 @@ export default function StudentBusRoutePage() {
                     <CardDescription>In case of any issues with transport</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         <div className="p-5 rounded-2xl border-2 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
                             <div className="flex items-center gap-4">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">

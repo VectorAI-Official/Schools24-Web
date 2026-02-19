@@ -46,7 +46,7 @@ export default function StudentFeedbackPage() {
         setTimeout(() => {
             setIsSubmitting(false)
             toast.success('Feedback submitted successfully!', {
-                description: 'Thank you for your valuable feedback. We appreciate it! 🎉',
+                description: 'Thank you for your valuable feedback. We appreciate it!',
             })
             // Reset form
             setRating(0)
@@ -67,11 +67,8 @@ export default function StudentFeedbackPage() {
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
-                    <ArrowLeft className="h-5 w-5" />
-                </Button>
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+                    <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
                         Feedback
                     </h1>
                     <p className="text-muted-foreground">Share your thoughts and suggestions</p>
@@ -79,30 +76,30 @@ export default function StudentFeedbackPage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50">
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-4 md:p-6 text-center">
                         <MessageCircle className="h-8 w-8 mx-auto mb-2 text-violet-500" />
                         <p className="text-2xl font-bold text-violet-700 dark:text-violet-400">{previousFeedback.length}</p>
                         <p className="text-sm text-muted-foreground">Total Submitted</p>
                     </CardContent>
                 </Card>
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-4 md:p-6 text-center">
                         <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
                         <p className="text-2xl font-bold text-green-700 dark:text-green-400">{previousFeedback.filter(f => f.status === 'responded').length}</p>
                         <p className="text-sm text-muted-foreground">Responded</p>
                     </CardContent>
                 </Card>
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/50 dark:to-amber-950/50">
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-4 md:p-6 text-center">
                         <Clock className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
                         <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{previousFeedback.filter(f => f.status === 'pending').length}</p>
                         <p className="text-sm text-muted-foreground">Pending</p>
                     </CardContent>
                 </Card>
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-4 md:p-6 text-center">
                         <ThumbsUp className="h-8 w-8 mx-auto mb-2 text-blue-500" />
                         <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">4.5</p>
                         <p className="text-sm text-muted-foreground">Avg Rating Given</p>
@@ -119,9 +116,9 @@ export default function StudentFeedbackPage() {
                     </div>
                     <CardDescription className="text-violet-100">We value your opinion and suggestions</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                     <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                             <div className="space-y-2">
                                 <Label className="text-base font-semibold">Feedback Type *</Label>
                                 <Select value={feedbackType} onValueChange={setFeedbackType}>
@@ -129,10 +126,10 @@ export default function StudentFeedbackPage() {
                                         <SelectValue placeholder="Select type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="teacher">👨‍🏫 Teacher Feedback</SelectItem>
-                                        <SelectItem value="course">📚 Course Content</SelectItem>
-                                        <SelectItem value="facility">🏫 School Facility</SelectItem>
-                                        <SelectItem value="general">💡 General Suggestion</SelectItem>
+                                        <SelectItem value="teacher">Teacher Feedback</SelectItem>
+                                        <SelectItem value="course">Course Content</SelectItem>
+                                        <SelectItem value="facility">School Facility</SelectItem>
+                                        <SelectItem value="general">General Suggestion</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -175,7 +172,7 @@ export default function StudentFeedbackPage() {
                                 ))}
                                 {rating > 0 && (
                                     <span className="ml-4 flex items-center text-lg font-semibold text-yellow-600">
-                                        {rating === 5 ? '🎉 Excellent!' : rating === 4 ? '😊 Great!' : rating === 3 ? '👍 Good' : rating === 2 ? '😐 Fair' : '😕 Poor'}
+                                        {rating === 5 ? 'Excellent!' : rating === 4 ? 'Great!' : rating === 3 ? 'Good' : rating === 2 ? 'Fair' : 'Poor'}
                                     </span>
                                 )}
                             </div>
@@ -310,7 +307,7 @@ export default function StudentFeedbackPage() {
 
             {/* Appreciation Banner */}
             <Card className="border-0 shadow-lg bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-pink-500/10">
-                <CardContent className="p-6 text-center">
+                <CardContent className="p-4 md:p-6 text-center">
                     <Heart className="h-12 w-12 mx-auto mb-4 text-pink-500" />
                     <h3 className="text-xl font-bold mb-2">Thank You for Your Feedback!</h3>
                     <p className="text-muted-foreground">Your input helps us improve and create a better learning experience for everyone.</p>

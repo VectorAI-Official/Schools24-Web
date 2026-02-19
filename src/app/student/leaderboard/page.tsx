@@ -78,12 +78,6 @@ export default function StudentLeaderboardPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <button
-                            className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm"
-                            onClick={() => router.push('/student/dashboard')}
-                        >
-                            <ArrowLeft className="h-4 w-4 text-slate-600" />
-                        </button>
                         <div>
                             <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
@@ -107,8 +101,8 @@ export default function StudentLeaderboardPage() {
                 <Card className="border border-teal-200 shadow-lg shadow-teal-100/50 bg-gradient-to-r from-teal-50 via-emerald-50/60 to-cyan-50/40 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-teal-200/30 to-emerald-200/30 rounded-full -translate-y-24 translate-x-24" />
                     <div className="absolute bottom-0 left-0 w-36 h-36 bg-gradient-to-br from-cyan-200/20 to-teal-200/20 rounded-full translate-y-16 -translate-x-16" />
-                    <CardContent className="p-6 relative z-10">
-                        <div className="flex items-center gap-6">
+                    <CardContent className="p-4 md:p-6 relative z-10">
+                        <div className="flex items-center gap-4 md:gap-6">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-teal-500/30">
                                 #{student.performance.rank}
                             </div>
@@ -120,7 +114,7 @@ export default function StudentLeaderboardPage() {
                                 <p className="text-sm text-slate-500 font-medium">Class {student.class}-{student.section} • {student.performance.totalStudents} students</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-4xl font-bold text-teal-600">{student.performance.averageScore}%</p>
+                                <p className="text-2xl md:text-4xl font-bold text-teal-600">{student.performance.averageScore}%</p>
                                 <Badge className="mt-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 text-[10px] font-bold uppercase tracking-wider">
                                     <TrendingUp className="h-3 w-3 mr-1" />
                                     +2 ranks this month
@@ -131,7 +125,7 @@ export default function StudentLeaderboardPage() {
                 </Card>
 
                 {/* Top 3 Podium */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                     {leaderboardData.students.slice(0, 3).map((s, index) => {
                         const isCurrentUser = s.name === student.name
                         return (
@@ -183,7 +177,7 @@ export default function StudentLeaderboardPage() {
 
                 {/* Full Leaderboard */}
                 <Card className="border-0 shadow-sm bg-white overflow-hidden">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         {/* Section Header */}
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2.5">

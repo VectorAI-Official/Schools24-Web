@@ -5,10 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Download, Printer, Calendar, User, MapPin } from 'lucide-react'
-import { useTimetable } from '@/lib/useTimetable'
+import { useTeacherTimetable, useTeacherTimetableConfig } from '@/hooks/useTimetableView'
 import { toast } from 'sonner'
 
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const fallbackDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const getCurrentAcademicYear = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+    if (month < 4) {
+        return `${year - 1}-${year}`
+    }
+    return `${year}-${year + 1}`
+}
 
 const getSubjectColor = (subject: string) => {
     const colors: { [key: string]: string } = {
@@ -39,13 +49,27 @@ const formatTimeSlot = (startTime: string, endTime: string) => {
 }
 
 export default function TeachersTimetablePage() {
-    const { timetable, periodsConfig } = useTimetable('teacher')
+    const academicYear = getCurrentAcademicYear()
+    const { data: configData } = useTeacherTimetableConfig()
+    const { data: timetableData } = useTeacherTimetable(academicYear)
+
+    const dayConfigs = useMemo(() => {
+        const days = configData?.config?.days || []
+        const active = days.filter(d => d.is_active).sort((a, b) => a.day_of_week - b.day_of_week)
+        return active.length > 0 ? active : fallbackDays.map((d, i) => ({ day_of_week: i + 1, day_name: d, is_active: true }))
+    }, [configData])
+
+    const periodsConfig = useMemo(() => {
+        return (configData?.config?.periods || []).sort((a, b) => a.period_number - b.period_number)
+    }, [configData])
+
+    const timetableEntries = timetableData?.timetable || []
 
     // Generate time slots from periods config
     const timeSlots = useMemo(() => {
-        return periodsConfig.periods.map(p => ({
+        return periodsConfig.map(p => ({
             ...p,
-            display: formatTimeSlot(p.startTime, p.endTime)
+            display: formatTimeSlot(p.start_time, p.end_time)
         }))
     }, [periodsConfig])
 
@@ -94,9 +118,9 @@ export default function TeachersTimetablePage() {
                     <div
                         className="h-full grid"
                         style={{
-                            gridTemplateColumns: `minmax(80px, 100px) repeat(${periodsConfig.periodCount}, minmax(60px, 1fr))`,
-                            gridTemplateRows: `minmax(32px, 0.6fr) repeat(${days.length}, minmax(0, 1fr))`,
-                            minWidth: `${80 + periodsConfig.periodCount * 60}px`
+                            gridTemplateColumns: `minmax(80px, 100px) repeat(${periodsConfig.length}, minmax(60px, 1fr))`,
+                            gridTemplateRows: `minmax(32px, 0.6fr) repeat(${dayConfigs.length}, minmax(0, 1fr))`,
+                            minWidth: `${80 + periodsConfig.length * 60}px`
                         }}
                     >
                         {/* Header Row */}
@@ -105,42 +129,44 @@ export default function TeachersTimetablePage() {
                             <div key={`header-${index}`} className="border bg-muted flex flex-col items-center justify-center text-center p-0.5">
                                 <div className="font-bold" style={{ fontSize: 'clamp(8px, 1.5vw, 14px)' }}>P{index + 1}</div>
                                 <div className="text-muted-foreground hidden lg:block" style={{ fontSize: 'clamp(7px, 1vw, 11px)' }}>{slot.display}</div>
+                                {slot.is_break && <Badge variant="outline" className="mt-0.5 px-0.5 hidden sm:inline-flex" style={{ fontSize: 'clamp(6px, 0.8vw, 9px)' }}>{slot.break_name || 'Break'}</Badge>}
                             </div>
                         ))}
 
                         {/* Data Rows */}
-                        {days.map((day) => (
-                            <React.Fragment key={day}>
+                        {dayConfigs.map((day) => (
+                            <React.Fragment key={day.day_of_week}>
                                 <div className="border bg-muted/50 flex items-center justify-center font-bold" style={{ fontSize: 'clamp(7px, 1.3vw, 13px)' }}>
-                                    <span className="sm:hidden">{day.slice(0, 2)}</span>
-                                    <span className="hidden sm:inline md:hidden">{day.slice(0, 3)}</span>
-                                    <span className="hidden md:inline">{day}</span>
+                                    <span className="sm:hidden">{day.day_name.slice(0, 2)}</span>
+                                    <span className="hidden sm:inline md:hidden">{day.day_name.slice(0, 3)}</span>
+                                    <span className="hidden md:inline">{day.day_name}</span>
                                 </div>
                                 {timeSlots.map((slot, index) => {
-                                    const entry = timetable.find(t => t.day === day && t.startTime === slot.startTime)
+                                    const entry = timetableEntries.find(t => t.day_of_week === day.day_of_week && t.period_number === slot.period_number)
 
-                                    if (slot.isBreak) return (
-                                        <div key={`${day}-${index}`} className="border bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 flex items-center justify-center">
+                                    if (slot.is_break) return (
+                                        <div key={`${day.day_of_week}-${index}`} className="border bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 flex items-center justify-center">
                                             <div className="text-center">
-                                                <p className="text-green-600 dark:text-green-400 font-bold" style={{ fontSize: 'clamp(6px, 1vw, 11px)' }}>{slot.breakName || 'BREAK'}</p>
+                                                <span className="hidden sm:inline" style={{ fontSize: 'clamp(12px, 2vw, 24px)' }}>🍽️</span>
+                                                <p className="text-green-600 dark:text-green-400 font-bold" style={{ fontSize: 'clamp(6px, 1vw, 11px)' }}>{slot.break_name || 'BREAK'}</p>
                                             </div>
                                         </div>
                                     )
 
                                     return (
-                                        <div key={`${day}-${index}`} className="border p-0.5 flex items-center justify-center">
+                                        <div key={`${day.day_of_week}-${index}`} className="border p-0.5 flex items-center justify-center">
                                             {entry ? (
-                                                <div className={`w-full h-full rounded bg-gradient-to-br ${getSubjectColor(entry.subject)} text-white flex flex-col items-center justify-center p-0.5 shadow-sm`}>
-                                                    <p className="font-bold truncate w-full text-center drop-shadow-sm" style={{ fontSize: 'clamp(6px, 1.2vw, 13px)' }}>{entry.subject}</p>
+                                                <div className={`w-full h-full rounded bg-gradient-to-br ${getSubjectColor(entry.subject_name || '')} text-white flex flex-col items-center justify-center p-0.5 shadow-sm`}>
+                                                    <p className="font-bold truncate w-full text-center drop-shadow-sm" style={{ fontSize: 'clamp(6px, 1.2vw, 13px)' }}>{entry.subject_name}</p>
                                                     <div className="hidden lg:flex items-center justify-center gap-0.5 opacity-90 font-medium w-full" style={{ fontSize: 'clamp(6px, 0.9vw, 10px)' }}>
                                                         <div className="flex items-center gap-0.5 truncate">
                                                             <User className="h-2 w-2" />
-                                                            <span>Class {entry.class}</span>
+                                                            <span>Class {entry.class_name}</span>
                                                         </div>
                                                         <span className="opacity-60">|</span>
                                                         <div className="flex items-center gap-0.5">
                                                             <MapPin className="h-2 w-2" />
-                                                            <span>{entry.room}</span>
+                                                            <span>{entry.room_number || '-'}</span>
                                                         </div>
                                                     </div>
                                                 </div>

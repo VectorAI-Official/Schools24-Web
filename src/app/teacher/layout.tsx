@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { Loader2 } from 'lucide-react'
+import AdamChatbot from '@/components/chatbot/AdamChatbot'
 
 export default function TeacherLayout({ children }: { children: ReactNode }) {
     const { isLoading, isAuthenticated } = useAuth()
@@ -26,10 +27,11 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
             <Sidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />
-                <main className="flex-1 overflow-auto p-6">
+                <main className="flex-1 overflow-auto p-3 md:p-6">
                     {children}
                 </main>
             </div>
+            <AdamChatbot />
         </div>
     )
 }

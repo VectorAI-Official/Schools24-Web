@@ -1,138 +1,243 @@
 "use client"
 
-import { useState, useRef } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useMemo, useRef, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select'
-import { Slider } from '@/components/ui/slider'
-import { Wand2, Copy, Download, RefreshCw, FileText, CheckCircle, Upload, File, X, FileUp, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Wand2, FileText, Upload, File, X, FileUp, Loader2 } from "lucide-react"
+import { toast } from "sonner"
+import { api } from "@/lib/api"
+import { compareClassLabels } from "@/lib/classOrdering"
 
-interface UploadedFile {
+interface QuestionDocument {
     id: string
-    name: string
-    size: number
-    type: string
-    uploadedAt: Date
+    title: string
+    topic?: string
+    subject?: string
+    class_level?: string
+    question_type: string
+    difficulty?: string
+    num_questions?: number
+    context?: string
+    file_name: string
+    file_size: number
+    mime_type: string
+    uploaded_at: string
+}
+
+interface TimetableEntry {
+    class_id: string
+    class_name?: string
+    subject_name?: string
+}
+
+const STORAGE_KEYS = {
+    TOKEN: "School24_token",
+    REMEMBER: "School24_remember",
+}
+
+function getToken(): string | null {
+    if (typeof window === "undefined") return null
+    const remembered = localStorage.getItem(STORAGE_KEYS.REMEMBER) === "true"
+    const primary = remembered ? localStorage : sessionStorage
+    return primary.getItem(STORAGE_KEYS.TOKEN) || localStorage.getItem(STORAGE_KEYS.TOKEN) || sessionStorage.getItem(STORAGE_KEYS.TOKEN)
+}
+
+function formatFileSize(bytes: number) {
+    if (!bytes) return "0 Bytes"
+    const units = ["Bytes", "KB", "MB", "GB"]
+    let n = bytes
+    let idx = 0
+    while (n >= 1024 && idx < units.length - 1) {
+        n /= 1024
+        idx += 1
+    }
+    return `${n.toFixed(idx === 0 ? 0 : 2)} ${units[idx]}`
+}
+
+function getCurrentAcademicYear() {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+    return month < 4 ? `${year - 1}-${year}` : `${year}-${year + 1}`
 }
 
 export default function QuestionGeneratorPage() {
-    const [generating, setGenerating] = useState(false)
-    const [generated, setGenerated] = useState(false)
-    const [uploading, setUploading] = useState(false)
-    const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
-    const [dragActive, setDragActive] = useState(false)
+    const queryClient = useQueryClient()
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    const handleGenerate = () => {
-        setGenerating(true)
-        setTimeout(() => {
-            setGenerating(false)
-            setGenerated(true)
-        }, 2000)
+    const [dragActive, setDragActive] = useState(false)
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
+    const [title, setTitle] = useState("")
+    const [subject, setSubject] = useState("")
+    const [classLevel, setClassLevel] = useState("")
+    const [questionType, setQuestionType] = useState("")
+    const [difficulty, setDifficulty] = useState("medium")
+    const [contextText, setContextText] = useState("")
+    const [lastUploaded, setLastUploaded] = useState<QuestionDocument | null>(null)
+    const academicYear = getCurrentAcademicYear()
+
+    const { data: timetableData } = useQuery({
+        queryKey: ["teacher-question-generator-timetable", academicYear],
+        queryFn: () => {
+            const params = new URLSearchParams()
+            params.append("academic_year", academicYear)
+            return api.get<{ timetable: TimetableEntry[] }>(`/teacher/timetable?${params.toString()}`)
+        },
+    })
+
+    const classOptions = useMemo(() => {
+        const map = new Map<string, string>()
+        for (const row of timetableData?.timetable || []) {
+            if (!row.class_id) continue
+            if (!map.has(row.class_id)) {
+                map.set(row.class_id, row.class_name || row.class_id)
+            }
+        }
+        return Array.from(map.entries())
+            .map(([id, name]) => ({ id, name }))
+            .sort((a, b) => compareClassLabels(a.name, b.name))
+    }, [timetableData])
+
+    const subjectOptions = useMemo(() => {
+        if (!classLevel) return []
+        const set = new Set<string>()
+        for (const row of timetableData?.timetable || []) {
+            if (row.class_id !== classLevel) continue
+            const subjectName = (row.subject_name || "").trim()
+            if (subjectName) set.add(subjectName)
+        }
+        return Array.from(set).sort((a, b) => a.localeCompare(b))
+    }, [classLevel, timetableData])
+
+    const selectedClassName = useMemo(
+        () => classOptions.find((cls) => cls.id === classLevel)?.name || "",
+        [classOptions, classLevel]
+    )
+
+    const uploadMutation = useMutation({
+        mutationFn: async (): Promise<{ document: QuestionDocument }> => {
+            if (!selectedFile) throw new Error("Upload a file first")
+            if (!title.trim()) throw new Error("Title is required")
+            if (!subject) throw new Error("Subject is required")
+            if (!classLevel) throw new Error("Class level is required")
+            if (!questionType) throw new Error("Select question type")
+            if (!difficulty) throw new Error("Difficulty is required")
+
+            const token = getToken()
+            if (!token) throw new Error("Session expired. Please login again")
+
+            const formData = new FormData()
+            formData.append("file", selectedFile)
+            formData.append("title", title.trim() || selectedFile.name.replace(/\.[^.]+$/, ""))
+            formData.append("subject", subject)
+            formData.append("class_level", selectedClassName || classLevel)
+            formData.append("question_type", questionType)
+            formData.append("difficulty", difficulty)
+            formData.append("context", contextText.trim())
+
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1"
+            const response = await fetch(`${baseUrl}/teacher/question-documents`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            })
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}))
+                throw new Error(err.error || err.message || `Upload failed (${response.status})`)
+            }
+
+            return response.json()
+        },
+        onSuccess: () => {
+            toast.success("Question document uploaded")
+            const fallbackTitle = (title.trim() || selectedFile?.name || "").replace(/\.[^.]+$/, "")
+            setLastUploaded({
+                id: "",
+                title: fallbackTitle,
+                subject: subject || undefined,
+                class_level: selectedClassName || classLevel || undefined,
+                question_type: questionType,
+                difficulty: difficulty || undefined,
+                context: contextText.trim() || undefined,
+                file_name: selectedFile?.name || "",
+                file_size: selectedFile?.size || 0,
+                mime_type: selectedFile?.type || "",
+                uploaded_at: new Date().toISOString(),
+            })
+            setSelectedFile(null)
+            setTitle("")
+            setSubject("")
+            setClassLevel("")
+            setQuestionType("")
+            setDifficulty("medium")
+            setContextText("")
+            if (fileInputRef.current) fileInputRef.current.value = ""
+            queryClient.invalidateQueries({ queryKey: ["teacher-question-documents"] })
+        },
+        onError: (error: unknown) => {
+            const message = error instanceof Error ? error.message : "Please try again"
+            toast.error("Upload failed", { description: message })
+        },
+    })
+
+    const validateAndSetFile = (file: File) => {
+        const maxSize = 10 * 1024 * 1024
+        const name = file.name.toLowerCase()
+        const validExt = name.endsWith(".pdf") || name.endsWith(".doc") || name.endsWith(".docx")
+
+        if (!validExt) {
+            toast.error("Invalid format", { description: "Only PDF, DOC and DOCX are allowed" })
+            return
+        }
+        if (file.size <= 0 || file.size > maxSize) {
+            toast.error("Invalid file size", { description: "File size must be between 1B and 10MB" })
+            return
+        }
+
+        setSelectedFile(file)
+        if (!title.trim()) {
+            setTitle(file.name.replace(/\.[^.]+$/, ""))
+        }
     }
 
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault()
         e.stopPropagation()
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true)
-        } else if (e.type === "dragleave") {
-            setDragActive(false)
-        }
+        if (e.type === "dragenter" || e.type === "dragover") setDragActive(true)
+        if (e.type === "dragleave") setDragActive(false)
     }
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault()
         e.stopPropagation()
         setDragActive(false)
-
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFiles(e.dataTransfer.files)
-        }
+        const file = e.dataTransfer.files?.[0]
+        if (file) validateAndSetFile(file)
     }
 
-    const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            handleFiles(e.target.files)
-        }
-    }
-
-    const handleFiles = (files: FileList) => {
-        const validTypes = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ]
-
-        const validFiles = Array.from(files).filter(file => {
-            const isValid = validTypes.includes(file.type) ||
-                file.name.endsWith('.pdf') ||
-                file.name.endsWith('.doc') ||
-                file.name.endsWith('.docx')
-            if (!isValid) {
-                toast.error(`${file.name} is not a valid format. Only PDF and Word documents are allowed.`)
-            }
-            return isValid
-        })
-
-        if (validFiles.length > 0) {
-            setUploading(true)
-            // Simulate upload process
-            setTimeout(() => {
-                const newFiles: UploadedFile[] = validFiles.map(file => ({
-                    id: Math.random().toString(36).substring(7),
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                    uploadedAt: new Date()
-                }))
-                setUploadedFiles(prev => [...prev, ...newFiles])
-                setUploading(false)
-                toast.success(`${validFiles.length} file(s) uploaded successfully!`)
-            }, 1500)
-        }
-    }
-
-    const removeFile = (id: string) => {
-        setUploadedFiles(prev => prev.filter(file => file.id !== id))
-        toast.success('File removed successfully')
-    }
-
-    const formatFileSize = (bytes: number) => {
-        if (bytes === 0) return '0 Bytes'
-        const k = 1024
-        const sizes = ['Bytes', 'KB', 'MB', 'GB']
-        const i = Math.floor(Math.log(bytes) / Math.log(k))
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-    }
-
-    const getFileIcon = (fileName: string) => {
-        if (fileName.endsWith('.pdf')) {
-            return <File className="h-8 w-8 text-red-500" />
-        }
-        return <File className="h-8 w-8 text-blue-500" />
-    }
+    const previewDocument = useMemo(() => {
+        if (uploadMutation.data?.document) return uploadMutation.data.document
+        return lastUploaded
+    }, [uploadMutation.data, lastUploaded])
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">Question Generator</h1>
-                    <p className="text-muted-foreground">AI-powered question generation for assessments</p>
-                </div>
-            </div>
-
-            {/* Manual Upload Section */}
             <Card className="border-dashed border-2 overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10">
                     <div className="flex items-center gap-3">
@@ -145,11 +250,11 @@ export default function QuestionGeneratorPage() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                     <div
                         className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-300 ${dragActive
-                                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20'
-                                : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20"
+                            : "border-muted-foreground/25 hover:border-muted-foreground/50"
                             }`}
                         onDragEnter={handleDrag}
                         onDragLeave={handleDrag}
@@ -161,46 +266,37 @@ export default function QuestionGeneratorPage() {
                             type="file"
                             className="hidden"
                             accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                            multiple
-                            onChange={handleFileInput}
+                            onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) validateAndSetFile(file)
+                            }}
                         />
 
                         <div className="flex flex-col items-center justify-center text-center space-y-4">
                             <div className={`flex h-20 w-20 items-center justify-center rounded-full transition-all duration-300 ${dragActive
-                                    ? 'bg-emerald-100 dark:bg-emerald-900/30 scale-110'
-                                    : 'bg-muted'
+                                ? "bg-emerald-100 dark:bg-emerald-900/30 scale-110"
+                                : "bg-muted"
                                 }`}>
-                                <FileUp className={`h-10 w-10 transition-colors ${dragActive ? 'text-emerald-600' : 'text-muted-foreground'
-                                    }`} />
+                                <FileUp className={`h-10 w-10 transition-colors ${dragActive ? "text-emerald-600" : "text-muted-foreground"}`} />
                             </div>
 
                             <div>
-                                <p className="text-lg font-medium">
-                                    {dragActive ? 'Drop your files here' : 'Drag & drop your question papers'}
-                                </p>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    or click to browse from your computer
-                                </p>
+                                <p className="text-lg font-medium">{dragActive ? "Drop your file here" : "Drag & drop your question paper"}</p>
+                                <p className="text-sm text-muted-foreground mt-1">or click to browse from your computer</p>
                             </div>
 
                             <div className="flex items-center gap-4">
-                                <span className="px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
-                                    PDF
-                                </span>
-                                <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium">
-                                    DOC
-                                </span>
-                                <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium">
-                                    DOCX
-                                </span>
+                                <span className="px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">PDF</span>
+                                <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium">DOC</span>
+                                <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium">DOCX</span>
                             </div>
 
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
                                 className="gradient-primary border-0 mt-2"
-                                disabled={uploading}
+                                disabled={uploadMutation.isPending}
                             >
-                                {uploading ? (
+                                {uploadMutation.isPending ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         Uploading...
@@ -208,54 +304,39 @@ export default function QuestionGeneratorPage() {
                                 ) : (
                                     <>
                                         <Upload className="mr-2 h-4 w-4" />
-                                        Choose Files
+                                        Choose File
                                     </>
                                 )}
                             </Button>
                         </div>
                     </div>
 
-                    {/* Uploaded Files List */}
-                    {uploadedFiles.length > 0 && (
+                    {selectedFile && (
                         <div className="mt-6 space-y-3">
-                            <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                                Uploaded Files ({uploadedFiles.length})
-                            </h4>
-                            <div className="space-y-2">
-                                {uploadedFiles.map((file) => (
-                                    <div
-                                        key={file.id}
-                                        className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all duration-200 group"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            {getFileIcon(file.name)}
-                                            <div>
-                                                <p className="font-medium text-sm">{file.name}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {formatFileSize(file.size)} • Uploaded {file.uploadedAt.toLocaleTimeString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() => removeFile(file.id)}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        </div>
+                            <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Selected File</h4>
+                            <div className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all duration-200 group">
+                                <div className="flex items-center gap-4">
+                                    <File className={`h-8 w-8 ${selectedFile.name.toLowerCase().endsWith(".pdf") ? "text-red-500" : "text-blue-500"}`} />
+                                    <div>
+                                        <p className="font-medium text-sm">{selectedFile.name}</p>
+                                        <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
                                     </div>
-                                ))}
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => setSelectedFile(null)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
                             </div>
                         </div>
                     )}
                 </CardContent>
             </Card>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-                {/* Generator Form */}
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
                 <Card>
                     <CardHeader>
                         <CardTitle>Generate Questions</CardTitle>
@@ -263,36 +344,48 @@ export default function QuestionGeneratorPage() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="topic">Topic / Subject</Label>
-                            <Input id="topic" placeholder="e.g., Quadratic Equations, Photosynthesis" />
+                            <Label htmlFor="title">Title</Label>
+                            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Unit Test - Algebra" />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="subject">Subject</Label>
-                                <Select>
+                                <Select
+                                    value={subject}
+                                    onValueChange={setSubject}
+                                    disabled={!classLevel || subjectOptions.length === 0}
+                                >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select subject" />
+                                        <SelectValue placeholder={!classLevel ? "Select class first" : "Select subject"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="mathematics">Mathematics</SelectItem>
-                                        <SelectItem value="science">Science</SelectItem>
-                                        <SelectItem value="english">English</SelectItem>
-                                        <SelectItem value="history">History</SelectItem>
+                                        {subjectOptions.map((subj) => (
+                                            <SelectItem key={subj} value={subj}>
+                                                {subj}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="class">Class Level</Label>
-                                <Select>
+                                <Select
+                                    value={classLevel}
+                                    onValueChange={(value) => {
+                                        setClassLevel(value)
+                                        setSubject("")
+                                    }}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select class" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="9">Class 9</SelectItem>
-                                        <SelectItem value="10">Class 10</SelectItem>
-                                        <SelectItem value="11">Class 11</SelectItem>
-                                        <SelectItem value="12">Class 12</SelectItem>
+                                        {classOptions.map((cls) => (
+                                            <SelectItem key={cls.id} value={cls.id}>
+                                                {cls.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -300,7 +393,7 @@ export default function QuestionGeneratorPage() {
 
                         <div className="grid gap-2">
                             <Label>Question Type</Label>
-                            <Select>
+                            <Select value={questionType} onValueChange={setQuestionType}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
@@ -310,34 +403,47 @@ export default function QuestionGeneratorPage() {
                                     <SelectItem value="long">Long Answer</SelectItem>
                                     <SelectItem value="truefalse">True/False</SelectItem>
                                     <SelectItem value="fillblank">Fill in the Blanks</SelectItem>
+                                    <SelectItem value="model_question_paper">Model Question Paper</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Number of Questions: 10</Label>
-                            <Slider defaultValue={[10]} max={50} step={5} />
-                        </div>
-
-                        <div className="grid gap-2">
                             <Label>Difficulty Level</Label>
                             <div className="flex gap-2">
-                                <Button variant="outline" className="flex-1">Easy</Button>
-                                <Button variant="default" className="flex-1">Medium</Button>
-                                <Button variant="outline" className="flex-1">Hard</Button>
+                                <Button variant={difficulty === "easy" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("easy")}>Easy</Button>
+                                <Button variant={difficulty === "medium" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("medium")}>Medium</Button>
+                                <Button variant={difficulty === "hard" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("hard")}>Hard</Button>
                             </div>
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="context">Additional Context (Optional)</Label>
-                            <Textarea id="context" placeholder="Provide any additional context or specific areas to focus on" rows={3} />
+                            <Textarea
+                                id="context"
+                                value={contextText}
+                                onChange={(e) => setContextText(e.target.value)}
+                                placeholder="Provide any additional context or specific areas to focus on"
+                                rows={3}
+                            />
                         </div>
 
-                        <Button className="w-full gradient-primary border-0" onClick={handleGenerate} disabled={generating}>
-                            {generating ? (
+                        <Button
+                            className="w-full gradient-primary border-0"
+                            onClick={() => uploadMutation.mutate()}
+                            disabled={
+                                uploadMutation.isPending ||
+                                !selectedFile ||
+                                !title.trim() ||
+                                !subject ||
+                                !classLevel ||
+                                !questionType
+                            }
+                        >
+                            {uploadMutation.isPending ? (
                                 <>
-                                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                    Generating...
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Uploading...
                                 </>
                             ) : (
                                 <>
@@ -349,64 +455,64 @@ export default function QuestionGeneratorPage() {
                     </CardContent>
                 </Card>
 
-                {/* Generated Questions */}
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Generated Questions</CardTitle>
-                                <CardDescription>Review and export your questions</CardDescription>
+                                <CardTitle>Upload Preview & Metadata</CardTitle>
+                                <CardDescription>Upload doc to view status and saved metadata</CardDescription>
                             </div>
-                            {generated && (
-                                <div className="flex gap-2">
-                                    <Button variant="outline" size="sm">
-                                        <Copy className="mr-2 h-4 w-4" />
-                                        Copy
-                                    </Button>
-                                    <Button variant="outline" size="sm">
-                                        <Download className="mr-2 h-4 w-4" />
-                                        Export
-                                    </Button>
-                                </div>
-                            )}
                         </div>
                     </CardHeader>
                     <CardContent>
-                        {!generated ? (
+                        {uploadMutation.isPending ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-center">
+                                <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+                                <p className="font-medium">Uploading document...</p>
+                                <p className="text-sm text-muted-foreground">Please wait while your file is being saved</p>
+                            </div>
+                        ) : !previewDocument ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center">
                                 <FileText className="h-16 w-16 text-muted-foreground/20 mb-4" />
-                                <p className="text-muted-foreground">No questions generated yet</p>
-                                <p className="text-sm text-muted-foreground">Configure options and click generate</p>
+                                <p className="text-muted-foreground">No uploaded document selected yet</p>
+                                <p className="text-sm text-muted-foreground">Choose a file and click Generate Questions to upload</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {[1, 2, 3, 4, 5].map((num) => (
-                                    <div key={num} className="p-4 rounded-lg border">
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                                                {num}
+                                <div className="p-4 rounded-lg border">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">1</div>
+                                        <div className="flex-1">
+                                            <p className="font-medium mb-2">{previewDocument.title || previewDocument.file_name}</p>
+                                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                                <Badge variant="outline">{previewDocument.question_type}</Badge>
+                                                {previewDocument.difficulty && <Badge variant="secondary">{previewDocument.difficulty}</Badge>}
+                                                {previewDocument.subject && <span>{previewDocument.subject}</span>}
+                                                {previewDocument.class_level && <span>{previewDocument.class_level}</span>}
                                             </div>
-                                            <div className="flex-1">
-                                                <p className="font-medium mb-2">
-                                                    {num === 1 && "What is the quadratic formula used to solve equations of the form ax² + bx + c = 0?"}
-                                                    {num === 2 && "Solve: x² - 5x + 6 = 0"}
-                                                    {num === 3 && "If the discriminant of a quadratic equation is negative, what can be said about its roots?"}
-                                                    {num === 4 && "Find the sum and product of roots for 2x² - 7x + 3 = 0"}
-                                                    {num === 5 && "Which of the following represents a quadratic equation?"}
-                                                </p>
-                                                {num === 5 && (
-                                                    <div className="space-y-2 text-sm">
-                                                        <p>A) y = 2x + 1</p>
-                                                        <p>B) y = x² - 4x + 4</p>
-                                                        <p>C) y = √x</p>
-                                                        <p>D) y = 1/x</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <CheckCircle className="h-4 w-4 text-green-500" />
                                         </div>
                                     </div>
-                                ))}
+                                </div>
+                                <div className="rounded-lg border p-4 space-y-2 text-sm">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">File Name</span>
+                                        <span className="font-medium">{previewDocument.file_name}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">File Size</span>
+                                        <span className="font-medium">{formatFileSize(previewDocument.file_size)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">File Type</span>
+                                        <span className="font-medium">{previewDocument.mime_type || "unknown"}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">Uploaded At</span>
+                                        <span className="font-medium">{new Date(previewDocument.uploaded_at).toLocaleString()}</span>
+                                    </div>
+                                </div>
+                                {previewDocument.topic ? <p className="text-sm">Topic: {previewDocument.topic}</p> : null}
+                                {previewDocument.context ? <p className="text-sm text-muted-foreground">{previewDocument.context}</p> : null}
                             </div>
                         )}
                     </CardContent>

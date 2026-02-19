@@ -10,18 +10,18 @@ import { getInitials } from '@/lib/utils'
 export default function TeachersLeaderboardPage() {
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Teachers Leaderboard</h1>
+                    <h1 className="text-xl md:text-3xl font-bold">Teachers Leaderboard</h1>
                     <p className="text-muted-foreground">Top performing teachers by rating</p>
                 </div>
             </div>
 
             {/* Top 3 */}
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
                 {leaderboardData.teachers.slice(0, 3).map((teacher, index) => (
                     <Card key={teacher.rank} className={`card-hover ${index === 0 ? 'border-yellow-500 border-2' : ''}`}>
-                        <CardContent className="p-6 text-center">
+                        <CardContent className="p-4 md:p-6 text-center">
                             <div className="relative inline-block mb-4">
                                 <Avatar className="h-20 w-20">
                                     <AvatarFallback className={`text-xl ${index === 0 ? 'bg-yellow-500 text-white' :

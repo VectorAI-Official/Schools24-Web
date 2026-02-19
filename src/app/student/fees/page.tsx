@@ -73,7 +73,7 @@ export default function StudentFeesPage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                        <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                             Fee Details
                         </h1>
                         <p className="text-muted-foreground">View and pay your school fees</p>
@@ -96,16 +96,16 @@ export default function StudentFeesPage() {
             </div>
 
             {/* Fee Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full -translate-y-12 translate-x-12" />
                         <div className="flex items-center gap-4">
                             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30">
                                 <Wallet className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{formatCurrency(totalFees)}</p>
+                                <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{formatCurrency(totalFees)}</p>
                                 <p className="text-sm text-muted-foreground">Total Fees</p>
                             </div>
                         </div>
@@ -113,14 +113,14 @@ export default function StudentFeesPage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/10 rounded-full -translate-y-12 translate-x-12" />
                         <div className="flex items-center gap-4">
                             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30">
                                 <CheckCircle className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-green-700 dark:text-green-400">{formatCurrency(paidFees)}</p>
+                                <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">{formatCurrency(paidFees)}</p>
                                 <p className="text-sm text-muted-foreground">Paid</p>
                             </div>
                         </div>
@@ -128,14 +128,14 @@ export default function StudentFeesPage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50 overflow-hidden">
-                    <CardContent className="p-6 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full -translate-y-12 translate-x-12" />
                         <div className="flex items-center gap-4">
                             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30">
                                 <AlertCircle className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-red-700 dark:text-red-400">{formatCurrency(pendingFees)}</p>
+                                <p className="text-xl md:text-3xl font-bold text-red-700 dark:text-red-400">{formatCurrency(pendingFees)}</p>
                                 <p className="text-sm text-muted-foreground">Pending</p>
                             </div>
                         </div>
@@ -152,7 +152,7 @@ export default function StudentFeesPage() {
                     </div>
                     <CardDescription className="text-emerald-100">Academic Year 2025-26</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="font-medium">Overall Payment Status</span>
@@ -291,10 +291,10 @@ export default function StudentFeesPage() {
             {/* Payment CTA */}
             {pendingFees > 0 && (
                 <Card className="border-0 shadow-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white overflow-hidden">
-                    <CardContent className="p-8 relative">
+                    <CardContent className="p-4 md:p-8 relative">
                         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20" />
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16" />
-                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
                             <div className="text-center md:text-left">
                                 <h3 className="text-2xl font-bold mb-2">Complete Your Payment</h3>
                                 <p className="text-emerald-100">Pay the remaining {formatCurrency(pendingFees)} to avoid late fees</p>

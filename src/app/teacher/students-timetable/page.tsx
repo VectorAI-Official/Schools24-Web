@@ -1,16 +1,26 @@
 "use client"
 
-import React, { useState, useMemo } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState, useMemo, useEffect } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Download, Printer, Calendar, User, MapPin, BookOpen } from 'lucide-react'
-import { useTimetable } from '@/lib/useTimetable'
+import { Download, Printer, Calendar, User, MapPin } from 'lucide-react'
+import { useTeacherClassTimetable, useTeacherClasses, useTeacherTimetableConfig } from '@/hooks/useTimetableView'
 import { toast } from 'sonner'
+import { sortTeacherClassRows } from '@/lib/classOrdering'
 
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const classes = ['9-A', '9-B', '10-A', '10-B']
+const fallbackDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const getCurrentAcademicYear = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+    if (month < 4) {
+        return `${year - 1}-${year}`
+    }
+    return `${year}-${year + 1}`
+}
 
 const getSubjectColor = (subject: string) => {
     const colors: { [key: string]: string } = {
@@ -41,29 +51,55 @@ const formatTimeSlot = (startTime: string, endTime: string) => {
 }
 
 export default function TeacherStudentsTimetablePage() {
-    const [selectedClass, setSelectedClass] = useState('10-A')
-    const { timetable, periodsConfig } = useTimetable('teacher')
+    const academicYear = getCurrentAcademicYear()
+    const { data: configData } = useTeacherTimetableConfig()
+    const { data: classesData } = useTeacherClasses()
+    const classOptions = useMemo(() => sortTeacherClassRows(classesData?.classes || []), [classesData?.classes])
+    const [selectedClassId, setSelectedClassId] = useState('')
+    const hasClasses = classOptions.length > 0
+
+    useEffect(() => {
+        if (!selectedClassId && classOptions.length > 0) {
+            setSelectedClassId(classOptions[0].class_id)
+        }
+    }, [classOptions, selectedClassId])
+
+    const { data: timetableData } = useTeacherClassTimetable(selectedClassId, academicYear, { enabled: !!selectedClassId })
+    const timetableEntries = timetableData?.timetable || []
+
+    const dayConfigs = useMemo(() => {
+        const days = configData?.config?.days || []
+        const active = days.filter(d => d.is_active).sort((a, b) => a.day_of_week - b.day_of_week)
+        return active.length > 0 ? active : fallbackDays.map((d, i) => ({ day_of_week: i + 1, day_name: d, is_active: true }))
+    }, [configData])
+
+    const periodsConfig = useMemo(() => {
+        return (configData?.config?.periods || []).sort((a, b) => a.period_number - b.period_number)
+    }, [configData])
 
     // Generate time slots from periods config
     const timeSlots = useMemo(() => {
-        return periodsConfig.periods.map(p => ({
+        return periodsConfig.map(p => ({
             ...p,
-            display: formatTimeSlot(p.startTime, p.endTime)
+            display: formatTimeSlot(p.start_time, p.end_time)
         }))
     }, [periodsConfig])
 
     const handlePrint = () => {
+        if (!selectedClassId) return
         window.print()
-        toast.success('Print dialog opened', { description: `Printing timetable for Class ${selectedClass}` })
+        const selectedClass = classOptions.find(cls => cls.class_id === selectedClassId)
+        toast.success('Print dialog opened', { description: `Printing timetable for Class ${selectedClass?.class_name || ''}` })
     }
 
     const handleExport = () => {
+        if (!selectedClassId) return
         const csvContent = [
-            ['Time', ...days].join(','),
+            ['Time', ...dayConfigs.map(d => d.day_name)].join(','),
             ...timeSlots.map(slot =>
-                [slot.display, ...days.map(day => {
-                    const entry = timetable.find(t => t.day === day && t.startTime === slot.startTime && t.class === selectedClass)
-                    return entry ? `${entry.subject} - ${entry.teacher}` : '-'
+                [slot.display, ...dayConfigs.map(day => {
+                    const entry = timetableEntries.find(t => t.day_of_week === day.day_of_week && t.period_number === slot.period_number)
+                    return entry ? `${entry.subject_name || ''} - ${entry.teacher_name || ''}` : '-'
                 })].join(',')
             )
         ].join('\n')
@@ -71,9 +107,10 @@ export default function TeacherStudentsTimetablePage() {
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `timetable-${selectedClass}.csv`
+        const selectedClass = classOptions.find(cls => cls.class_id === selectedClassId)
+        a.download = `timetable-${selectedClass?.class_name || 'class'}.csv`
         a.click()
-        toast.success('Export completed', { description: `Timetable for Class ${selectedClass} exported to CSV` })
+        toast.success('Export completed', { description: `Timetable for Class ${selectedClass?.class_name || ''} exported to CSV` })
     }
 
     return (
@@ -85,13 +122,13 @@ export default function TeacherStudentsTimetablePage() {
                     <p className="text-xs text-muted-foreground hidden sm:block">View class timetables (Read-only)</p>
                 </div>
                 <div className="flex items-center gap-1 flex-wrap">
-                    <Select value={selectedClass} onValueChange={setSelectedClass}>
-                        <SelectTrigger className="w-[90px] sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs">
+                    <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                        <SelectTrigger className="w-[90px] sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs" disabled={!hasClasses}>
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent>
-                            {classes.map((cls) => (
-                                <SelectItem key={cls} value={cls}>Class {cls}</SelectItem>
+                            {classOptions.map((cls) => (
+                                <SelectItem key={cls.class_id} value={cls.class_id}>Class {cls.class_name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -99,28 +136,38 @@ export default function TeacherStudentsTimetablePage() {
                         <Calendar className="mr-1 h-3 w-3" />
                         2025-26
                     </Badge>
-                    <Button variant="outline" size="sm" onClick={handlePrint} className="h-7 sm:h-8 px-2 hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-all">
+                    <Button variant="outline" size="sm" onClick={handlePrint} className="h-7 sm:h-8 px-2 hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-all" disabled={!hasClasses}>
                         <Printer className="h-4 w-4" />
                     </Button>
                     <Button
                         size="sm"
                         onClick={handleExport}
                         className="h-7 sm:h-8 px-2 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 border-0 shadow-lg shadow-teal-500/20"
+                        disabled={!hasClasses}
                     >
                         <Download className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
 
+            {!hasClasses && (
+                <Card className="border-0 shadow-lg">
+                    <CardContent className="py-12 text-center text-muted-foreground">
+                        <p className="text-sm font-medium">No classes assigned yet</p>
+                        <p className="text-xs mt-1">Ask the admin to assign a class. This page will update after refresh.</p>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Timetable Card */}
-            <Card className="border-0 shadow-lg flex-1 flex flex-col overflow-hidden min-h-0">
+            <Card className="border-0 shadow-lg flex-1 flex flex-col overflow-hidden min-h-0" style={{ opacity: hasClasses ? 1 : 0.5 }}>
                 <CardContent className="flex-1 p-0 overflow-x-auto overflow-y-hidden">
                     <div
                         className="h-full grid"
                         style={{
-                            gridTemplateColumns: `minmax(80px, 100px) repeat(${periodsConfig.periodCount}, minmax(60px, 1fr))`,
-                            gridTemplateRows: `minmax(32px, 0.6fr) repeat(${days.length}, minmax(0, 1fr))`,
-                            minWidth: `${80 + periodsConfig.periodCount * 60}px`
+                            gridTemplateColumns: `minmax(80px, 100px) repeat(${periodsConfig.length}, minmax(60px, 1fr))`,
+                            gridTemplateRows: `minmax(32px, 0.6fr) repeat(${dayConfigs.length}, minmax(0, 1fr))`,
+                            minWidth: `${80 + periodsConfig.length * 60}px`
                         }}
                     >
                         {/* Header Row */}
@@ -129,44 +176,46 @@ export default function TeacherStudentsTimetablePage() {
                             <div key={`header-${index}`} className="border bg-muted flex flex-col items-center justify-center text-center p-0.5">
                                 <div className="font-bold" style={{ fontSize: 'clamp(8px, 1.5vw, 14px)' }}>P{index + 1}</div>
                                 <div className="text-muted-foreground hidden lg:block" style={{ fontSize: 'clamp(7px, 1vw, 11px)' }}>{slot.display}</div>
+                                {slot.is_break && <Badge variant="outline" className="mt-0.5 px-0.5 hidden sm:inline-flex" style={{ fontSize: 'clamp(6px, 0.8vw, 9px)' }}>{slot.break_name || 'Break'}</Badge>}
                             </div>
                         ))}
 
                         {/* Data Rows */}
-                        {days.map((day) => (
-                            <React.Fragment key={day}>
+                        {dayConfigs.map((day) => (
+                            <React.Fragment key={day.day_of_week}>
                                 <div className="border bg-muted/50 flex items-center justify-center font-bold" style={{ fontSize: 'clamp(7px, 1.3vw, 13px)' }}>
-                                    <span className="sm:hidden">{day.slice(0, 2)}</span>
-                                    <span className="hidden sm:inline md:hidden">{day.slice(0, 3)}</span>
-                                    <span className="hidden md:inline">{day}</span>
+                                    <span className="sm:hidden">{day.day_name.slice(0, 2)}</span>
+                                    <span className="hidden sm:inline md:hidden">{day.day_name.slice(0, 3)}</span>
+                                    <span className="hidden md:inline">{day.day_name}</span>
                                 </div>
                                 {timeSlots.map((slot, index) => {
-                                    const timetableEntry = timetable.find(
-                                        t => t.day === day && t.startTime === slot.startTime && (t.class === selectedClass || (!t.class && selectedClass === '10-A'))
+                                    const timetableEntry = timetableEntries.find(
+                                        t => t.day_of_week === day.day_of_week && t.period_number === slot.period_number
                                     )
 
-                                    if (slot.isBreak) return (
-                                        <div key={`${day}-${index}`} className="border bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 flex items-center justify-center">
+                                    if (slot.is_break) return (
+                                        <div key={`${day.day_of_week}-${index}`} className="border bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 flex items-center justify-center">
                                             <div className="text-center">
-                                                <p className="text-green-600 dark:text-green-400 font-bold" style={{ fontSize: 'clamp(6px, 1vw, 11px)' }}>{slot.breakName || 'BREAK'}</p>
+                                                <span className="hidden sm:inline" style={{ fontSize: 'clamp(12px, 2vw, 24px)' }}>🍽️</span>
+                                                <p className="text-green-600 dark:text-green-400 font-bold" style={{ fontSize: 'clamp(6px, 1vw, 11px)' }}>{slot.break_name || 'BREAK'}</p>
                                             </div>
                                         </div>
                                     )
 
                                     return (
-                                        <div key={`${day}-${index}`} className="border p-0.5 flex items-center justify-center">
+                                        <div key={`${day.day_of_week}-${index}`} className="border p-0.5 flex items-center justify-center">
                                             {timetableEntry ? (
-                                                <div className={`w-full h-full rounded bg-gradient-to-br ${getSubjectColor(timetableEntry.subject)} text-white flex flex-col items-center justify-center p-0.5 shadow-sm`}>
-                                                    <p className="font-bold truncate w-full text-center drop-shadow-sm" style={{ fontSize: 'clamp(6px, 1.2vw, 13px)' }}>{timetableEntry.subject}</p>
+                                                <div className={`w-full h-full rounded bg-gradient-to-br ${getSubjectColor(timetableEntry.subject_name || '')} text-white flex flex-col items-center justify-center p-0.5 shadow-sm`}>
+                                                    <p className="font-bold truncate w-full text-center drop-shadow-sm" style={{ fontSize: 'clamp(6px, 1.2vw, 13px)' }}>{timetableEntry.subject_name}</p>
                                                     <div className="hidden lg:flex items-center justify-center gap-0.5 opacity-90 font-medium w-full" style={{ fontSize: 'clamp(6px, 0.9vw, 10px)' }}>
                                                         <div className="flex items-center gap-0.5 truncate">
                                                             <User className="h-2 w-2" />
-                                                            <span className="truncate">{timetableEntry.teacher?.split(' ')[0]}</span>
+                                                            <span className="truncate">{timetableEntry.teacher_name?.split(' ')[0]}</span>
                                                         </div>
                                                         <span className="opacity-60">|</span>
                                                         <div className="flex items-center gap-0.5">
                                                             <MapPin className="h-2 w-2" />
-                                                            <span>{timetableEntry.room}</span>
+                                                            <span>{timetableEntry.room_number || '-'}</span>
                                                         </div>
                                                     </div>
                                                 </div>

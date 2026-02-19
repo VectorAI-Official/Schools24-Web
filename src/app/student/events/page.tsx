@@ -62,12 +62,9 @@ export default function StudentEventsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                            Events & Calendar
+                        <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                            Events
                         </h1>
                         <p className="text-muted-foreground">Stay updated with school events and activities</p>
                     </div>
@@ -82,15 +79,15 @@ export default function StudentEventsPage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30">
                                 <CalendarDays className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{upcomingEvents.length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{upcomingEvents.length}</p>
                                 <p className="text-sm text-muted-foreground">Upcoming Events</p>
                             </div>
                         </div>
@@ -98,13 +95,13 @@ export default function StudentEventsPage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30">
                                 <BookOpen className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-red-700 dark:text-red-400">{mockEvents.filter(e => e.type === 'exam').length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-red-700 dark:text-red-400">{mockEvents.filter(e => e.type === 'exam').length}</p>
                                 <p className="text-sm text-muted-foreground">Exams</p>
                             </div>
                         </div>
@@ -112,13 +109,13 @@ export default function StudentEventsPage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30">
                                 <PartyPopper className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-green-700 dark:text-green-400">{mockEvents.filter(e => e.type === 'holiday').length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">{mockEvents.filter(e => e.type === 'holiday').length}</p>
                                 <p className="text-sm text-muted-foreground">Holidays</p>
                             </div>
                         </div>
@@ -126,13 +123,13 @@ export default function StudentEventsPage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/50 dark:to-amber-950/50">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/30">
                                 <Trophy className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-400">{mockEvents.filter(e => e.type === 'sports').length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">{mockEvents.filter(e => e.type === 'sports').length}</p>
                                 <p className="text-sm text-muted-foreground">Sports Events</p>
                             </div>
                         </div>
@@ -220,10 +217,10 @@ export default function StudentEventsPage() {
 
             {/* Calendar CTA */}
             <Card className="border-0 shadow-2xl bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 text-white overflow-hidden">
-                <CardContent className="p-8 relative">
+                <CardContent className="p-4 md:p-8 relative">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16" />
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
                         <div className="text-center md:text-left">
                             <h3 className="text-2xl font-bold mb-2 flex items-center gap-2 justify-center md:justify-start">
                                 <CalendarDays className="h-7 w-7" />

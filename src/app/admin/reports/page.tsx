@@ -54,9 +54,9 @@ export default function ReportsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">Reports</h1>
+                    <h1 className="text-xl md:text-3xl font-bold">Reports</h1>
                     <p className="text-muted-foreground">Generate and view school reports</p>
                 </div>
                 <div className="flex gap-3">
@@ -78,9 +78,9 @@ export default function ReportsPage() {
             </div>
 
             {/* Quick Reports */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="card-hover cursor-pointer" onClick={() => handleReportClick('Student Report')}>
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-4 md:p-6 text-center">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500 text-white mx-auto mb-3">
                             <GraduationCap className="h-6 w-6" />
                         </div>
@@ -89,7 +89,7 @@ export default function ReportsPage() {
                     </CardContent>
                 </Card>
                 <Card className="card-hover cursor-pointer" onClick={() => handleReportClick('Attendance Report')}>
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-4 md:p-6 text-center">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-white mx-auto mb-3">
                             <Users className="h-6 w-6" />
                         </div>
@@ -98,7 +98,7 @@ export default function ReportsPage() {
                     </CardContent>
                 </Card>
                 <Card className="card-hover cursor-pointer" onClick={() => handleReportClick('Financial Report')}>
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-4 md:p-6 text-center">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-500 text-white mx-auto mb-3">
                             <DollarSign className="h-6 w-6" />
                         </div>
@@ -107,7 +107,7 @@ export default function ReportsPage() {
                     </CardContent>
                 </Card>
                 <Card className="card-hover cursor-pointer" onClick={() => handleReportClick('Performance Report')}>
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-4 md:p-6 text-center">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500 text-white mx-auto mb-3">
                             <BarChart3 className="h-6 w-6" />
                         </div>
@@ -118,7 +118,7 @@ export default function ReportsPage() {
             </div>
 
             {/* Charts */}
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
                 <Card>
                     <CardHeader>
                         <CardTitle>Revenue vs Expenses</CardTitle>
@@ -149,7 +149,7 @@ export default function ReportsPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Grade Distribution</CardTitle>
+                        <CardTitle>Class Distribution</CardTitle>
                         <CardDescription>Student grades across school</CardDescription>
                     </CardHeader>
                     <CardContent>

@@ -3,39 +3,45 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Trophy, Star, Users, Award, TrendingUp } from 'lucide-react'
-import { leaderboardData, mockTeachers } from '@/lib/mockData'
+import { Trophy, Star, Users, TrendingUp } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
-import { useAuth } from '@/contexts/AuthContext'
+import { useTeacherLeaderboard } from '@/hooks/useTeacherLeaderboard'
 
 export default function TeacherLeaderboardPage() {
-    const { user } = useAuth()
+    const { data } = useTeacherLeaderboard()
 
-    // Get current user's rank (simulated as rank 2)
-    const myRank = 2
-    const myRating = 4.8
-    const myTeacher = mockTeachers[1] // Simulated current teacher
+    const topTeachers = data?.top_3 || []
+    const allTeachers = data?.items || []
+    const myTeacherId = data?.my_teacher_id || ''
+    const myRank = data?.my_rank || 0
+    const myRating = data?.my_rating || 0
+    const myStudents = data?.my_students_count || 0
+    const myTrend = data?.my_trend || 'stable'
+
+    const myRankDisplay = myRank > 0 ? `#${myRank}` : '—'
+    const rankDelta = myTrend === 'up' ? 2 : myTrend === 'down' ? -2 : 0
+    const rankDeltaDisplay = `${rankDelta >= 0 ? '+' : ''}${rankDelta}`
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+                <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
                     Leaderboard
                 </h1>
                 <p className="text-muted-foreground mt-1">Your ranking and top performing teachers</p>
             </div>
 
             {/* Top 3 Teachers - At the top */}
-            <div className="grid gap-4 md:grid-cols-3">
-                {leaderboardData.teachers.slice(0, 3).map((teacher, index) => (
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                {topTeachers.map((teacher, index) => (
                     <Card
                         key={teacher.rank}
                         className={`relative overflow-hidden transition-all hover:shadow-lg ${index === 0 ? 'border-yellow-500/50 border-2' :
-                            index === 1 ? 'border-emerald-500/50 border-2' : ''
+                            teacher.teacher_id === myTeacherId ? 'border-emerald-500/50 border-2' : ''
                             }`}
                     >
-                        {index === 1 && (
+                        {teacher.teacher_id === myTeacherId && (
                             <div className="absolute top-2 right-2">
                                 <Badge className="bg-emerald-500 text-white text-xs">You</Badge>
                             </div>
@@ -62,7 +68,7 @@ export default function TeacherLeaderboardPage() {
                             <div className="flex items-center justify-center gap-1">
                                 <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                                 <span className="font-bold">{teacher.rating}</span>
-                                <span className="text-xs text-muted-foreground ml-1">• {teacher.students} students</span>
+                                <span className="text-xs text-muted-foreground ml-1">• {teacher.students_count} students</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -70,13 +76,13 @@ export default function TeacherLeaderboardPage() {
             </div>
 
             {/* My Rank Card + Quick Stats */}
-            <div className="grid gap-4 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {/* My Rank - Prominent */}
                 <Card className="lg:col-span-2 border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-transparent">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-6">
+                    <CardContent className="p-4 md:p-6">
+                        <div className="flex items-center gap-4 md:gap-6">
                             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-2xl shadow-lg">
-                                #{myRank}
+                                {myRankDisplay}
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-xl font-bold">Your Current Rank</h3>
@@ -85,7 +91,7 @@ export default function TeacherLeaderboardPage() {
                                     {[...Array(5)].map((_, i) => (
                                         <Star key={i} className={`h-5 w-5 ${i < Math.floor(myRating) ? 'fill-yellow-500 text-yellow-500' : 'text-muted'}`} />
                                     ))}
-                                    <span className="ml-2 text-lg font-bold">{myRating}</span>
+                                    <span className="ml-2 text-lg font-bold">{myRating.toFixed(1)}</span>
                                 </div>
                             </div>
                             <div className="hidden md:block">
@@ -98,18 +104,18 @@ export default function TeacherLeaderboardPage() {
                 {/* Quick Stats */}
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
-                    <CardContent className="p-6 text-center relative">
+                    <CardContent className="p-4 md:p-6 text-center relative">
                         <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                        <p className="text-2xl font-bold">180</p>
+                        <p className="text-2xl font-bold">{myStudents}</p>
                         <p className="text-xs text-muted-foreground">Total Students</p>
                     </CardContent>
                 </Card>
 
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent" />
-                    <CardContent className="p-6 text-center relative">
+                    <CardContent className="p-4 md:p-6 text-center relative">
                         <TrendingUp className="h-8 w-8 mx-auto mb-2 text-amber-500" />
-                        <p className="text-2xl font-bold">+2</p>
+                        <p className="text-2xl font-bold">{rankDeltaDisplay}</p>
                         <p className="text-xs text-muted-foreground">Rank Improvement</p>
                     </CardContent>
                 </Card>
@@ -123,10 +129,10 @@ export default function TeacherLeaderboardPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-2">
-                        {mockTeachers.map((teacher, index) => (
+                        {allTeachers.map((teacher, index) => (
                             <div
-                                key={teacher.id}
-                                className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${index === 1 ? 'border-emerald-500/50 bg-emerald-500/5' : 'hover:bg-muted/50'
+                                key={teacher.teacher_id}
+                                className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${teacher.teacher_id === myTeacherId ? 'border-emerald-500/50 bg-emerald-500/5' : 'hover:bg-muted/50'
                                     }`}
                             >
                                 <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${index === 0 ? 'bg-yellow-500 text-white' :
@@ -142,7 +148,7 @@ export default function TeacherLeaderboardPage() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                         <p className="font-medium text-sm truncate">{teacher.name}</p>
-                                        {index === 1 && <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-600">You</Badge>}
+                                        {teacher.teacher_id === myTeacherId && <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-600">You</Badge>}
                                     </div>
                                     <p className="text-xs text-muted-foreground truncate">{teacher.department}</p>
                                 </div>

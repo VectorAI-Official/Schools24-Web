@@ -68,16 +68,10 @@ export default function StudentPerformancePage() {
             <div className="max-w-[1200px] mx-auto space-y-6">
 
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center gap-4">
-                        <button
-                            className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm"
-                            onClick={() => router.push('/student/dashboard')}
-                        >
-                            <ArrowLeft className="h-4 w-4 text-slate-600" />
-                        </button>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
+                            <h1 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/25">
                                     <BarChart3 className="h-4.5 w-4.5 text-white" />
                                 </div>
@@ -96,7 +90,7 @@ export default function StudentPerformancePage() {
                 </div>
 
                 {/* Overall Stats */}
-                <div className="grid gap-4 md:grid-cols-4">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Rank */}
                     <Card className="border border-amber-200/80 shadow-sm bg-gradient-to-br from-amber-50 via-yellow-50/80 to-orange-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
                         <CardContent className="p-5 relative">
@@ -106,7 +100,7 @@ export default function StudentPerformancePage() {
                                     <Trophy className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-3xl font-bold text-amber-600">#{student.performance.rank}</p>
+                                    <p className="text-xl md:text-3xl font-bold text-amber-600">#{student.performance.rank}</p>
                                     <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Class Rank</p>
                                     <p className="text-[10px] text-slate-400 font-medium">of {student.performance.totalStudents} students</p>
                                 </div>
@@ -123,7 +117,7 @@ export default function StudentPerformancePage() {
                                     <Target className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-3xl font-bold text-teal-600">{student.performance.averageScore}%</p>
+                                    <p className="text-xl md:text-3xl font-bold text-teal-600">{student.performance.averageScore}%</p>
                                     <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Average Score</p>
                                 </div>
                             </div>
@@ -139,7 +133,7 @@ export default function StudentPerformancePage() {
                                     <Award className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-3xl font-bold text-emerald-600">{student.grade}</p>
+                                    <p className="text-xl md:text-3xl font-bold text-emerald-600">{student.grade}</p>
                                     <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Overall Grade</p>
                                 </div>
                             </div>
@@ -156,7 +150,7 @@ export default function StudentPerformancePage() {
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-1.5">
-                                        <p className="text-3xl font-bold text-blue-600">+5%</p>
+                                        <p className="text-xl md:text-3xl font-bold text-blue-600">+5%</p>
                                         <Zap className="h-4 w-4 text-blue-500" />
                                     </div>
                                     <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Improvement</p>
@@ -167,10 +161,10 @@ export default function StudentPerformancePage() {
                 </div>
 
                 {/* Performance Radar & Subject Details */}
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
                     {/* Radar Chart */}
                     <Card className="border-0 shadow-sm bg-white overflow-hidden">
-                        <CardContent className="p-6">
+                        <CardContent className="p-4 md:p-6">
                             <div className="flex items-center gap-2.5 mb-5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
                                     <Target className="h-4.5 w-4.5 text-white" />
@@ -211,7 +205,7 @@ export default function StudentPerformancePage() {
 
                     {/* Subject Performance */}
                     <Card className="border-0 shadow-sm bg-white overflow-hidden">
-                        <CardContent className="p-6">
+                        <CardContent className="p-4 md:p-6">
                             <div className="flex items-center gap-2.5 mb-5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/25">
                                     <BookOpen className="h-4.5 w-4.5 text-white" />
@@ -255,8 +249,8 @@ export default function StudentPerformancePage() {
 
                 {/* Class Leaderboard Preview */}
                 <Card className="border-0 shadow-sm bg-white overflow-hidden">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-5">
+                    <CardContent className="p-4 md:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
                                     <Trophy className="h-4.5 w-4.5 text-white" />
@@ -338,7 +332,7 @@ export default function StudentPerformancePage() {
 
                 {/* Achievements */}
                 <Card className="border-0 shadow-sm bg-white overflow-hidden">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-2.5 mb-6">
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
                                 <Sparkles className="h-4.5 w-4.5 text-white" />
@@ -348,7 +342,7 @@ export default function StudentPerformancePage() {
                                 <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Your academic milestones</p>
                             </div>
                         </div>
-                        <div className="grid gap-4 md:grid-cols-4">
+                        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                             {[
                                 {
                                     icon: Trophy,

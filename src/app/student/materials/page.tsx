@@ -75,11 +75,8 @@ export default function StudentMaterialsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                        <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                             Study Materials
                         </h1>
                         <p className="text-muted-foreground">Access your study materials and resources</p>
@@ -88,15 +85,15 @@ export default function StudentMaterialsPage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30">
                                 <BookOpen className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{mockMaterials.length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{mockMaterials.length}</p>
                                 <p className="text-sm text-muted-foreground">Total Materials</p>
                             </div>
                         </div>
@@ -104,13 +101,13 @@ export default function StudentMaterialsPage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30">
                                 <FileText className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-red-700 dark:text-red-400">{mockMaterials.filter(m => m.type === 'pdf').length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-red-700 dark:text-red-400">{mockMaterials.filter(m => m.type === 'pdf').length}</p>
                                 <p className="text-sm text-muted-foreground">PDFs</p>
                             </div>
                         </div>
@@ -118,13 +115,13 @@ export default function StudentMaterialsPage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30">
                                 <Video className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-violet-700 dark:text-violet-400">{mockMaterials.filter(m => m.type === 'video').length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-violet-700 dark:text-violet-400">{mockMaterials.filter(m => m.type === 'video').length}</p>
                                 <p className="text-sm text-muted-foreground">Videos</p>
                             </div>
                         </div>
@@ -132,13 +129,13 @@ export default function StudentMaterialsPage() {
                 </Card>
 
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/50 dark:to-amber-950/50">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/30">
                                 <FolderOpen className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-400">5</p>
+                                <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">5</p>
                                 <p className="text-sm text-muted-foreground">Subjects</p>
                             </div>
                         </div>
@@ -148,7 +145,7 @@ export default function StudentMaterialsPage() {
 
             {/* Search and Filter */}
             <Card className="border-0 shadow-lg">
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-1 max-w-md">
                             <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -180,13 +177,13 @@ export default function StudentMaterialsPage() {
             </Card>
 
             {/* Materials Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {filteredMaterials.map((material, index) => (
                     <Card
                         key={material.id}
                         className={`border-2 border-transparent transition-all duration-300 hover:shadow-xl bg-gradient-to-br ${getTypeBg(material.type)} stagger-${(index % 5) + 1} animate-slide-up cursor-pointer`}
                     >
-                        <CardContent className="p-6">
+                        <CardContent className="p-4 md:p-6">
                             <div className="flex items-start gap-4 mb-4">
                                 <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${getTypeColor(material.type)} text-white shadow-lg`}>
                                     {getTypeIcon(material.type)}

@@ -51,7 +51,7 @@ export default function MonitoringPage() {
             {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+                    <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
                         Student Monitoring
                     </h1>
                     <p className="text-muted-foreground mt-1">Monitor student activity and engagement in real-time</p>
@@ -70,10 +70,10 @@ export default function MonitoringPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent" />
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
                                 <CheckCircle className="h-6 w-6 text-white" />
@@ -87,7 +87,7 @@ export default function MonitoringPage() {
                 </Card>
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg">
                                 <Activity className="h-6 w-6 text-white" />
@@ -101,7 +101,7 @@ export default function MonitoringPage() {
                 </Card>
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent" />
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg">
                                 <Clock className="h-6 w-6 text-white" />
@@ -115,7 +115,7 @@ export default function MonitoringPage() {
                 </Card>
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent" />
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-600 shadow-lg">
                                 <AlertCircle className="h-6 w-6 text-white" />
