@@ -10,9 +10,33 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
-import { Wand2, FileText, Upload, File, X, FileUp, Loader2 } from "lucide-react"
+import { Wand2, FileText, Upload, File, X, FileUp, Loader2, Trash2, Eye, Download, MoreVertical, Search } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 
@@ -28,6 +52,7 @@ interface QuestionDocument {
     file_size: number
     mime_type: string
     uploaded_at: string
+    uploaded_by_name?: string
 }
 
 interface GlobalClassOption {
@@ -147,7 +172,7 @@ export function QuestionUploaderForm() {
             formData.append("difficulty", difficulty)
             formData.append("context", contextText.trim())
 
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1"
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL
             const response = await fetch(`${baseUrl}/super-admin/question-documents`, {
                 method: "POST",
                 headers: {
@@ -514,6 +539,191 @@ export function QuestionUploaderForm() {
                 </Card>
             </div>
         </div>
+        <SuperAdminQuestionDocumentsList />
+    )
+}
+
+function SuperAdminQuestionDocumentsList() {
+    const queryClient = useQueryClient()
+    const [search, setSearch] = useState("")
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
+
+    const docsQuery = useQuery({
+        queryKey: ["super-admin-question-documents"],
+        queryFn: () => api.get<{ documents: QuestionDocument[] }>("/super-admin/question-documents?page_size=100&order=desc"),
+    })
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => api.delete(`/super-admin/question-documents/${id}`),
+        onSuccess: () => {
+            toast.success("Document deleted")
+            queryClient.invalidateQueries({ queryKey: ["super-admin-question-documents"] })
+            setDeleteTarget(null)
+        },
+        onError: () => toast.error("Delete failed"),
+    })
+
+    const openDocument = async (id: string, download = false) => {
+        const token = getToken()
+        const base = process.env.NEXT_PUBLIC_API_URL
+        const action = download ? "download" : "view"
+        try {
+            const res = await fetch(`${base}/super-admin/question-documents/${id}/${action}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            if (!res.ok) throw new Error("Failed")
+            const blob = await res.blob()
+            const blobUrl = URL.createObjectURL(blob)
+            if (download) {
+                const cd = res.headers.get("content-disposition") || ""
+                const match = cd.match(/filename="([^"]+)"/)
+                const a = document.createElement("a")
+                a.href = blobUrl
+                a.download = match?.[1] ?? "document"
+                a.click()
+            } else {
+                window.open(blobUrl, "_blank")
+            }
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+        } catch {
+            toast.error("Could not open document")
+        }
+    }
+
+    const docs = docsQuery.data?.documents ?? []
+    const filtered = search
+        ? docs.filter(d =>
+            d.title.toLowerCase().includes(search.toLowerCase()) ||
+            d.subject?.toLowerCase().includes(search.toLowerCase()) ||
+            d.class_level?.toLowerCase().includes(search.toLowerCase()) ||
+            d.uploaded_by_name?.toLowerCase().includes(search.toLowerCase())
+        )
+        : docs
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" /> All Uploaded Question Papers
+                        </CardTitle>
+                        <CardDescription>
+                            {docs.length} paper{docs.length !== 1 ? "s" : ""} uploaded across all super admins
+                        </CardDescription>
+                    </div>
+                    <div className="relative w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search title, subject, uploader..."
+                            className="pl-8"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                {docsQuery.isLoading ? (
+                    <div className="flex justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <FileText className="h-12 w-12 text-muted-foreground/20 mb-3" />
+                        <p className="text-muted-foreground">
+                            {search ? "No matching documents" : "No question papers uploaded yet"}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="rounded-md border overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Title</TableHead>
+                                    <TableHead>Subject</TableHead>
+                                    <TableHead>Class</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Difficulty</TableHead>
+                                    <TableHead>Uploaded By</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead className="w-[60px]"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filtered.map(doc => (
+                                    <TableRow key={doc.id}>
+                                        <TableCell className="font-medium max-w-[180px] truncate" title={doc.title}>{doc.title}</TableCell>
+                                        <TableCell>{doc.subject || "—"}</TableCell>
+                                        <TableCell>{doc.class_level || "—"}</TableCell>
+                                        <TableCell><Badge variant="outline" className="capitalize">{doc.question_type}</Badge></TableCell>
+                                        <TableCell>
+                                            {doc.difficulty
+                                                ? <Badge variant="secondary" className="capitalize">{doc.difficulty}</Badge>
+                                                : "—"}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground max-w-[160px] truncate" title={doc.uploaded_by_name}>
+                                            {doc.uploaded_by_name || "—"}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                                            {new Date(doc.uploaded_at).toLocaleDateString()}
+                                        </TableCell>
+                                        <TableCell>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => openDocument(doc.id, false)}>
+                                                        <Eye className="h-4 w-4 mr-2" /> View
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openDocument(doc.id, true)}>
+                                                        <Download className="h-4 w-4 mr-2" /> Download
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="text-red-600 focus:text-red-600"
+                                                        onClick={() => setDeleteTarget({ id: doc.id, title: doc.title })}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
+            </CardContent>
+
+            {deleteTarget && (
+                <AlertDialog open onOpenChange={open => !open && setDeleteTarget(null)}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete "{deleteTarget.title}"?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This permanently removes the question paper and cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                className="bg-red-600 hover:bg-red-700"
+                                onClick={() => deleteMutation.mutate(deleteTarget.id)}
+                                disabled={deleteMutation.isPending}
+                            >
+                                {deleteMutation.isPending
+                                    ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Deleting...</>
+                                    : "Delete"}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            )}
+        </Card>
     )
 }
 
@@ -549,3 +759,4 @@ export default function SuperAdminQuestionGeneratorPage() {
 
     return null
 }
+
