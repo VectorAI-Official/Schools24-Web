@@ -111,13 +111,15 @@ export function SuperAdminMaterialsForm() {
   const { data: classesData } = useQuery({
     queryKey: ['super-admin-catalog-classes', 'materials'],
     queryFn: () => api.get<{ classes: CatalogClass[] }>('/super-admin/catalog/classes'),
-    staleTime: 60 * 1000,
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   })
 
   const { data: subjectsData } = useQuery({
     queryKey: ['super-admin-catalog-subjects', 'materials'],
     queryFn: () => api.get<{ subjects: CatalogSubject[] }>('/super-admin/catalog/subjects'),
-    staleTime: 60 * 1000,
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   })
 
   const classOptions = useMemo(() => {
@@ -148,6 +150,7 @@ export function SuperAdminMaterialsForm() {
       return api.get<StudyMaterialsPage>(`/super-admin/materials?${params.toString()}`)
     },
     getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.next_page : undefined),
+    staleTime: 30_000,
   })
 
   useEffect(() => {
@@ -169,7 +172,7 @@ export function SuperAdminMaterialsForm() {
     const token = getToken()
     if (!token) throw new Error('Session expired. Please login again.')
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1'
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL
     const response = await fetch(`${baseUrl}/super-admin/materials/${id}/${mode}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
@@ -198,7 +201,7 @@ export function SuperAdminMaterialsForm() {
       formData.append('subject', selectedSubject)
       formData.append('class_level', selectedClass)
 
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1'
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL
       const response = await fetch(`${baseUrl}/super-admin/materials`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -330,10 +333,6 @@ export function SuperAdminMaterialsForm() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Uploaded Materials</CardTitle>
-          <CardDescription>Only materials uploaded by your super admin account are listed.</CardDescription>
-        </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center mb-4">
             <div className="relative flex-1 min-w-[280px]">
@@ -512,3 +511,4 @@ export function SuperAdminMaterialsForm() {
 }
 
 export default SuperAdminMaterialsForm
+

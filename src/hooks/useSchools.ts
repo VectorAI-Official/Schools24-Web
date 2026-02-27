@@ -48,6 +48,8 @@ export function useSchools(enabled: boolean = true) {
             return response.schools;
         },
         enabled,
+        staleTime: 2 * 60_000,
+        refetchInterval: 30_000,
     });
 }
 
@@ -60,6 +62,7 @@ export function useSchool(idOrSlug: string, enabled: boolean = true) {
             return api.get<School>(`/super-admin/schools/${idOrSlug}`);
         },
         enabled: !!idOrSlug && enabled,
+        staleTime: 2 * 60_000,
     });
 }
 
@@ -92,6 +95,7 @@ export function useSchoolUsers(schoolId: string, role?: string, enabled: boolean
             return api.get<UsersResponse>(`/admin/users?${params.toString()}`);
         },
         enabled: !!schoolId && enabled,
+        staleTime: 30_000,
     });
 }
 
@@ -113,6 +117,7 @@ export function useInfiniteSchoolUsers(schoolId: string, role?: string, pageSize
         },
         initialPageParam: 1,
         enabled: !!schoolId && enabled,
+        staleTime: 30_000,
     });
 }
 
@@ -238,6 +243,8 @@ export function useDeletedSchools(enabled: boolean = true) {
             return response.schools;
         },
         enabled,
+        staleTime: 25_000,
+        refetchInterval: 30_000,
     });
 }
 

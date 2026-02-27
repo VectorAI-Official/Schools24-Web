@@ -114,18 +114,21 @@ export function QuestionUploaderForm() {
     const classesQuery = useQuery({
         queryKey: ["super-admin-catalog-classes-for-uploader"],
         queryFn: () => api.get<{ classes: GlobalClassOption[] }>("/super-admin/catalog/classes"),
-        staleTime: 60_000,
+        staleTime: 10 * 60_000,
+        refetchOnWindowFocus: false,
     })
 
     const subjectsQuery = useQuery({
         queryKey: ["super-admin-catalog-subjects-for-uploader"],
         queryFn: () => api.get<{ subjects: GlobalSubjectOption[] }>("/super-admin/catalog/subjects"),
-        staleTime: 60_000,
+        staleTime: 10 * 60_000,
+        refetchOnWindowFocus: false,
     })
     const assignmentsQuery = useQuery({
         queryKey: ["super-admin-catalog-assignments-for-uploader"],
         queryFn: () => api.get<{ assignments: AssignmentItem[] }>("/super-admin/catalog/assignments"),
-        staleTime: 60_000,
+        staleTime: 10 * 60_000,
+        refetchOnWindowFocus: false,
     })
 
     const classes = useMemo(
@@ -553,6 +556,8 @@ function SuperAdminQuestionDocumentsList() {
     const docsQuery = useQuery({
         queryKey: ["super-admin-question-documents"],
         queryFn: () => api.get<{ documents: QuestionDocument[] }>("/super-admin/question-documents?page_size=100&order=desc"),
+        staleTime: 30_000,
+        refetchInterval: 30_000,
     })
 
     const deleteMutation = useMutation({

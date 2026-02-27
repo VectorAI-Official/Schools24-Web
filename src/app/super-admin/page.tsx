@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,6 +30,7 @@ import { Header } from "@/components/layout/Header"
 import { PasswordPromptDialog } from "@/components/super-admin/PasswordPromptDialog"
 import { QuestionUploaderForm } from "@/app/super-admin/question-generator/page"
 import { SuperAdminMaterialsForm } from "@/app/super-admin/materials/page"
+import SuperAdminQuizSchedulerPage from "@/app/super-admin/quiz-scheduler/page"
 import { SuperAdminSettingsPanel } from "@/app/super-admin/settings/page"
 import { SuperAdminTrashPanel } from "@/app/super-admin/trash/page"
 import { useAuth } from "@/contexts/AuthContext"
@@ -37,12 +38,12 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { useSchools, useCreateSchool, useDeleteSchool, CreateSchoolParams } from "@/hooks/useSchools"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
-import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit } from "lucide-react"
+import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit, Layers3, BookOpenCheck, Check, X, Shield, Sparkles, CheckCircle2, Save } from "lucide-react"
 
-type SuperAdminTab = "schools" | "catalog" | "question-uploader" | "materials" | "settings" | "trash"
+type SuperAdminTab = "schools" | "catalog" | "question-uploader" | "quiz-scheduler" | "materials" | "settings" | "trash"
 
 function getTabFromSearch(raw: string | null): SuperAdminTab {
-    if (raw === "catalog" || raw === "question-uploader" || raw === "materials" || raw === "settings" || raw === "trash") return raw
+    if (raw === "catalog" || raw === "question-uploader" || raw === "quiz-scheduler" || raw === "materials" || raw === "settings" || raw === "trash") return raw
     return "schools"
 }
 
@@ -76,6 +77,10 @@ function SchoolsSection() {
             s.contact_email?.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
     }, [schools, debouncedSearch])
+
+    const totalSchools = schools.length
+    const activeSchools = schools.filter((s) => s.is_active).length
+    const inactiveSchools = Math.max(0, totalSchools - activeSchools)
 
     const validatePassword = (password: string) => {
         const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
@@ -153,12 +158,12 @@ function SchoolsSection() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 md:p-5 shadow-sm">
                 <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-indigo-500" />
                     <Input
-                        placeholder="Search schools..."
-                        className="pl-10 bg-white"
+                        placeholder="Search schools by name or email..."
+                        className="pl-10 bg-indigo-50/50 dark:bg-slate-800 border-indigo-100 dark:border-slate-700"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -166,7 +171,7 @@ function SchoolsSection() {
 
                 <Dialog open={isAddSchoolOpen} onOpenChange={setIsAddSchoolOpen}>
                     <DialogTrigger asChild>
-                        <Button className="bg-indigo-600 hover:bg-indigo-700">
+                        <Button className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white">
                             <Plus className="h-4 w-4 mr-2" />
                             Add New School
                         </Button>
@@ -302,11 +307,11 @@ function SchoolsSection() {
                 </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
                 {isSchoolsLoading ? (
                     Array(4).fill(0).map((_, i) => (
-                        <Card key={i} className="animate-pulse">
-                            <CardHeader className="h-24 bg-slate-100 dark:bg-slate-800 rounded-t-xl" />
+                        <Card key={i} className="animate-pulse rounded-2xl border-slate-200/80 dark:border-slate-800">
+                            <CardHeader className="h-24 bg-slate-100 dark:bg-slate-800 rounded-t-2xl" />
                             <CardContent className="p-4 md:p-6 space-y-4">
                                 <div className="h-4 bg-slate-200 rounded w-3/4" />
                                 <div className="h-4 bg-slate-200 rounded w-1/2" />
@@ -323,46 +328,52 @@ function SchoolsSection() {
                     filteredSchools.map((school) => (
                         <Card
                             key={school.id}
-                            className="group hover:shadow-lg transition-all duration-300 border-slate-200 overflow-hidden cursor-pointer hover:border-indigo-300 transform hover:-translate-y-1"
+                            className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-xl hover:shadow-indigo-500/10"
                             onClick={() => router.push(`/super-admin/school/${school.slug || school.id}`)}
                         >
-                            <div className="h-2 bg-indigo-500 group-hover:h-3 transition-all" />
-                            <CardHeader className="pb-2">
+                            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/70 via-white to-indigo-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/30 pointer-events-none" />
+                            <CardHeader className="relative pb-3 pt-5">
                                 <div className="flex justify-between items-start">
-                                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                                        <SchoolIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                                    <div className="p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-900/20">
+                                        <SchoolIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />
                                     </div>
-                                    <Badge variant={school.is_active ? "default" : "secondary"} className={school.is_active ? "bg-emerald-500 hover:bg-emerald-600" : ""}>
-                                        {school.is_active ? "Active" : "Inactive"}
-                                    </Badge>
                                 </div>
-                                <CardTitle className="mt-4 text-lg font-bold line-clamp-1" title={school.name}>
+                                <CardTitle className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100 line-clamp-1" title={school.name}>
                                     {school.name}
                                 </CardTitle>
-                                <CardDescription className="flex items-center text-xs line-clamp-1">
+                                <CardDescription className="flex items-center text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
                                     <MapPin className="h-3 w-3 mr-1" />
                                     {school.address || "No address provided"}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="pb-4">
-                                <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <CardContent className="relative pb-4 space-y-3">
+                                <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/70 p-2.5">
                                     <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                                         <Mail className="h-4 w-4 mr-2" />
                                         <span className="truncate">{school.contact_email || "No contact email"}</span>
                                     </div>
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">Admins</span>
-                                        <Badge variant="outline" className="font-mono">
-                                            {school.stats?.admins || school.admin_count || 0}
-                                        </Badge>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900 px-2 py-2 text-center">
+                                        <p className="text-[10px] uppercase tracking-wide text-slate-500">Admins</p>
+                                        <p className="text-sm font-semibold">{school.stats?.admins || school.admin_count || 0}</p>
+                                    </div>
+                                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900 px-2 py-2 text-center">
+                                        <p className="text-[10px] uppercase tracking-wide text-slate-500">Teachers</p>
+                                        <p className="text-sm font-semibold">{school.stats?.teachers || 0}</p>
+                                    </div>
+                                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900 px-2 py-2 text-center">
+                                        <p className="text-[10px] uppercase tracking-wide text-slate-500">Students</p>
+                                        <p className="text-sm font-semibold">{school.stats?.students || 0}</p>
                                     </div>
                                 </div>
                             </CardContent>
-                            <CardFooter className="bg-slate-50 dark:bg-slate-900/30 p-3 flex gap-2">
+                            <CardFooter className="relative bg-slate-50/80 dark:bg-slate-900/40 p-3.5 border-t border-slate-200 dark:border-slate-800 flex gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="flex-1 text-xs"
+                                    className="flex-1 text-xs bg-white dark:bg-slate-900"
                                     onClick={(e) => {
                                         e.stopPropagation()
                                         router.push(`/super-admin/school/${school.slug || school.id}?tab=admins`)
@@ -459,14 +470,20 @@ function CatalogSection() {
     const classesQuery = useQuery({
         queryKey: ["super-admin-catalog-classes"],
         queryFn: () => api.get<{ classes: GlobalClass[] }>("/super-admin/catalog/classes"),
+        staleTime: 10 * 60_000,
+        refetchOnWindowFocus: false,
     })
     const subjectsQuery = useQuery({
         queryKey: ["super-admin-catalog-subjects"],
         queryFn: () => api.get<{ subjects: GlobalSubject[] }>("/super-admin/catalog/subjects"),
+        staleTime: 10 * 60_000,
+        refetchOnWindowFocus: false,
     })
     const assignmentsQuery = useQuery({
         queryKey: ["super-admin-catalog-assignments"],
         queryFn: () => api.get<{ assignments: AssignmentItem[] }>("/super-admin/catalog/assignments"),
+        staleTime: 10 * 60_000,
+        refetchOnWindowFocus: false,
     })
 
     const classes = useMemo(() => classesQuery.data?.classes || [], [classesQuery.data?.classes])
@@ -590,43 +607,54 @@ function CatalogSection() {
     const catalogError = classesQuery.error || subjectsQuery.error || assignmentsQuery.error
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Global Subjects and Classes</CardTitle>
-                    <CardDescription>
-                        Manage centralized class levels, subjects, and assign subjects to classes for all schools.
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-
+        <div className="space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+            {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Classes</CardTitle>
-                        <CardDescription>Total centralized classes</CardDescription>
+                <Card className="group relative overflow-hidden border-indigo-100 dark:border-indigo-900/50 shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-slate-900">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <Layers3 className="w-24 h-24 text-indigo-600" />
+                    </div>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <div className="p-1.5 rounded-md bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                                <Layers3 className="h-4 w-4" />
+                            </div>
+                            Centralized Classes
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="text-2xl md:text-4xl font-bold">
-                            {classesQuery.isLoading ? "..." : classes.length}
+                    <CardContent>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 dark:text-white">
+                                {classesQuery.isLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : classes.length}
+                            </span>
+                            <span className="text-sm font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded-full">
+                                Active
+                            </span>
                         </div>
-                        <Button onClick={() => setShowClassesDialog(true)} disabled={classesQuery.isLoading}>
-                            Show Classes
-                        </Button>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Subjects</CardTitle>
-                        <CardDescription>Total centralized subjects</CardDescription>
+
+                <Card className="group relative overflow-hidden border-fuchsia-100 dark:border-fuchsia-900/50 shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-slate-900">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <BookOpenCheck className="w-24 h-24 text-fuchsia-600" />
+                    </div>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <div className="p-1.5 rounded-md bg-fuchsia-50 dark:bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400">
+                                <BookOpenCheck className="h-4 w-4" />
+                            </div>
+                            Subject Catalog
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="text-2xl md:text-4xl font-bold">
-                            {subjectsQuery.isLoading ? "..." : subjects.length}
+                    <CardContent>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 dark:text-white">
+                                {subjectsQuery.isLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : subjects.length}
+                            </span>
+                            <span className="text-sm font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded-full">
+                                Managed
+                            </span>
                         </div>
-                        <Button onClick={() => setShowSubjectsDialog(true)} disabled={subjectsQuery.isLoading}>
-                            Show Subjects
-                        </Button>
                     </CardContent>
                 </Card>
             </div>
@@ -654,245 +682,349 @@ function CatalogSection() {
                 </Card>
             ) : null}
 
-            <div className="grid grid-cols-1 xl:grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Classes</CardTitle>
-                        <CardDescription>Create and maintain centralized class levels</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <Input
-                                placeholder="Class name (e.g. Class 5)"
-                                value={newClassName}
-                                onChange={(e) => setNewClassName(e.target.value)}
-                                className="md:col-span-2"
-                            />
-                            <Input
-                                type="number"
-                                placeholder="Sort"
-                                value={newClassSortOrder}
-                                onChange={(e) => setNewClassSortOrder(e.target.value)}
-                            />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
+                {/* Classes Panel */}
+                <Card className="flex flex-col border-indigo-100 dark:border-indigo-900/50 shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                    <CardHeader className="bg-indigo-50/50 dark:bg-indigo-950/20 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-lg text-indigo-900 dark:text-indigo-100">Manage Classes</CardTitle>
+                                <CardDescription>Create and maintain centralized class levels</CardDescription>
+                            </div>
+                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 rounded-full">
+                                <Layers3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                            </div>
                         </div>
-                        <Button
-                            onClick={() => createClassMutation.mutate({ name: newClassName.trim(), sort_order: Number(newClassSortOrder || "0") })}
-                            disabled={!newClassName.trim() || isBusy}
-                        >
-                            Add Class
-                        </Button>
+                    </CardHeader>
+                    <CardContent className="flex-1 p-0 flex flex-col pt-4">
+                        <div className="px-5 pb-5 space-y-4">
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="relative flex-1">
+                                    <Layers3 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                    <Input
+                                        placeholder="Class name (e.g. Class 5)"
+                                        value={newClassName}
+                                        onChange={(e) => setNewClassName(e.target.value)}
+                                        className="pl-9 border-slate-200 focus-visible:ring-indigo-500 bg-slate-50 dark:bg-slate-900/50"
+                                    />
+                                </div>
+                                <div className="relative w-full sm:w-28">
+                                    <Input
+                                        type="number"
+                                        placeholder="Sort Order"
+                                        value={newClassSortOrder}
+                                        onChange={(e) => setNewClassSortOrder(e.target.value)}
+                                        className="border-slate-200 focus-visible:ring-indigo-500 bg-slate-50 dark:bg-slate-900/50"
+                                    />
+                                </div>
+                                <Button
+                                    onClick={() => createClassMutation.mutate({ name: newClassName.trim(), sort_order: Number(newClassSortOrder || "0") })}
+                                    disabled={!newClassName.trim() || isBusy}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shrink-0 transition-all hover:shadow-md"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Add
+                                </Button>
+                            </div>
 
-                        <div className="space-y-2 max-h-80 overflow-auto pr-1">
-                            {classesQuery.isLoading ? (
-                                <p className="text-sm text-muted-foreground">Loading classes...</p>
-                            ) : classes.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">No classes added yet.</p>
-                            ) : (
-                                classes.map((item) => (
-                                    <div key={item.id} className="flex items-center gap-2 border rounded-md p-2">
-                                        {editingClassId === item.id ? (
-                                            <>
-                                                <Input value={editingClassName} onChange={(e) => setEditingClassName(e.target.value)} />
-                                                <Input type="number" value={editingClassSort} onChange={(e) => setEditingClassSort(e.target.value)} className="w-24" />
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        updateClassMutation.mutate({
-                                                            id: item.id,
-                                                            name: editingClassName.trim(),
-                                                            sort_order: Number(editingClassSort || "0"),
-                                                        })
-                                                    }
-                                                    disabled={!editingClassName.trim() || isBusy}
-                                                >
-                                                    Save
-                                                </Button>
-                                                <Button size="sm" variant="ghost" onClick={() => setEditingClassId(null)}>Cancel</Button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <button
-                                                    type="button"
-                                                    className={`flex-1 text-left text-sm ${effectiveSelectedClassId === item.id ? "font-semibold text-indigo-600" : ""}`}
-                                                    onClick={() => setSelectedClassId(item.id)}
-                                                >
-                                                    {item.name}
-                                                </button>
-                                                <Badge variant="outline">Sort {item.sort_order}</Badge>
-                                                <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    onClick={() => {
-                                                        setEditingClassId(item.id)
-                                                        setEditingClassName(item.name)
-                                                        setEditingClassSort(String(item.sort_order))
-                                                    }}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button size="icon" variant="ghost" onClick={() => deleteClassMutation.mutate(item.id)} disabled={isBusy}>
-                                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
-                                ))
-                            )}
+                            <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                {classesQuery.isLoading ? (
+                                    <div className="flex items-center pt-4 justify-center text-indigo-500"><Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading...</div>
+                                ) : classes.length === 0 ? (
+                                    <div className="text-center pt-6 pb-4 text-slate-400 italic">No classes added yet.</div>
+                                ) : (
+                                    classes.map((item) => (
+                                        <div key={item.id} className="group flex items-center gap-3 border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800/80 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all duration-300">
+                                            {editingClassId === item.id ? (
+                                                <div className="flex-1 flex items-center gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
+                                                    <Input value={editingClassName} onChange={(e) => setEditingClassName(e.target.value)} className="h-9" autoFocus />
+                                                    <Input type="number" value={editingClassSort} onChange={(e) => setEditingClassSort(e.target.value)} className="h-9 w-20" />
+                                                    <Button
+                                                        size="sm"
+                                                        className="h-9 px-3 bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                        onClick={() =>
+                                                            updateClassMutation.mutate({
+                                                                id: item.id,
+                                                                name: editingClassName.trim(),
+                                                                sort_order: Number(editingClassSort || "0"),
+                                                            })
+                                                        }
+                                                        disabled={!editingClassName.trim() || isBusy}
+                                                    >
+                                                        <Check className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button size="sm" variant="ghost" className="h-9 px-3" onClick={() => setEditingClassId(null)}>
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        className={`flex-1 text-left flex items-center gap-3 py-1 ${effectiveSelectedClassId === item.id ? "text-indigo-700 dark:text-indigo-400 font-semibold" : "text-slate-700 dark:text-slate-300 font-medium"}`}
+                                                        onClick={() => setSelectedClassId(item.id)}
+                                                    >
+                                                        {effectiveSelectedClassId === item.id && <CheckCircle2 className="h-4 w-4 text-indigo-500 shrink-0 animate-in zoom-in" />}
+                                                        <span>{item.name}</span>
+                                                    </button>
+
+                                                    <span className="flex-shrink-0 text-[11px] uppercase tracking-wider font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                                                        Sort {item.sort_order}
+                                                    </span>
+
+                                                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
+                                                            onClick={() => {
+                                                                setEditingClassId(item.id)
+                                                                setEditingClassName(item.name)
+                                                                setEditingClassSort(String(item.sort_order))
+                                                            }}
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                                            onClick={() => deleteClassMutation.mutate(item.id)}
+                                                            disabled={isBusy}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Subjects</CardTitle>
-                        <CardDescription>Create and maintain centralized subjects</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <Input
-                                placeholder="Subject name"
-                                value={newSubjectName}
-                                onChange={(e) => setNewSubjectName(e.target.value)}
-                                className="md:col-span-2"
-                            />
-                            <Input
-                                placeholder="Code (optional)"
-                                value={newSubjectCode}
-                                onChange={(e) => setNewSubjectCode(e.target.value)}
-                            />
+                {/* Subjects Panel */}
+                <Card className="flex flex-col border-fuchsia-100 dark:border-fuchsia-900/50 shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                    <CardHeader className="bg-fuchsia-50/50 dark:bg-fuchsia-950/20 border-b border-fuchsia-100 dark:border-fuchsia-900/50 pb-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-lg text-fuchsia-900 dark:text-fuchsia-100">Manage Subjects</CardTitle>
+                                <CardDescription>Create and maintain centralized subjects</CardDescription>
+                            </div>
+                            <div className="p-2 bg-fuchsia-100 dark:bg-fuchsia-900/40 rounded-full">
+                                <BookOpenCheck className="h-5 w-5 text-fuchsia-600 dark:text-fuchsia-400" />
+                            </div>
                         </div>
-                        <Button
-                            onClick={() => createSubjectMutation.mutate({ name: newSubjectName.trim(), code: newSubjectCode.trim() })}
-                            disabled={!newSubjectName.trim() || isBusy}
-                        >
-                            Add Subject
-                        </Button>
+                    </CardHeader>
+                    <CardContent className="flex-1 p-0 flex flex-col pt-4">
+                        <div className="px-5 pb-5 space-y-4">
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="relative flex-1">
+                                    <BookOpenCheck className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                    <Input
+                                        placeholder="Subject name"
+                                        value={newSubjectName}
+                                        onChange={(e) => setNewSubjectName(e.target.value)}
+                                        className="pl-9 border-slate-200 focus-visible:ring-fuchsia-500 bg-slate-50 dark:bg-slate-900/50"
+                                    />
+                                </div>
+                                <div className="relative w-full sm:w-32">
+                                    <Input
+                                        placeholder="Code (opt)"
+                                        value={newSubjectCode}
+                                        onChange={(e) => setNewSubjectCode(e.target.value)}
+                                        className="border-slate-200 focus-visible:ring-fuchsia-500 bg-slate-50 dark:bg-slate-900/50 uppercase"
+                                    />
+                                </div>
+                                <Button
+                                    onClick={() => createSubjectMutation.mutate({ name: newSubjectName.trim(), code: newSubjectCode.trim() })}
+                                    disabled={!newSubjectName.trim() || isBusy}
+                                    className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white shadow-sm shrink-0 transition-all hover:shadow-md"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Add
+                                </Button>
+                            </div>
 
-                        <div className="space-y-2 max-h-80 overflow-auto pr-1">
-                            {subjectsQuery.isLoading ? (
-                                <p className="text-sm text-muted-foreground">Loading subjects...</p>
-                            ) : subjects.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">No subjects added yet.</p>
-                            ) : (
-                                subjects.map((item) => (
-                                    <div key={item.id} className="flex items-center gap-2 border rounded-md p-2">
-                                        {editingSubjectId === item.id ? (
-                                            <>
-                                                <Input value={editingSubjectName} onChange={(e) => setEditingSubjectName(e.target.value)} />
-                                                <Input value={editingSubjectCode} onChange={(e) => setEditingSubjectCode(e.target.value)} className="w-28" />
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        updateSubjectMutation.mutate({
-                                                            id: item.id,
-                                                            name: editingSubjectName.trim(),
-                                                            code: editingSubjectCode.trim(),
-                                                        })
-                                                    }
-                                                    disabled={!editingSubjectName.trim() || isBusy}
-                                                >
-                                                    Save
-                                                </Button>
-                                                <Button size="sm" variant="ghost" onClick={() => setEditingSubjectId(null)}>Cancel</Button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="flex-1 text-sm">{item.name}</div>
-                                                {item.code ? <Badge variant="outline">{item.code}</Badge> : null}
-                                                <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    onClick={() => {
-                                                        setEditingSubjectId(item.id)
-                                                        setEditingSubjectName(item.name)
-                                                        setEditingSubjectCode(item.code || "")
-                                                    }}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button size="icon" variant="ghost" onClick={() => deleteSubjectMutation.mutate(item.id)} disabled={isBusy}>
-                                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
-                                ))
-                            )}
+                            <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                {subjectsQuery.isLoading ? (
+                                    <div className="flex items-center pt-4 justify-center text-fuchsia-500"><Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading...</div>
+                                ) : subjects.length === 0 ? (
+                                    <div className="text-center pt-6 pb-4 text-slate-400 italic">No subjects added yet.</div>
+                                ) : (
+                                    subjects.map((item) => (
+                                        <div key={item.id} className="group flex items-center gap-3 border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800/80 shadow-sm hover:shadow-md hover:border-fuchsia-200 dark:hover:border-fuchsia-800 transition-all duration-300">
+                                            {editingSubjectId === item.id ? (
+                                                <div className="flex-1 flex items-center gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
+                                                    <Input value={editingSubjectName} onChange={(e) => setEditingSubjectName(e.target.value)} className="h-9" autoFocus />
+                                                    <Input value={editingSubjectCode} onChange={(e) => setEditingSubjectCode(e.target.value)} className="h-9 w-24 uppercase" />
+                                                    <Button
+                                                        size="sm"
+                                                        className="h-9 px-3 bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
+                                                        onClick={() =>
+                                                            updateSubjectMutation.mutate({
+                                                                id: item.id,
+                                                                name: editingSubjectName.trim(),
+                                                                code: editingSubjectCode.trim(),
+                                                            })
+                                                        }
+                                                        disabled={!editingSubjectName.trim() || isBusy}
+                                                    >
+                                                        <Check className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button size="sm" variant="ghost" className="h-9 px-3" onClick={() => setEditingSubjectId(null)}>
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="flex-1 text-slate-700 dark:text-slate-300 font-medium py-1">{item.name}</div>
+
+                                                    {item.code ? (
+                                                        <span className="flex-shrink-0 text-[11px] font-bold tracking-widest text-fuchsia-600 dark:text-fuchsia-400 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2 py-1 rounded-md border border-fuchsia-100 dark:border-fuchsia-800/50">
+                                                            {item.code}
+                                                        </span>
+                                                    ) : null}
+
+                                                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8 text-slate-400 hover:text-fuchsia-600 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-500/10"
+                                                            onClick={() => {
+                                                                setEditingSubjectId(item.id)
+                                                                setEditingSubjectName(item.name)
+                                                                setEditingSubjectCode(item.code || "")
+                                                            }}
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                                            onClick={() => deleteSubjectMutation.mutate(item.id)}
+                                                            disabled={isBusy}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Class to Subject Assignment</CardTitle>
-                    <CardDescription>Select a class and assign the allowed subjects</CardDescription>
+            <Card className="border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                <div className="h-1 w-full bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400"></div>
+                <CardHeader className="pb-4 pt-6">
+                    <CardTitle className="text-xl flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                        <Shield className="h-5 w-5 text-violet-500" /> Subject Mapping
+                    </CardTitle>
+                    <CardDescription className="text-base">
+                        Select a class and assign the allowed subjects. This defines the curriculum availability for all schools.
+                    </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
-                        <Label htmlFor="assignment-class-select">Select Class</Label>
-                        <div className="md:col-span-2">
-                            <Select
-                                value={effectiveSelectedClassId}
-                                onValueChange={(value) => setSelectedClassId(value)}
-                                disabled={classesQuery.isLoading || classes.length === 0}
-                            >
-                                <SelectTrigger id="assignment-class-select" className="w-full md:w-[360px]">
-                                    <SelectValue placeholder={classes.length === 0 ? "No classes available" : "Choose class"} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {classes.map((cls) => (
-                                        <SelectItem key={cls.id} value={cls.id}>
-                                            {cls.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {classes.length > 0 ? (
-                                <div className="mt-2">
-                                    <Badge variant="secondary">Selected Class: {shownClassName}</Badge>
+                <CardContent className="space-y-6">
+                    <div className="p-5 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
+                        <div className="flex flex-col md:flex-row gap-4 md:items-center">
+                            <Label htmlFor="assignment-class-select" className="text-sm font-semibold text-slate-600 dark:text-slate-300 shrink-0">
+                                Target Class
+                            </Label>
+                            <div className="flex-1 max-w-sm relative">
+                                <Select
+                                    value={effectiveSelectedClassId}
+                                    onValueChange={(value) => setSelectedClassId(value)}
+                                    disabled={classesQuery.isLoading || classes.length === 0}
+                                >
+                                    <SelectTrigger id="assignment-class-select" className="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm h-11">
+                                        <SelectValue placeholder={classes.length === 0 ? "No classes available" : "Choose class"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {classes.map((cls) => (
+                                            <SelectItem key={cls.id} value={cls.id} className="font-medium">
+                                                {cls.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            {classes.length > 0 && effectiveSelectedClassId ? (
+                                <div className="hidden md:flex ml-auto items-center text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-800">
+                                    <CheckCircle2 className="w-4 h-4 mr-1.5" /> Configuring {shownClassName}
                                 </div>
                             ) : null}
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {subjects.map((subject) => {
-                            const checked = assignedSubjectIds.includes(subject.id)
-                            return (
-                                <label key={subject.id} className="flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={checked}
-                                        onChange={(e) => {
-                                            if (e.target.checked) {
-                                                setAssignedByClass((prev) => ({
-                                                    ...prev,
-                                                    [effectiveSelectedClassId]: [...assignedSubjectIds, subject.id],
-                                                }))
-                                            } else {
-                                                setAssignedByClass((prev) => ({
-                                                    ...prev,
-                                                    [effectiveSelectedClassId]: assignedSubjectIds.filter((id) => id !== subject.id),
-                                                }))
-                                            }
-                                        }}
-                                        disabled={!effectiveSelectedClassId}
-                                    />
-                                    <span className="text-sm">{subject.name}</span>
-                                    {subject.code ? <span className="text-xs text-muted-foreground">({subject.code})</span> : null}
-                                </label>
-                            )
-                        })}
+
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Available Subjects</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                            {subjects.map((subject) => {
+                                const checked = assignedSubjectIds.includes(subject.id)
+                                return (
+                                    <label key={subject.id} className={`group relative flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-all duration-300 overflow-hidden ${checked ? "border-violet-500 bg-violet-50/50 dark:bg-violet-500/10 shadow-[0_4px_14px_0_rgba(139,92,246,0.15)] dark:shadow-none translate-y-[-1px]" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-sm"}`}>
+                                        <div className={`absolute inset-0 bg-gradient-to-r from-violet-500/0 to-violet-500/5 dark:to-violet-500/10 transition-opacity duration-300 ${checked ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}></div>
+
+                                        <div className={`relative flex items-center justify-center w-5 h-5 rounded-[6px] border transition-all duration-300 ${checked ? "bg-violet-600 border-violet-600 text-white" : "border-slate-300 dark:border-slate-600 bg-transparent group-hover:border-violet-400"}`}>
+                                            <Check className={`w-3.5 h-3.5 transition-transform duration-300 ${checked ? "scale-100" : "scale-0"}`} strokeWidth={4} />
+                                        </div>
+
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only"
+                                            checked={checked}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setAssignedByClass((prev) => ({
+                                                        ...prev,
+                                                        [effectiveSelectedClassId]: [...assignedSubjectIds, subject.id],
+                                                    }))
+                                                } else {
+                                                    setAssignedByClass((prev) => ({
+                                                        ...prev,
+                                                        [effectiveSelectedClassId]: assignedSubjectIds.filter((id) => id !== subject.id),
+                                                    }))
+                                                }
+                                            }}
+                                            disabled={!effectiveSelectedClassId}
+                                        />
+
+                                        <div className="relative flex-1 min-w-0">
+                                            <div className={`text-sm tracking-tight truncate transition-colors duration-300 ${checked ? "font-semibold text-violet-900 dark:text-violet-100" : "font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"}`}>
+                                                {subject.name}
+                                            </div>
+                                            {subject.code ? (
+                                                <div className={`text-[10px] uppercase font-bold tracking-widest truncate mt-0.5 transition-colors duration-300 ${checked ? "text-violet-600 dark:text-violet-400" : "text-slate-400"}`}>
+                                                    {subject.code}
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    </label>
+                                )
+                            })}
+                        </div>
                     </div>
-                    <Button
-                        onClick={() => {
-                            if (!effectiveSelectedClassId) return
-                            assignSubjectsMutation.mutate({ classId: effectiveSelectedClassId, subjectIds: assignedSubjectIds })
-                        }}
-                        disabled={!effectiveSelectedClassId || isBusy}
-                    >
-                        Save Class Subjects
-                    </Button>
+
+                    <div className="pt-4 flex items-center justify-end border-t border-slate-100 dark:border-slate-800">
+                        <Button
+                            onClick={() => {
+                                if (!effectiveSelectedClassId) return
+                                assignSubjectsMutation.mutate({ classId: effectiveSelectedClassId, subjectIds: assignedSubjectIds })
+                            }}
+                            disabled={!effectiveSelectedClassId || isBusy}
+                            size="lg"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none min-w-[200px] transition-all"
+                        >
+                            {isBusy ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
+                            Save Configuration
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -945,7 +1077,7 @@ function CatalogSection() {
     )
 }
 
-export default function SuperAdminPage() {
+function SuperAdminPageContent() {
     const { user, isLoading } = useAuth()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -982,11 +1114,20 @@ export default function SuperAdminPage() {
                     {tab === "schools" && <SchoolsSection />}
                     {tab === "catalog" && <CatalogSection />}
                     {tab === "question-uploader" && <QuestionUploaderForm />}
+                    {tab === "quiz-scheduler" && <SuperAdminQuizSchedulerPage />}
                     {tab === "materials" && <SuperAdminMaterialsForm />}
                     {tab === "settings" && <SuperAdminSettingsPanel embedded />}
                     {tab === "trash" && <SuperAdminTrashPanel embedded />}
                 </main>
             </div>
         </div>
+    )
+}
+
+export default function SuperAdminPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+            <SuperAdminPageContent />
+        </Suspense>
     )
 }

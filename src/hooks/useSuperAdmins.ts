@@ -39,6 +39,8 @@ export function useSuperAdmins(enabled = true) {
       const response = await api.get<SuperAdminsResponse>('/super-admins')
       return response.super_admins
     },
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   })
 }
 
