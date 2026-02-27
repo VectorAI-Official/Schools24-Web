@@ -261,6 +261,7 @@ export function QuestionUploaderForm() {
     }, [uploadMutation.data, lastUploaded])
 
     return (
+        <>
         <div className="space-y-6">
             <Card className="border-dashed border-2 overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-rose-500/10 via-red-500/10 to-orange-500/10">
@@ -540,6 +541,7 @@ export function QuestionUploaderForm() {
             </div>
         </div>
         <SuperAdminQuestionDocumentsList />
+        </>
     )
 }
 
