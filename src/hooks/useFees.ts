@@ -8,6 +8,7 @@ export interface FeeDemandApi {
     student_name: string
     admission_number: string
     class_name: string
+    academic_year?: string
     purpose: string
     amount: number
     paid_amount: number
@@ -24,6 +25,7 @@ export interface FeeDemand {
     studentName: string
     admissionNumber: string
     className: string
+    academicYear?: string
     purpose: string
     amount: number
     paidAmount: number
@@ -41,7 +43,7 @@ export interface FeeDemandResponse {
 
 export interface CreateFeeDemandInput {
     studentId: string
-    purpose: string
+    purposeId: string
     amount: number
     dueDate?: string
     academicYear?: string
@@ -57,6 +59,17 @@ export interface RecordFeePaymentInput {
     notes?: string
 }
 
+export interface FeeDemandPurpose {
+    id: string
+    name: string
+    created_at: string
+    updated_at: string
+}
+
+interface FeeDemandPurposeResponse {
+    purposes: FeeDemandPurpose[]
+}
+
 const formatDate = (value?: string) => {
     if (!value) return ''
     const date = new Date(value)
@@ -70,6 +83,7 @@ const mapFeeDemand = (item: FeeDemandApi): FeeDemand => ({
     studentName: item.student_name,
     admissionNumber: item.admission_number,
     className: item.class_name,
+    academicYear: item.academic_year,
     purpose: item.purpose,
     amount: item.amount,
     paidAmount: item.paid_amount,
@@ -78,19 +92,26 @@ const mapFeeDemand = (item: FeeDemandApi): FeeDemand => ({
     status: item.status,
 })
 
+const getErrorMessage = (error: unknown) => {
+    if (error instanceof Error) return error.message
+    if (typeof error === 'string') return error
+    return 'An error occurred'
+}
+
 export function useFeeDemands(
     schoolId: string | undefined,
-    params: { search?: string; status?: string; page?: number; pageSize?: number; enabled?: boolean } = {}
+    params: { search?: string; status?: string; academicYear?: string; page?: number; pageSize?: number; enabled?: boolean } = {}
 ) {
-    const { search = '', status = 'all', page = 1, pageSize = 20, enabled = true } = params
+    const { search = '', status = 'all', academicYear = '', page = 1, pageSize = 20, enabled = true } = params
 
     return useQuery({
-        queryKey: ['fee-demands', schoolId, search, status, page, pageSize],
+        queryKey: ['fee-demands', schoolId, search, status, academicYear, page, pageSize],
         queryFn: async () => {
             const qs = new URLSearchParams()
             if (schoolId) qs.append('school_id', schoolId)
             if (search) qs.append('search', search)
             if (status) qs.append('status', status)
+            if (academicYear) qs.append('academic_year', academicYear)
             qs.append('page', page.toString())
             qs.append('page_size', pageSize.toString())
             const url = `/admin/fees/demands?${qs.toString()}`
@@ -114,7 +135,7 @@ export function useCreateFeeDemand(schoolId?: string) {
             const url = `/admin/fees/demands${params.toString() ? `?${params.toString()}` : ''}`
             return api.post(url, {
                 student_id: data.studentId,
-                purpose: data.purpose,
+                purpose_id: data.purposeId,
                 amount: data.amount,
                 due_date: data.dueDate || null,
                 academic_year: data.academicYear || null,
@@ -124,10 +145,81 @@ export function useCreateFeeDemand(schoolId?: string) {
             queryClient.invalidateQueries({ queryKey: ['fee-demands', schoolId] })
             toast.success('Fee demand created')
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             toast.error('Failed to create fee demand', {
-                description: error.message || 'An error occurred',
+                description: getErrorMessage(error),
             })
+        },
+    })
+}
+
+export function useFeeDemandPurposes(schoolId?: string, enabled = true) {
+    return useQuery({
+        queryKey: ['fee-demand-purposes', schoolId],
+        enabled,
+        queryFn: async () => {
+            const params = new URLSearchParams()
+            if (schoolId) params.append('school_id', schoolId)
+            const url = `/admin/fees/purposes${params.toString() ? `?${params.toString()}` : ''}`
+            return api.get<FeeDemandPurposeResponse>(url)
+        },
+        staleTime: 5 * 60 * 1000,
+    })
+}
+
+export function useCreateFeeDemandPurpose(schoolId?: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: async (name: string) => {
+            const params = new URLSearchParams()
+            if (schoolId) params.append('school_id', schoolId)
+            const url = `/admin/fees/purposes${params.toString() ? `?${params.toString()}` : ''}`
+            return api.post(url, { name })
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['fee-demand-purposes', schoolId] })
+            toast.success('Purpose created')
+        },
+        onError: (error: unknown) => {
+            toast.error('Failed to create purpose', { description: getErrorMessage(error) })
+        },
+    })
+}
+
+export function useUpdateFeeDemandPurpose(schoolId?: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: async (payload: { id: string; name: string }) => {
+            const params = new URLSearchParams()
+            if (schoolId) params.append('school_id', schoolId)
+            const url = `/admin/fees/purposes/${payload.id}${params.toString() ? `?${params.toString()}` : ''}`
+            return api.put(url, { name: payload.name })
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['fee-demand-purposes', schoolId] })
+            toast.success('Purpose updated')
+        },
+        onError: (error: unknown) => {
+            toast.error('Failed to update purpose', { description: getErrorMessage(error) })
+        },
+    })
+}
+
+export function useDeleteFeeDemandPurpose(schoolId?: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const params = new URLSearchParams()
+            if (schoolId) params.append('school_id', schoolId)
+            const url = `/admin/fees/purposes/${id}${params.toString() ? `?${params.toString()}` : ''}`
+            return api.delete(url)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['fee-demand-purposes', schoolId] })
+            toast.success('Purpose deleted')
+        },
+        onError: (error: unknown) => {
+            toast.error('Failed to delete purpose', { description: getErrorMessage(error) })
         },
     })
 }
@@ -154,9 +246,9 @@ export function useRecordFeePayment(schoolId?: string) {
             queryClient.invalidateQueries({ queryKey: ['fee-demands', schoolId] })
             toast.success('Payment recorded')
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             toast.error('Failed to record payment', {
-                description: error.message || 'An error occurred',
+                description: getErrorMessage(error),
             })
         },
     })

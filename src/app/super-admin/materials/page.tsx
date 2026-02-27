@@ -137,12 +137,12 @@ export function SuperAdminMaterialsForm() {
     fetchNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['super-admin-materials', 20, 'asc', subjectFilter, classFilter, debouncedSearch],
+    queryKey: ['super-admin-materials', 50, 'asc', subjectFilter, classFilter, debouncedSearch],
     initialPageParam: 1,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams()
       params.set('page', String(pageParam))
-      params.set('page_size', '20')
+      params.set('page_size', '50')
       params.set('order', 'asc')
       if (subjectFilter !== 'all') params.set('subject', subjectFilter)
       if (classFilter !== 'all') params.set('class_level', classFilter)
@@ -401,7 +401,7 @@ export function SuperAdminMaterialsForm() {
           </div>
 
           {isFetchingNextPage ? (
-            <div className="flex items-center justify-center py-4 text-muted-foreground text-sm gap-2"><Loader2 className="h-4 w-4 animate-spin" />Loading next 20 rows...</div>
+            <div className="flex items-center justify-center py-4 text-muted-foreground text-sm gap-2"><Loader2 className="h-4 w-4 animate-spin" />Loading next 50 rows...</div>
           ) : null}
         </CardContent>
       </Card>

@@ -200,7 +200,7 @@ export default function TeacherQuestionPapersPage() {
         const token = getToken()
         if (!token) throw new Error('Session expired. Please login again.')
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1'
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL
         const response = await fetch(`${baseUrl}/teacher/question-documents/${paper.id}/${mode}`, {
             method: 'GET',
             headers: {
@@ -650,3 +650,4 @@ export default function TeacherQuestionPapersPage() {
         </div>
     )
 }
+

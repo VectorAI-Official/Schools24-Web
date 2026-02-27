@@ -1,13 +1,10 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useMemo, useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Calendar, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, Download, ArrowLeft, CalendarDays } from 'lucide-react'
-import { mockStudents } from '@/lib/mockData'
+import { Calendar, CheckCircle, XCircle, Clock, Download, CalendarDays } from 'lucide-react'
+import { useStudentAttendance } from '@/hooks/useStudentAttendance'
 import {
     BarChart,
     Bar,
@@ -19,43 +16,50 @@ import {
     Legend,
 } from 'recharts'
 
-const student = mockStudents[0]
-
-const monthlyData = [
-    { month: 'Aug', present: 22, absent: 2, total: 24 },
-    { month: 'Sep', present: 20, absent: 1, total: 21 },
-    { month: 'Oct', present: 23, absent: 0, total: 23 },
-    { month: 'Nov', present: 19, absent: 2, total: 21 },
-    { month: 'Dec', present: 15, absent: 1, total: 16 },
-    { month: 'Jan', present: 7, absent: 0, total: 7 },
-]
-
-const recentAttendance = [
-    { date: '2026-01-17', day: 'Friday', status: 'present' },
-    { date: '2026-01-16', day: 'Thursday', status: 'present' },
-    { date: '2026-01-15', day: 'Wednesday', status: 'present' },
-    { date: '2026-01-14', day: 'Tuesday', status: 'late' },
-    { date: '2026-01-13', day: 'Monday', status: 'present' },
-    { date: '2026-01-10', day: 'Friday', status: 'absent' },
-    { date: '2026-01-09', day: 'Thursday', status: 'present' },
-]
+type MonthlyRow = {
+    month: string
+    present: number
+    absent: number
+    total: number
+}
 
 export default function StudentAttendancePage() {
-    const router = useRouter()
     const [mounted, setMounted] = useState(false)
+    const { data, isLoading, isError } = useStudentAttendance({}, true)
 
     useEffect(() => {
         setMounted(true)
     }, [])
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'present': return 'from-green-500 to-emerald-600'
-            case 'absent': return 'from-red-500 to-rose-600'
-            case 'late': return 'from-yellow-500 to-amber-600'
-            default: return 'from-blue-500 to-cyan-600'
+    const stats = data?.stats
+    const records = data?.attendance ?? []
+
+    const recentAttendance = useMemo(() => records.slice(0, 7), [records])
+
+    const monthlyData = useMemo<MonthlyRow[]>(() => {
+        const grouped = new Map<string, { present: number; absent: number; total: number; ts: number }>()
+        for (const item of records) {
+            const date = new Date(item.date)
+            if (Number.isNaN(date.getTime())) continue
+            const key = `${date.getFullYear()}-${date.getMonth()}`
+            const existing = grouped.get(key) ?? { present: 0, absent: 0, total: 0, ts: date.getTime() }
+            if (item.status === 'present') existing.present += 1
+            if (item.status === 'absent') existing.absent += 1
+            existing.total += 1
+            existing.ts = date.getTime()
+            grouped.set(key, existing)
         }
-    }
+
+        return Array.from(grouped.entries())
+            .sort((a, b) => a[1].ts - b[1].ts)
+            .slice(-6)
+            .map(([_, row]) => ({
+                month: new Date(row.ts).toLocaleDateString('en-US', { month: 'short' }),
+                present: row.present,
+                absent: row.absent,
+                total: row.total,
+            }))
+    }, [records])
 
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -68,7 +72,6 @@ export default function StudentAttendancePage() {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div>
@@ -78,13 +81,20 @@ export default function StudentAttendancePage() {
                         <p className="text-muted-foreground">Track your attendance record</p>
                     </div>
                 </div>
-                <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 shadow-lg shadow-green-500/20">
+                <Button disabled title="Coming soon" className="bg-gradient-to-r from-green-500 to-emerald-600 border-0 shadow-lg shadow-green-500/20 disabled:opacity-60">
                     <Download className="mr-2 h-4 w-4" />
                     Download Report
                 </Button>
             </div>
 
-            {/* Stats Cards */}
+            {isError ? (
+                <Card className="border-0 shadow-lg">
+                    <CardContent className="py-10 text-center text-red-600">
+                        Unable to load attendance data.
+                    </CardContent>
+                </Card>
+            ) : null}
+
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 overflow-hidden">
                     <CardContent className="p-4 md:p-6 relative">
@@ -94,7 +104,7 @@ export default function StudentAttendancePage() {
                                 <CheckCircle className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">156</p>
+                                <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">{stats?.present_days ?? 0}</p>
                                 <p className="text-sm text-muted-foreground">Days Present</p>
                             </div>
                         </div>
@@ -109,7 +119,7 @@ export default function StudentAttendancePage() {
                                 <XCircle className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-xl md:text-3xl font-bold text-red-700 dark:text-red-400">8</p>
+                                <p className="text-xl md:text-3xl font-bold text-red-700 dark:text-red-400">{stats?.absent_days ?? 0}</p>
                                 <p className="text-sm text-muted-foreground">Days Absent</p>
                             </div>
                         </div>
@@ -124,7 +134,7 @@ export default function StudentAttendancePage() {
                                 <Clock className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">4</p>
+                                <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">{stats?.late_days ?? 0}</p>
                                 <p className="text-sm text-muted-foreground">Late Arrivals</p>
                             </div>
                         </div>
@@ -139,7 +149,7 @@ export default function StudentAttendancePage() {
                                 <Calendar className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{student.attendance}%</p>
+                                <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{(stats?.attendance_percent ?? 0).toFixed(1)}%</p>
                                 <p className="text-sm text-muted-foreground">Attendance Rate</p>
                             </div>
                         </div>
@@ -147,37 +157,6 @@ export default function StudentAttendancePage() {
                 </Card>
             </div>
 
-            {/* Attendance Progress */}
-            <Card className="border-0 shadow-lg overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                    <div className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5" />
-                        <CardTitle className="text-white">Attendance Overview</CardTitle>
-                    </div>
-                    <CardDescription className="text-blue-100">Your attendance rate must be above 75% for exam eligibility</CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 md:p-6">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <span className="font-medium">Current Attendance Rate</span>
-                            <Badge variant={student.attendance >= 75 ? 'success' : 'destructive'} className="text-sm px-3 py-1">
-                                {student.attendance >= 75 ? '✓ Eligible' : '✗ Not Eligible'} • {student.attendance}%
-                            </Badge>
-                        </div>
-                        <div className="relative">
-                            <Progress value={student.attendance} className="h-6 rounded-full" />
-                            <div className="absolute top-0 left-[75%] h-6 w-0.5 bg-yellow-500" />
-                        </div>
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                            <span>0%</span>
-                            <span className="text-yellow-600 font-medium">75% (Minimum Required)</span>
-                            <span>100%</span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Monthly Chart */}
             <Card className="border-0 shadow-lg">
                 <CardHeader>
                     <div className="flex items-center gap-2">
@@ -187,7 +166,7 @@ export default function StudentAttendancePage() {
                     <CardDescription>Your attendance trend over the academic year</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {mounted && (
+                    {mounted && !isLoading && (
                         <div className="h-[350px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={monthlyData}>
@@ -223,7 +202,6 @@ export default function StudentAttendancePage() {
                 </CardContent>
             </Card>
 
-            {/* Recent Attendance */}
             <Card className="border-0 shadow-lg">
                 <CardHeader>
                     <div className="flex items-center justify-between">
@@ -232,46 +210,68 @@ export default function StudentAttendancePage() {
                                 <CalendarDays className="h-5 w-5 text-primary" />
                                 <CardTitle>Recent Attendance</CardTitle>
                             </div>
-                            <CardDescription>Last 7 school days</CardDescription>
+                            <CardDescription>Last 7 marked days</CardDescription>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => router.push('/student/calendar')}>
-                            View Calendar
-                        </Button>
+
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <div className="space-y-3">
-                        {recentAttendance.map((record, index) => (
-                            <div
-                                key={record.date}
-                                className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md stagger-${index + 1} animate-slide-up ${record.status === 'present' ? 'border-green-200 hover:border-green-300 bg-green-50/50 dark:bg-green-950/20' :
-                                    record.status === 'absent' ? 'border-red-200 hover:border-red-300 bg-red-50/50 dark:bg-red-950/20' :
-                                        record.status === 'late' ? 'border-yellow-200 hover:border-yellow-300 bg-yellow-50/50 dark:bg-yellow-950/20' :
-                                            'border-blue-200 hover:border-blue-300 bg-blue-50/50 dark:bg-blue-950/20'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${getStatusColor(record.status)} text-white shadow-lg`}>
-                                        {getStatusIcon(record.status)}
+                <CardContent className="p-4 md:p-6">
+                    {isLoading ? (
+                        <div className="text-sm text-muted-foreground">Loading attendance...</div>
+                    ) : recentAttendance.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">No attendance records found.</div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 md:gap-4">
+                            {recentAttendance.map((record) => {
+                                const d = new Date(record.date)
+                                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' })
+                                const dayNum = d.getDate()
+                                const month = d.toLocaleDateString('en-US', { month: 'short' })
+                                const year = d.getFullYear()
+
+                                const boxStyle = record.status === 'present'
+                                    ? { bg: 'bg-emerald-500', border: 'border-emerald-400', glow: 'shadow-emerald-400/40', label: 'text-emerald-600', light: 'bg-emerald-50' }
+                                    : record.status === 'absent'
+                                        ? { bg: 'bg-red-500', border: 'border-red-400', glow: 'shadow-red-400/40', label: 'text-red-600', light: 'bg-red-50' }
+                                        : record.status === 'late'
+                                            ? { bg: 'bg-amber-400', border: 'border-amber-400', glow: 'shadow-amber-400/40', label: 'text-amber-600', light: 'bg-amber-50' }
+                                            : { bg: 'bg-blue-500', border: 'border-blue-400', glow: 'shadow-blue-400/40', label: 'text-blue-600', light: 'bg-blue-50' }
+
+                                return (
+                                    <div key={record.id} className="group flex flex-row sm:flex-col items-center gap-3 sm:gap-2">
+                                        <div className={`sm:w-full flex-1 sm:flex-none rounded-xl ${boxStyle.light} border ${boxStyle.border} border-opacity-30 p-2 flex sm:flex-col flex-row sm:items-center items-center gap-2 sm:gap-0.5`}>
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${boxStyle.label}`}>{dayName}</span>
+                                            <span className="text-xl md:text-2xl font-black text-slate-800 leading-none">{dayNum}</span>
+                                            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{month}</span>
+                                            <span className="text-[9px] text-slate-400 font-medium">{year}</span>
+                                        </div>
+
+                                        <div
+                                            className={`sm:w-full w-14 h-10 rounded-lg ${boxStyle.bg} border-2 ${boxStyle.border} shadow-lg ${boxStyle.glow} flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl`}
+                                        >
+                                            <div className="text-white">
+                                                {getStatusIcon(record.status)}
+                                            </div>
+                                        </div>
+
+                                        <span className={`text-[10px] font-bold uppercase tracking-wide ${boxStyle.label} sm:text-center`}>
+                                            {record.status}
+                                        </span>
                                     </div>
-                                    <div>
-                                        <p className="font-semibold">{record.day}</p>
-                                        <p className="text-sm text-muted-foreground">{record.date}</p>
-                                    </div>
-                                </div>
-                                <Badge
-                                    variant={
-                                        record.status === 'present' ? 'success' :
-                                            record.status === 'absent' ? 'destructive' :
-                                                record.status === 'late' ? 'warning' : 'secondary'
-                                    }
-                                    className="px-4 py-1.5 text-sm font-medium"
-                                >
-                                    {record.status === 'present' && <CheckCircle className="h-3 w-3 mr-1" />}
-                                    {record.status === 'absent' && <XCircle className="h-3 w-3 mr-1" />}
-                                    {record.status === 'late' && <Clock className="h-3 w-3 mr-1" />}
-                                    {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                                </Badge>
+                                )
+                            })}
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-center gap-5 mt-6 pt-4 border-t border-slate-100">
+                        {[
+                            { color: 'bg-emerald-500', label: 'Present' },
+                            { color: 'bg-red-500', label: 'Absent' },
+                            { color: 'bg-amber-400', label: 'Late' },
+                        ].map((item) => (
+                            <div key={item.label} className="flex items-center gap-1.5">
+                                <div className={`w-3 h-3 rounded-sm ${item.color}`} />
+                                <span className="text-xs text-slate-500 font-medium">{item.label}</span>
                             </div>
                         ))}
                     </div>
@@ -280,3 +280,4 @@ export default function StudentAttendancePage() {
         </div>
     )
 }
+

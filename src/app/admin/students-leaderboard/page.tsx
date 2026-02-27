@@ -4,11 +4,12 @@ import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useStudentsLeaderboard } from '@/hooks/useAdminLeaderboards'
 import { LeaderboardPodium } from '@/components/admin/leaderboard/LeaderboardPodium'
+import { formatSchoolClassLabel } from '@/lib/classOrdering'
 
 export default function StudentsLeaderboardPage() {
     const searchParams = useSearchParams()
@@ -43,12 +44,12 @@ export default function StudentsLeaderboardPage() {
                         rank: s.rank,
                         name: s.name,
                         subtitle: `Class ${s.class_name}`,
-                        score: s.average_score,
-                        scoreLabel: "Average Score",
-                        trend: s.trend,
+                        score: s.avg_assessment_pct ?? 0,
+                        scoreLabel: "Assessment Avg.",
+                        trend: 'stable' as const,
                         secondaryMetric: {
-                            value: s.attendance_percent,
-                            label: "Attendance"
+                            value: s.assessments_with_scores,
+                            label: "Scored"
                         },
                         avatarUrl: undefined
                     }))}
@@ -81,18 +82,20 @@ export default function StudentsLeaderboardPage() {
                                 </Avatar>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-medium">{student.name}</p>
-                                    <p className="text-sm text-muted-foreground">Class {student.class_name}-{student.section} • Roll No: {student.roll_number || 'N/A'}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {formatSchoolClassLabel({ name: student.class_name, section: student.section })} • Roll No: {student.roll_number || 'N/A'}
+                                    </p>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-lg font-bold text-primary">{student.average_score}%</p>
-                                    <p className="text-xs text-muted-foreground">Avg. Score</p>
+                                    <p className="text-lg font-bold text-primary">{(student.avg_assessment_pct ?? 0).toFixed(1)}%</p>
+                                    <p className="text-xs text-muted-foreground">Assess. Avg.</p>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-lg font-bold">{student.attendance_percent}%</p>
-                                    <p className="text-xs text-muted-foreground">Attendance</p>
+                                    <p className="text-lg font-bold">{student.assessments_with_scores}</p>
+                                    <p className="text-xs text-muted-foreground">Scored</p>
                                 </div>
-                                <Badge variant={student.trend === 'up' ? 'success' : student.trend === 'down' ? 'destructive' : 'secondary'}>
-                                    {student.trend === 'up' ? 'Rising' : student.trend === 'down' ? 'Declining' : 'Stable'}
+                                <Badge variant={index < 3 ? 'default' : 'secondary'}>
+                                    {index < 3 ? <><Trophy className="h-3 w-3 mr-1" />Top {index + 1}</> : `Rank #${student.rank}`}
                                 </Badge>
                             </div>
                         ))}

@@ -46,11 +46,17 @@ interface StudentsResponse {
     page_size: number;
 }
 
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'string') return error;
+    return 'An unexpected error occurred';
+}
+
 export function useStudents(
     search: string = '',
     pageSize: number = 20,
     schoolId?: string,
-    options: { enabled?: boolean } = {}
+    options: { enabled?: boolean; classId?: string } = {}
 ) {
     const { user, isLoading } = useAuth();
     const isSuperAdmin = user?.role === 'super_admin';
@@ -62,13 +68,16 @@ export function useStudents(
     // Regular admins can always load, super admins need a school specified
     const canLoad = !isLoading && (user?.role === 'admin' || user?.role === 'super_admin');
 
+    const classId = options.classId?.trim();
+
     return useInfiniteQuery({
-        queryKey: ['students', search, pageSize, resolvedSchoolId],
+        queryKey: ['students', search, pageSize, resolvedSchoolId, classId],
         queryFn: async ({ pageParam = 1 }) => {
             const params = new URLSearchParams();
             if (search) params.append('search', search);
             params.append('page', pageParam.toString());
             params.append('page_size', pageSize.toString());
+            if (classId) params.append('class_id', classId);
             // Only super admins need to pass school_id explicitly
             if (isSuperAdmin && resolvedSchoolId) params.append('school_id', resolvedSchoolId);
             return api.get<StudentsResponse>(`/admin/students-list?${params.toString()}`);
@@ -95,8 +104,8 @@ export function useStudentMutations() {
             queryClient.invalidateQueries({ queryKey: ['students'] });
             toast.success('Student updated successfully');
         },
-        onError: (error: any) => {
-            toast.error('Failed to update student', { description: error.message });
+        onError: (error: unknown) => {
+            toast.error('Failed to update student', { description: getErrorMessage(error) });
         }
     });
 
@@ -108,8 +117,8 @@ export function useStudentMutations() {
             queryClient.invalidateQueries({ queryKey: ['students'] });
             toast.success('Student deleted successfully');
         },
-        onError: (error: any) => {
-            toast.error('Failed to delete student', { description: error.message });
+        onError: (error: unknown) => {
+            toast.error('Failed to delete student', { description: getErrorMessage(error) });
         }
     });
 

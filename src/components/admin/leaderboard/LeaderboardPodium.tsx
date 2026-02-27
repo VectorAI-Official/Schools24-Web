@@ -28,7 +28,7 @@ export function LeaderboardPodium({ items, type }: LeaderboardPodiumProps) {
     const rank3 = items.find(i => i.rank === 3)
 
     const renderWinnerCard = (item: PodiumItem | undefined, position: 'first' | 'second' | 'third') => {
-        if (!item) return <div className="flex-1" />
+        if (!item) return null
 
         const isFirst = position === 'first'
         const isSecond = position === 'second'

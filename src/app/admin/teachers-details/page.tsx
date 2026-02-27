@@ -78,7 +78,7 @@ import { toast } from 'sonner'
 import { useTeachers, useCreateTeacher, useUpdateTeacher, useDeleteTeacher } from '@/hooks/useAdminTeachers'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { useAuth } from '@/contexts/AuthContext'
-import { EditTeacherDialog } from '@/components/admin/teachers/EditTeacherDialog'
+import { EditTeacherDialog, type TeacherUpdatePayload } from '@/components/admin/teachers/EditTeacherDialog'
 
 export default function TeachersDetailsPage() {
     const searchParams = useSearchParams()
@@ -153,7 +153,7 @@ export default function TeachersDetailsPage() {
 
     // Removed handleAddTeacher function
 
-    const handleEditTeacher = (id: string, data: any) => {
+    const handleEditTeacher = (id: string, data: TeacherUpdatePayload) => {
         updateMutation.mutate({ id, data, schoolId }, {
             onSuccess: () => {
                 setIsEditDialogOpen(false)
@@ -625,6 +625,7 @@ export default function TeachersDetailsPage() {
 
             {/* Edit Teacher Dialog */}
             <EditTeacherDialog
+                key={`${selectedTeacher?.id || 'none'}-${isEditDialogOpen ? 'open' : 'closed'}`}
                 open={isEditDialogOpen}
                 onOpenChange={setIsEditDialogOpen}
                 teacher={selectedTeacher}

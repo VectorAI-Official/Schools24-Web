@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Calendar } from '@/components/ui/calendar'
 import { CalendarDays, Clock, MapPin, Sparkles, Loader2 } from 'lucide-react'
-import { useStudentEvents } from '@/hooks/useEvents'
+import { useTeacherEvents } from '@/hooks/useEvents'
 
-export default function StudentCalendarPage() {
+export default function TeacherCalendarPage() {
     const [date, setDate] = useState<Date | undefined>(new Date())
-    const { data, isLoading, isError, error } = useStudentEvents({ page: 1, pageSize: 500 })
+    const { data, isLoading, isError, error } = useTeacherEvents({ page: 1, pageSize: 500 })
     const events = useMemo(() => data?.events || [], [data?.events])
     const upcomingEvents = useMemo(() => {
         const today = new Date()
@@ -78,15 +78,15 @@ export default function StudentCalendarPage() {
             {isError ? (
                 <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900">
                     <CardContent className="p-4 text-sm text-red-700 dark:text-red-300">
-                        Failed to load events from server: {(error as Error)?.message || 'Unknown error'}
+                        Failed to load events: {(error as Error)?.message || 'Unknown error'}
                     </CardContent>
                 </Card>
             ) : null}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-4">
                     <div>
-                        <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Event Calendar</h1>
-                        <p className="text-muted-foreground mt-1">View school events, holidays, and important dates</p>
+                        <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">School Calendar</h1>
+                        <p className="text-muted-foreground mt-1">Exam timetables, events, and important dates for your classes</p>
                     </div>
                 </div>
             </div>
@@ -330,7 +330,7 @@ export default function StudentCalendarPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <CardTitle className="text-xl">Upcoming Events</CardTitle>
-                                <CardDescription className="mt-1">All scheduled events and activities</CardDescription>
+                                <CardDescription className="mt-1">Scheduled for your classes</CardDescription>
                             </div>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                                 <CalendarDays className="h-4 w-4 text-primary" />
@@ -347,7 +347,7 @@ export default function StudentCalendarPage() {
                                     </div>
                                     <h3 className="text-lg font-semibold mb-2">No Upcoming Events</h3>
                                     <p className="text-muted-foreground max-w-sm mx-auto">
-                                        No events are scheduled yet.
+                                        No events are scheduled for your classes yet.
                                     </p>
                                 </div>
                             ) : (

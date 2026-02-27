@@ -95,6 +95,12 @@ export default function TeachersLeaderboardPage() {
                                     <p className="text-lg font-bold text-primary">{teacher.students_count}</p>
                                     <p className="text-xs text-muted-foreground">Students</p>
                                 </div>
+                                <Badge
+                                    variant="outline"
+                                    className={`text-xs ${teacher.status === 'active' ? 'border-green-500 text-green-600' : 'border-amber-500 text-amber-600'}`}
+                                >
+                                    {teacher.status || 'active'}
+                                </Badge>
                                 <Badge variant={
                                     index === 0 ? 'success' :
                                         index < 3 ? 'default' : 'secondary'

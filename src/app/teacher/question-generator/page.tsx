@@ -148,7 +148,7 @@ export default function QuestionGeneratorPage() {
             formData.append("difficulty", difficulty)
             formData.append("context", contextText.trim())
 
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1"
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL
             const response = await fetch(`${baseUrl}/teacher/question-documents`, {
                 method: "POST",
                 headers: {
@@ -521,3 +521,4 @@ export default function QuestionGeneratorPage() {
         </div>
     )
 }
+

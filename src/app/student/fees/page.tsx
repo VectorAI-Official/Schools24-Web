@@ -1,55 +1,33 @@
 "use client"
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import {
-    DollarSign, CheckCircle, Clock, AlertCircle, CreditCard, Receipt, Download,
-    ArrowLeft, ArrowRight, Wallet, TrendingUp, Calendar, CreditCardIcon,
+    CheckCircle, Clock, AlertCircle, CreditCard, Receipt, Download,
+    ArrowLeft, Wallet, Calendar, CreditCardIcon,
     FileText, Sparkles
 } from 'lucide-react'
-import { mockStudents } from '@/lib/mockData'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
-
-const student = mockStudents[0]
-
-const feeBreakdown = [
-    { name: 'Tuition Fee', amount: 45000, paid: 45000, status: 'paid', icon: '📚' },
-    { name: 'Lab Fee', amount: 5000, paid: 5000, status: 'paid', icon: '🔬' },
-    { name: 'Library Fee', amount: 2000, paid: 2000, status: 'paid', icon: '📖' },
-    { name: 'Sports Fee', amount: 3000, paid: 1500, status: 'partial', icon: '⚽' },
-    { name: 'Transport Fee', amount: 15000, paid: 7500, status: 'partial', icon: '🚌' },
-]
-
-const paymentHistory = [
-    { id: '1', date: '2025-12-15', amount: 25000, method: 'Online', status: 'success', receipt: 'REC-2025-001' },
-    { id: '2', date: '2025-10-10', amount: 20000, method: 'Cash', status: 'success', receipt: 'REC-2025-002' },
-    { id: '3', date: '2025-08-01', amount: 15000, method: 'UPI', status: 'success', receipt: 'REC-2025-003' },
-]
+import { useStudentFees } from '@/hooks/useStudentFees'
 
 export default function StudentFeesPage() {
     const router = useRouter()
-    const [isProcessing, setIsProcessing] = useState(false)
+    const { data, isLoading, isError } = useStudentFees(true)
 
-    const totalFees = feeBreakdown.reduce((sum, fee) => sum + fee.amount, 0)
-    const paidFees = feeBreakdown.reduce((sum, fee) => sum + fee.paid, 0)
-    const pendingFees = totalFees - paidFees
+    const feeBreakdown = data?.breakdown ?? []
+    const paymentHistory = data?.payment_history ?? []
+    const totalFees = data?.total_amount ?? 0
+    const paidFees = data?.paid_amount ?? 0
+    const pendingFees = data?.pending_amount ?? 0
 
     const handlePayNow = () => {
-        setIsProcessing(true)
-        toast.loading('Opening payment gateway...', {
-            description: 'Please wait while we connect to the payment provider.',
+        toast.info('Coming soon', {
+            description: 'Online payment integration will be available soon.',
         })
-        setTimeout(() => {
-            setIsProcessing(false)
-            toast.success('Payment gateway opened!', {
-                description: 'Complete your payment securely.',
-            })
-        }, 1500)
     }
 
     const handleDownloadReceipt = (receiptId: string) => {
@@ -85,12 +63,12 @@ export default function StudentFeesPage() {
                         View Statement
                     </Button>
                     <Button
-                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 border-0 shadow-lg shadow-emerald-500/20"
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 border-0 shadow-lg shadow-emerald-500/20 opacity-60 cursor-not-allowed"
                         onClick={handlePayNow}
-                        disabled={isProcessing}
+                        aria-disabled="true"
                     >
                         <CreditCard className="mr-2 h-4 w-4" />
-                        {isProcessing ? 'Processing...' : 'Pay Now'}
+                        Pay Now
                     </Button>
                 </div>
             </div>
@@ -146,10 +124,6 @@ export default function StudentFeesPage() {
             {/* Payment Progress */}
             <Card className="border-0 shadow-lg overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-                    <div className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5" />
-                        <CardTitle className="text-white">Payment Progress</CardTitle>
-                    </div>
                     <CardDescription className="text-emerald-100">Academic Year 2025-26</CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 md:p-6">
@@ -189,9 +163,15 @@ export default function StudentFeesPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
+                        {isLoading ? (
+                            <div className="text-sm text-muted-foreground">Loading fee breakdown...</div>
+                        ) : null}
+                        {isError ? (
+                            <div className="text-sm text-destructive">Failed to load fee breakdown.</div>
+                        ) : null}
                         {feeBreakdown.map((fee, index) => (
                             <div
-                                key={index}
+                                key={fee.id}
                                 className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${fee.status === 'paid' ? 'border-green-200 bg-green-50/50 dark:bg-green-950/20 hover:border-green-300' :
                                         fee.status === 'partial' ? 'border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20 hover:border-yellow-300' :
                                             'border-red-200 bg-red-50/50 dark:bg-red-950/20 hover:border-red-300'
@@ -199,18 +179,18 @@ export default function StudentFeesPage() {
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl">
-                                        {fee.icon}
+                                        <FileText className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-lg">{fee.name}</p>
+                                        <p className="font-semibold text-lg">{fee.purpose_name}</p>
                                         <p className="text-sm text-muted-foreground">
-                                            {formatCurrency(fee.paid)} / {formatCurrency(fee.amount)}
+                                            {formatCurrency(fee.paid_amount)} / {formatCurrency(fee.amount)}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="text-right">
-                                        <p className="font-bold text-lg">{formatCurrency(fee.amount - fee.paid)}</p>
+                                        <p className="font-bold text-lg">{formatCurrency(fee.amount - fee.paid_amount)}</p>
                                         <p className="text-xs text-muted-foreground">Remaining</p>
                                     </div>
                                     <Badge variant={
@@ -225,6 +205,9 @@ export default function StudentFeesPage() {
                                 </div>
                             </div>
                         ))}
+                        {!isLoading && !isError && feeBreakdown.length === 0 ? (
+                            <div className="text-sm text-muted-foreground">No fee demands found.</div>
+                        ) : null}
                     </div>
                 </CardContent>
             </Card>
@@ -232,21 +215,24 @@ export default function StudentFeesPage() {
             {/* Payment History */}
             <Card className="border-0 shadow-lg">
                 <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <Receipt className="h-5 w-5 text-primary" />
-                                <CardTitle>Payment History</CardTitle>
-                            </div>
-                            <CardDescription>Your recent transactions</CardDescription>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <Receipt className="h-5 w-5 text-primary" />
+                            <CardTitle>Payment History</CardTitle>
                         </div>
-                        <Button variant="outline" size="sm">
-                            View All <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
+                        <CardDescription>
+                            Your recent transactions • Academic Year {data?.academic_year || 'N/A'}
+                        </CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
+                        {isLoading ? (
+                            <div className="text-sm text-muted-foreground">Loading payment history...</div>
+                        ) : null}
+                        {isError ? (
+                            <div className="text-sm text-destructive">Failed to load payment history.</div>
+                        ) : null}
                         {paymentHistory.map((payment, index) => (
                             <div
                                 key={payment.id}
@@ -260,10 +246,10 @@ export default function StudentFeesPage() {
                                         <p className="font-bold text-lg">{formatCurrency(payment.amount)}</p>
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <Calendar className="h-3 w-3" />
-                                            <span>{payment.date}</span>
+                                            <span>{new Date(payment.payment_date).toLocaleDateString()}</span>
                                             <span>•</span>
                                             <CreditCardIcon className="h-3 w-3" />
-                                            <span>{payment.method}</span>
+                                            <span>{payment.payment_method}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -275,7 +261,7 @@ export default function StudentFeesPage() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleDownloadReceipt(payment.receipt)}
+                                        onClick={() => handleDownloadReceipt(payment.receipt_number)}
                                         className="hover:bg-green-100 hover:text-green-700 hover:border-green-300"
                                     >
                                         <Download className="h-4 w-4 mr-2" />
@@ -284,6 +270,9 @@ export default function StudentFeesPage() {
                                 </div>
                             </div>
                         ))}
+                        {!isLoading && !isError && paymentHistory.length === 0 ? (
+                            <div className="text-sm text-muted-foreground">No payments recorded yet.</div>
+                        ) : null}
                     </div>
                 </CardContent>
             </Card>
@@ -301,12 +290,12 @@ export default function StudentFeesPage() {
                             </div>
                             <Button
                                 size="lg"
-                                className="bg-white text-emerald-600 hover:bg-emerald-50 shadow-xl px-8"
+                                className="bg-white text-emerald-600 shadow-xl px-8 opacity-60 cursor-not-allowed"
                                 onClick={handlePayNow}
-                                disabled={isProcessing}
+                                aria-disabled="true"
                             >
                                 <CreditCard className="mr-2 h-5 w-5" />
-                                {isProcessing ? 'Processing...' : `Pay ${formatCurrency(pendingFees)}`}
+                                {`Pay ${formatCurrency(pendingFees)}`}
                             </Button>
                         </div>
                     </CardContent>

@@ -213,7 +213,7 @@ export default function TeachPage() {
     const token = getToken()
     if (!token) throw new Error("Session expired. Please login again.")
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1"
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL
     const response = await fetch(`${baseUrl}/teacher/materials/${id}/${mode}`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
@@ -423,3 +423,4 @@ export default function TeachPage() {
     </div>
   )
 }
+

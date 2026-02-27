@@ -26,6 +26,15 @@ interface SchoolsResponse {
     schools: School[];
 }
 
+export interface SchoolsPageResponse {
+    schools: School[];
+    page: number;
+    page_size: number;
+    total: number;
+    has_more: boolean;
+    next_page: number;
+}
+
 export interface AdminParams {
     name: string;
     email: string;
@@ -53,6 +62,22 @@ export function useSchools(enabled: boolean = true) {
     });
 }
 
+export function useInfiniteSchools(enabled: boolean = true) {
+    return useInfiniteQuery({
+        queryKey: ['schools-infinite'],
+        queryFn: async ({ pageParam = 1 }) => {
+            const params = new URLSearchParams({ page: String(pageParam), page_size: '50' });
+            return api.get<SchoolsPageResponse>(`/super-admin/schools?${params.toString()}`);
+        },
+        getNextPageParam: (lastPage) => {
+            return lastPage.has_more ? lastPage.next_page : undefined;
+        },
+        initialPageParam: 1,
+        enabled,
+        staleTime: 2 * 60_000,
+        refetchInterval: 30_000,
+    });
+}
 
 
 export function useSchool(idOrSlug: string, enabled: boolean = true) {

@@ -37,7 +37,7 @@ export function useTeachersLeaderboard(params: {
             academicYear: params.academicYear,
             search: params.search,
             limit: params.limit,
-            refresh: true,
+            refresh: false,
         }),
         enabled: params.enabled,
     })

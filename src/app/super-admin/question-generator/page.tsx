@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react"
 import { useEffect } from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
-import { Wand2, FileText, Upload, File, X, FileUp, Loader2, Trash2, Eye, Download, MoreVertical, Search } from "lucide-react"
+import { Wand2, FileText, Upload, File, X, FileUp, Loader2, Trash2, Eye, Download, MoreVertical, Search, Layers3, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 
@@ -265,285 +265,333 @@ export function QuestionUploaderForm() {
 
     return (
         <>
-        <div className="space-y-6">
-            <Card className="border-dashed border-2 overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-rose-500/10 via-red-500/10 to-orange-500/10">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 shadow-lg">
-                            <Upload className="h-6 w-6 text-white" />
-                        </div>
-                        <div>
-                            <CardTitle>Upload Question Paper</CardTitle>
-                            <CardDescription>Manually upload question papers in PDF or Word format</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-4 md:p-6">
-                    <div
-                        className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-300 ${dragActive ? "border-rose-500 bg-rose-50 dark:bg-rose-950/20" : "border-muted-foreground/25 hover:border-muted-foreground/50"
-                            }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                    >
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                            onChange={(e) => {
-                                const file = e.target.files?.[0]
-                                if (file) validateAndSetFile(file)
-                            }}
-                        />
-
-                        <div className="flex flex-col items-center justify-center text-center space-y-4">
-                            <div className={`flex h-20 w-20 items-center justify-center rounded-full transition-all duration-300 ${dragActive ? "bg-rose-100 dark:bg-rose-900/30 scale-110" : "bg-muted"
-                                }`}>
-                                <FileUp className={`h-10 w-10 transition-colors ${dragActive ? "text-rose-600" : "text-muted-foreground"}`} />
+            <div className="space-y-6 lg:space-y-8">
+                <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm overflow-hidden bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+                    <CardHeader className="bg-gradient-to-r from-rose-500/10 via-red-500/5 to-orange-500/10 dark:from-rose-500/20 dark:via-red-500/10 dark:to-orange-500/20 pb-8">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-600 shadow-lg shadow-rose-500/30">
+                                <Upload className="h-7 w-7 text-white" />
                             </div>
-
                             <div>
-                                <p className="text-lg font-medium">{dragActive ? "Drop your file here" : "Drag & drop your question paper"}</p>
-                                <p className="text-sm text-muted-foreground mt-1">or click to browse from your computer</p>
+                                <CardTitle className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Upload Question Paper</CardTitle>
+                                <CardDescription className="text-base text-slate-600 dark:text-slate-300 mt-1">Provide semantic metadata and upload question papers in PDF or Word formats</CardDescription>
                             </div>
-
-                            <div className="flex items-center gap-4">
-                                <span className="px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">PDF</span>
-                                <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium">DOC</span>
-                                <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium">DOCX</span>
-                            </div>
-
-                            <Button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="gradient-primary border-0 mt-2"
-                                disabled={uploadMutation.isPending}
-                            >
-                                {uploadMutation.isPending ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Uploading...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload className="mr-2 h-4 w-4" />
-                                        Choose File
-                                    </>
-                                )}
-                            </Button>
                         </div>
-                    </div>
+                    </CardHeader>
+                    <CardContent className="p-6 md:p-8 -mt-6 relative z-10">
+                        <div className="bg-white dark:bg-slate-950 rounded-2xl p-2 shadow-sm border border-slate-100 dark:border-slate-800">
+                            <div
+                                className={`relative border-2 border-dashed rounded-xl p-10 transition-all duration-300 flex flex-col items-center justify-center text-center space-y-5
+                                ${dragActive
+                                        ? "border-rose-500 bg-rose-50/50 dark:bg-rose-900/20"
+                                        : "border-slate-200 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-900/50"
+                                    }`}
+                                onDragEnter={handleDrag}
+                                onDragLeave={handleDrag}
+                                onDragOver={handleDrag}
+                                onDrop={handleDrop}
+                            >
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    className="hidden"
+                                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0]
+                                        if (file) validateAndSetFile(file)
+                                    }}
+                                />
 
-                    {selectedFile && (
-                        <div className="mt-6 space-y-3">
-                            <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Selected File</h4>
-                            <div className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-md transition-all duration-200 group">
-                                <div className="flex items-center gap-4">
-                                    <File className={`h-8 w-8 ${selectedFile.name.toLowerCase().endsWith(".pdf") ? "text-red-500" : "text-blue-500"}`} />
-                                    <div>
-                                        <p className="font-medium text-sm">{selectedFile.name}</p>
-                                        <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
-                                    </div>
+                                <div className={`flex h-24 w-24 items-center justify-center rounded-full transition-all duration-500 shadow-sm
+                                ${dragActive ? "bg-rose-100 dark:bg-rose-900/40 scale-110 shadow-rose-500/20" : "bg-slate-100 dark:bg-slate-900"
+                                    }`}>
+                                    <FileUp className={`h-10 w-10 transition-colors duration-300 ${dragActive ? "text-rose-600 dark:text-rose-400" : "text-slate-400 dark:text-slate-500"}`} />
                                 </div>
+
+                                <div className="space-y-1">
+                                    <p className="text-xl font-semibold text-slate-800 dark:text-slate-200 transition-colors">
+                                        {dragActive ? "Drop your document here..." : "Drag & drop your question paper"}
+                                    </p>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">or click the button below to browse your files</p>
+                                </div>
+
+                                <div className="flex items-center gap-3 pt-2">
+                                    <span className="px-3.5 py-1.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold uppercase tracking-wider border border-red-100 dark:border-red-500/20">PDF</span>
+                                    <span className="px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-wider border border-blue-100 dark:border-blue-500/20">DOC</span>
+                                    <span className="px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-wider border border-indigo-100 dark:border-indigo-500/20">DOCX</span>
+                                </div>
+
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={() => setSelectedFile(null)}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="mt-4 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white shadow-md shadow-rose-500/20 h-11 px-8 rounded-full font-medium transition-all"
+                                    disabled={uploadMutation.isPending}
                                 >
-                                    <X className="h-4 w-4" />
+                                    {uploadMutation.isPending ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Processing Upload...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Browse Files
+                                        </>
+                                    )}
                                 </Button>
                             </div>
                         </div>
-                    )}
-                </CardContent>
-            </Card>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Question Uploader</CardTitle>
-                        <CardDescription>Configure your question metadata and upload</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="title">Title</Label>
-                            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Midterm Model Paper" />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label>Subject</Label>
-                                <Select value={subjectId} onValueChange={setSubjectId} disabled={!classId}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={classId ? "Select subject" : "Select class first"} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {subjectsQuery.isLoading || assignmentsQuery.isLoading ? (
-                                            <SelectItem value="__loading_subjects" disabled>Loading subjects...</SelectItem>
-                                        ) : availableSubjects.length === 0 ? (
-                                            <SelectItem value="__no_subjects" disabled>No subjects found</SelectItem>
-                                        ) : (
-                                            availableSubjects.map((subj) => (
-                                                <SelectItem key={subj.id} value={subj.id}>{subj.name}</SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>Class</Label>
-                                <Select value={classId} onValueChange={(value) => {
-                                    setClassId(value)
-                                    setSubjectId("")
-                                }}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select class" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {classesQuery.isLoading ? (
-                                            <SelectItem value="__loading_classes" disabled>Loading classes...</SelectItem>
-                                        ) : classes.length === 0 ? (
-                                            <SelectItem value="__no_classes" disabled>No classes found</SelectItem>
-                                        ) : (
-                                            classes.map((grade) => (
-                                                <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label>Question Type</Label>
-                            <Select value={questionType} onValueChange={setQuestionType}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="mcq">Multiple Choice (MCQ)</SelectItem>
-                                    <SelectItem value="short">Short Answer</SelectItem>
-                                    <SelectItem value="long">Long Answer</SelectItem>
-                                    <SelectItem value="truefalse">True/False</SelectItem>
-                                    <SelectItem value="fillblank">Fill in the Blanks</SelectItem>
-                                    <SelectItem value="model_question_paper">Model Question Paper</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label>Difficulty Level</Label>
-                            <div className="flex gap-2">
-                                <Button type="button" variant={difficulty === "easy" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("easy")}>Easy</Button>
-                                <Button type="button" variant={difficulty === "medium" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("medium")}>Medium</Button>
-                                <Button type="button" variant={difficulty === "hard" ? "default" : "outline"} className="flex-1" onClick={() => setDifficulty("hard")}>Hard</Button>
-                            </div>
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="context">Additional Context (Optional)</Label>
-                            <Textarea
-                                id="context"
-                                value={contextText}
-                                onChange={(e) => setContextText(e.target.value)}
-                                placeholder="Provide any additional context or specific areas to focus on"
-                                rows={3}
-                            />
-                        </div>
-
-                        <Button
-                            className="w-full gradient-primary border-0"
-                            onClick={() => uploadMutation.mutate()}
-                            disabled={
-                                uploadMutation.isPending ||
-                                !selectedFile ||
-                                !title.trim() ||
-                                !selectedSubject ||
-                                !selectedClass ||
-                                !questionType
-                            }
-                        >
-                            {uploadMutation.isPending ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Uploading...
-                                </>
-                            ) : (
-                                <>
-                                    <Wand2 className="mr-2 h-4 w-4" />
-                                    Generate Questions
-                                </>
-                            )}
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle>Upload Preview & Metadata</CardTitle>
-                                <CardDescription>Upload doc to view status and saved metadata</CardDescription>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {uploadMutation.isPending ? (
-                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-                                <p className="font-medium">Uploading document...</p>
-                                <p className="text-sm text-muted-foreground">Please wait while your file is being saved</p>
-                            </div>
-                        ) : !previewDocument ? (
-                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <FileText className="h-16 w-16 text-muted-foreground/20 mb-4" />
-                                <p className="text-muted-foreground">No uploaded document selected yet</p>
-                                <p className="text-sm text-muted-foreground">Choose a file and click Generate Questions to upload</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="p-4 rounded-lg border">
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">1</div>
-                                        <div className="flex-1">
-                                            <p className="font-medium mb-2">{previewDocument.title || previewDocument.file_name}</p>
-                                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                <Badge variant="outline">{previewDocument.question_type}</Badge>
-                                                {previewDocument.difficulty && <Badge variant="secondary">{previewDocument.difficulty}</Badge>}
-                                                {previewDocument.subject && <span>{previewDocument.subject}</span>}
-                                                {previewDocument.class_level && <span>{previewDocument.class_level}</span>}
-                                            </div>
+                        {selectedFile && (
+                            <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center justify-between p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-950/20 shadow-sm">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 rounded-lg bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800">
+                                            <File className={`h-6 w-6 ${selectedFile.name.toLowerCase().endsWith(".pdf") ? "text-red-500" : "text-blue-500"}`} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-sm text-slate-800 dark:text-slate-200 mb-0.5">{selectedFile.name}</h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">{formatFileSize(selectedFile.size)}</p>
                                         </div>
                                     </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-9 w-9 text-rose-500 hover:text-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-full transition-colors"
+                                        onClick={() => setSelectedFile(null)}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
                                 </div>
-                                <div className="rounded-lg border p-4 space-y-2 text-sm">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">File Name</span>
-                                        <span className="font-medium">{previewDocument.file_name}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">File Size</span>
-                                        <span className="font-medium">{formatFileSize(previewDocument.file_size)}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">File Type</span>
-                                        <span className="font-medium">{previewDocument.mime_type || "unknown"}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Uploaded At</span>
-                                        <span className="font-medium">{new Date(previewDocument.uploaded_at).toLocaleString()}</span>
-                                    </div>
-                                </div>
-                                {previewDocument.context ? <p className="text-sm text-muted-foreground">{previewDocument.context}</p> : null}
                             </div>
                         )}
                     </CardContent>
                 </Card>
+
+                <div className="grid gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-12">
+                    <Card className="lg:col-span-7 xl:col-span-8 border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+                        <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+                            <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                                <FileText className="h-5 w-5 text-indigo-500" /> Assessment Metadata
+                            </CardTitle>
+                            <CardDescription>Configure categorization, difficulty, and context for seamless indexing</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6 pt-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="title" className="text-slate-700 dark:text-slate-300 font-medium">Document Title</Label>
+                                <Input
+                                    id="title"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="e.g., Final Year Model Mathematics Paper 2024"
+                                    className="h-11 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="grid gap-2">
+                                    <Label className="text-slate-700 dark:text-slate-300 font-medium">Academic Class</Label>
+                                    <Select value={classId} onValueChange={(value) => {
+                                        setClassId(value)
+                                        setSubjectId("")
+                                    }}>
+                                        <SelectTrigger className="h-11 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30">
+                                            <SelectValue placeholder="Select class level" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {classesQuery.isLoading ? (
+                                                <SelectItem value="__loading_classes" disabled>Loading classes...</SelectItem>
+                                            ) : classes.length === 0 ? (
+                                                <SelectItem value="__no_classes" disabled>No classes found</SelectItem>
+                                            ) : (
+                                                classes.map((grade) => (
+                                                    <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label className="text-slate-700 dark:text-slate-300 font-medium">Subject Module</Label>
+                                    <Select value={subjectId} onValueChange={setSubjectId} disabled={!classId}>
+                                        <SelectTrigger className="h-11 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30">
+                                            <SelectValue placeholder={classId ? "Select related subject" : "Select class first"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {subjectsQuery.isLoading || assignmentsQuery.isLoading ? (
+                                                <SelectItem value="__loading_subjects" disabled>Loading subjects...</SelectItem>
+                                            ) : availableSubjects.length === 0 ? (
+                                                <SelectItem value="__no_subjects" disabled>No subjects mapped</SelectItem>
+                                            ) : (
+                                                availableSubjects.map((subj) => (
+                                                    <SelectItem key={subj.id} value={subj.id}>{subj.name}</SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label className="text-slate-700 dark:text-slate-300 font-medium">Question Format Type</Label>
+                                <Select value={questionType} onValueChange={setQuestionType}>
+                                    <SelectTrigger className="h-11 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30">
+                                        <SelectValue placeholder="Select primary format" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="mcq">Multiple Choice (MCQ)</SelectItem>
+                                        <SelectItem value="short">Short Answer Responses</SelectItem>
+                                        <SelectItem value="long">Long Essay / Comprehensive</SelectItem>
+                                        <SelectItem value="truefalse">True / False Statements</SelectItem>
+                                        <SelectItem value="fillblank">Fill in the Blanks</SelectItem>
+                                        <SelectItem value="model_question_paper">Full Model Question Paper</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="grid gap-3">
+                                <Label className="text-slate-700 dark:text-slate-300 font-medium">Anticipated Difficulty</Label>
+                                <div className="flex gap-3 bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                                    <Button
+                                        type="button"
+                                        variant={difficulty === "easy" ? "default" : "ghost"}
+                                        className={`flex-1 rounded-lg transition-all ${difficulty === "easy" ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm" : "hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                                        onClick={() => setDifficulty("easy")}
+                                    >
+                                        Beginner
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={difficulty === "medium" ? "default" : "ghost"}
+                                        className={`flex-1 rounded-lg transition-all ${difficulty === "medium" ? "bg-amber-500 hover:bg-amber-600 text-white shadow-sm" : "hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                                        onClick={() => setDifficulty("medium")}
+                                    >
+                                        Intermediate
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={difficulty === "hard" ? "default" : "ghost"}
+                                        className={`flex-1 rounded-lg transition-all ${difficulty === "hard" ? "bg-rose-500 hover:bg-rose-600 text-white shadow-sm" : "hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                                        onClick={() => setDifficulty("hard")}
+                                    >
+                                        Advanced
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="context" className="text-slate-700 dark:text-slate-300 font-medium">Instructions & Context <span className="text-slate-400 font-normal">(Optional)</span></Label>
+                                <Textarea
+                                    id="context"
+                                    value={contextText}
+                                    onChange={(e) => setContextText(e.target.value)}
+                                    placeholder="Provide evaluator notes, specific chapters covered, or test parameters..."
+                                    className="resize-none bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30 rounded-xl"
+                                    rows={4}
+                                />
+                            </div>
+
+                            <Button
+                                className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 text-base font-semibold tracking-wide transition-all data-[disabled]:opacity-50"
+                                onClick={() => uploadMutation.mutate()}
+                                disabled={
+                                    uploadMutation.isPending ||
+                                    !selectedFile ||
+                                    !title.trim() ||
+                                    !selectedSubject ||
+                                    !selectedClass ||
+                                    !questionType
+                                }
+                            >
+                                {uploadMutation.isPending ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                        Synchronizing Payload...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="mr-2 h-5 w-5" />
+                                        Finalize & Upload Entry
+                                    </>
+                                )}
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="lg:col-span-5 xl:col-span-4 border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col">
+                        <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Eye className="h-5 w-5 text-indigo-400" /> Operational Log
+                            </CardTitle>
+                            <CardDescription>Most recent successful transmission details</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-1 p-0 flex flex-col justify-center">
+                            {uploadMutation.isPending ? (
+                                <div className="flex flex-col items-center justify-center p-12 text-center animate-pulse">
+                                    <div className="p-4 rounded-full bg-indigo-50 dark:bg-indigo-900/20 mb-4">
+                                        <Loader2 className="h-8 w-8 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                                    </div>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-200">Transmitting to Storage Area...</p>
+                                    <p className="text-sm text-slate-500 mt-1">Establishing secure connection</p>
+                                </div>
+                            ) : !previewDocument ? (
+                                <div className="flex flex-col items-center justify-center p-12 text-center">
+                                    <div className="p-5 rounded-full bg-slate-50 dark:bg-slate-900 mb-5 border border-slate-100 dark:border-slate-800">
+                                        <FileText className="h-10 w-10 text-slate-300 dark:text-slate-600" />
+                                    </div>
+                                    <h4 className="font-medium text-slate-700 dark:text-slate-300 mb-1">Awaiting Transmission</h4>
+                                    <p className="text-sm text-slate-500 px-4">Your uploaded document's manifest will appear here upon completion</p>
+                                </div>
+                            ) : (
+                                <div className="p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/50 to-white dark:from-slate-900/50 dark:to-slate-900 border border-indigo-100/60 dark:border-slate-800 shadow-sm">
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex aspect-square h-12 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400">
+                                                <CheckCircle2 className="h-6 w-6" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-slate-900 dark:text-white truncate" title={previewDocument.title || previewDocument.file_name}>
+                                                    {previewDocument.title || previewDocument.file_name}
+                                                </p>
+                                                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                                    <Badge variant="outline" className="bg-white dark:bg-slate-950 font-medium whitespace-nowrap border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400">{previewDocument.question_type}</Badge>
+                                                    {previewDocument.difficulty && <Badge variant="secondary" className="whitespace-nowrap capitalize">{previewDocument.difficulty}</Badge>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden text-sm">
+                                        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                                            <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5"><Layers3 className="h-4 w-4" /> Curriculum Map</span>
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200 text-right">
+                                                {previewDocument.class_level}<br /><span className="text-indigo-600 dark:text-indigo-400">{previewDocument.subject}</span>
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800">
+                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Digital Signature</span>
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[150px]" title={previewDocument.file_name}>{previewDocument.file_name}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Weight</span>
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200">{formatFileSize(previewDocument.file_size)}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-3.5">
+                                            <span className="text-slate-500 dark:text-slate-400 font-medium">Timestamp</span>
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200">{new Date(previewDocument.uploaded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                    </div>
+                                    {previewDocument.context && (
+                                        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30">
+                                            <p className="text-xs font-bold text-amber-800 dark:text-amber-500 uppercase tracking-wider mb-1">Attached Context</p>
+                                            <p className="text-sm text-amber-900/80 dark:text-amber-200/80">{previewDocument.context}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </div>
-        <SuperAdminQuestionDocumentsList />
+            <SuperAdminQuestionDocumentsList />
         </>
     )
 }
@@ -553,12 +601,27 @@ function SuperAdminQuestionDocumentsList() {
     const [search, setSearch] = useState("")
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
 
-    const docsQuery = useQuery({
+    const docsQuery = useInfiniteQuery({
         queryKey: ["super-admin-question-documents"],
-        queryFn: () => api.get<{ documents: QuestionDocument[] }>("/super-admin/question-documents?page_size=100&order=desc"),
+        queryFn: ({ pageParam = 1 }) => {
+            const params = new URLSearchParams({ page: String(pageParam), page_size: '50', order: 'desc' })
+            return api.get<{ documents: QuestionDocument[]; has_more: boolean; next_page: number }>(`/super-admin/question-documents?${params.toString()}`)
+        },
+        getNextPageParam: (lastPage) => lastPage.has_more ? lastPage.next_page : undefined,
+        initialPageParam: 1,
         staleTime: 30_000,
-        refetchInterval: 30_000,
     })
+
+    useEffect(() => {
+        const onScroll = () => {
+            if (!docsQuery.hasNextPage || docsQuery.isFetchingNextPage) return
+            const el = document.documentElement
+            const viewportBottom = (window.scrollY || el.scrollTop) + window.innerHeight
+            if (viewportBottom >= el.scrollHeight * 0.8) docsQuery.fetchNextPage()
+        }
+        window.addEventListener('scroll', onScroll, { passive: true })
+        return () => window.removeEventListener('scroll', onScroll)
+    }, [docsQuery.hasNextPage, docsQuery.isFetchingNextPage, docsQuery.fetchNextPage])
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => api.delete(`/super-admin/question-documents/${id}`),
@@ -597,7 +660,7 @@ function SuperAdminQuestionDocumentsList() {
         }
     }
 
-    const docs = docsQuery.data?.documents ?? []
+    const docs = docsQuery.data?.pages.flatMap(p => p.documents) ?? []
     const filtered = search
         ? docs.filter(d =>
             d.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -608,92 +671,133 @@ function SuperAdminQuestionDocumentsList() {
         : docs
 
     return (
-        <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between flex-wrap gap-3">
+        <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl mt-8">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <CardTitle className="flex items-center gap-2">
-                            <FileText className="h-5 w-5" /> All Uploaded Question Papers
+                        <CardTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                            <Layers3 className="h-5 w-5 text-indigo-500" /> Digital Archive
                         </CardTitle>
-                        <CardDescription>
-                            {docs.length} paper{docs.length !== 1 ? "s" : ""} uploaded across all super admins
+                        <CardDescription className="text-sm mt-1">
+                            {docs.length} document{docs.length !== 1 ? "s" : ""} securely stored across all instances
                         </CardDescription>
                     </div>
-                    <div className="relative w-64">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <div className="relative w-full md:w-80 group">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                        </div>
                         <Input
-                            placeholder="Search title, subject, uploader..."
-                            className="pl-8"
+                            placeholder="Search by title, subject, or author..."
+                            className="pl-10 h-11 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 focus-visible:ring-indigo-500/30 rounded-xl transition-all"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
                 {docsQuery.isLoading ? (
-                    <div className="flex justify-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-4" />
+                        <p className="text-slate-500 dark:text-slate-400 font-medium tracking-wide animate-pulse">Retrieving archive data...</p>
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <FileText className="h-12 w-12 text-muted-foreground/20 mb-3" />
-                        <p className="text-muted-foreground">
-                            {search ? "No matching documents" : "No question papers uploaded yet"}
+                    <div className="flex flex-col items-center justify-center py-24 text-center px-4">
+                        <div className="p-6 rounded-full bg-slate-50 dark:bg-slate-900 mb-6 border border-slate-100 dark:border-slate-800 shadow-sm inline-flex">
+                            <FileText className="h-12 w-12 text-slate-300 dark:text-slate-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                            {search ? "No matches found" : "Archive is empty"}
+                        </h3>
+                        <p className="text-slate-500 dark:text-slate-400 max-w-sm">
+                            {search ? `We couldn't find anything matching "${search}". Try adjusting your filters.` : "No question papers have been uploaded to the system yet. Use the uploader above to begin."}
                         </p>
                     </div>
                 ) : (
-                    <div className="rounded-md border overflow-x-auto">
+                    <div className="overflow-x-auto">
                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Subject</TableHead>
-                                    <TableHead>Class</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Difficulty</TableHead>
-                                    <TableHead>Uploaded By</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead className="w-[60px]"></TableHead>
+                            <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
+                                <TableRow className="hover:bg-transparent border-slate-100 dark:border-slate-800">
+                                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300 py-4 px-6 rounded-tl-xl w-[25%]">Document Profile</TableHead>
+                                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300 py-4 w-[15%]">Curriculum</TableHead>
+                                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300 py-4 w-[20%]">Format & Level</TableHead>
+                                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300 py-4 w-[15%]">Author</TableHead>
+                                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300 py-4 w-[15%]">Timestamp</TableHead>
+                                    <TableHead className="w-[80px] text-right rounded-tr-xl"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {filtered.map(doc => (
-                                    <TableRow key={doc.id}>
-                                        <TableCell className="font-medium max-w-[180px] truncate" title={doc.title}>{doc.title}</TableCell>
-                                        <TableCell>{doc.subject || "—"}</TableCell>
-                                        <TableCell>{doc.class_level || "—"}</TableCell>
-                                        <TableCell><Badge variant="outline" className="capitalize">{doc.question_type}</Badge></TableCell>
-                                        <TableCell>
-                                            {doc.difficulty
-                                                ? <Badge variant="secondary" className="capitalize">{doc.difficulty}</Badge>
-                                                : "—"}
+                                    <TableRow key={doc.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors border-slate-100 dark:border-slate-800 border-b last:border-0">
+                                        <TableCell className="p-4 px-6 align-top">
+                                            <div className="flex items-start gap-4">
+                                                <div className="mt-1 p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 shadow-sm border border-indigo-100 dark:border-indigo-800">
+                                                    <FileText className="h-5 w-5 text-indigo-500" />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="font-semibold text-slate-900 dark:text-white truncate" title={doc.title}>{doc.title}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate" title={doc.file_name}>{doc.file_name}</p>
+                                                </div>
+                                            </div>
                                         </TableCell>
-                                        <TableCell className="text-sm text-muted-foreground max-w-[160px] truncate" title={doc.uploaded_by_name}>
-                                            {doc.uploaded_by_name || "—"}
+                                        <TableCell className="align-top py-4">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="font-medium text-slate-800 dark:text-slate-200">{doc.subject || "General"}</span>
+                                                <span className="text-xs text-slate-500">{doc.class_level || "No Class"}</span>
+                                            </div>
                                         </TableCell>
-                                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                                            {new Date(doc.uploaded_at).toLocaleDateString()}
+                                        <TableCell className="align-top py-4">
+                                            <div className="flex flex-wrap gap-2">
+                                                <Badge variant="outline" className="bg-white dark:bg-slate-950 font-medium text-xs whitespace-nowrap capitalize border-slate-200 dark:border-slate-700">{doc.question_type.replace(/_/g, " ")}</Badge>
+                                                {doc.difficulty && (
+                                                    <Badge className={`text-[10px] capitalize whitespace-nowrap px-2 py-0 h-5 font-semibold ${
+                                                        doc.difficulty === 'easy' ? 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 hover:bg-emerald-100' :
+                                                        doc.difficulty === 'medium' ? 'bg-amber-100/80 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 hover:bg-amber-100' :
+                                                        'bg-rose-100/80 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 hover:bg-rose-100'
+                                                    }`} variant="secondary">
+                                                        {doc.difficulty}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="align-top py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 shrink-0">
+                                                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{doc.uploaded_by_name?.charAt(0) || "S"}</span>
+                                                </div>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 max-w-[120px] truncate" title={doc.uploaded_by_name}>{doc.uploaded_by_name || "System"}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="align-top py-4">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-sm text-slate-800 dark:text-slate-200 font-medium">
+                                                    {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                                <span className="text-xs text-slate-500">
+                                                    {new Date(doc.uploaded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="align-top py-4 pr-6 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-50 group-hover:opacity-100 transition-opacity focus:opacity-100">
                                                         <MoreVertical className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => openDocument(doc.id, false)}>
-                                                        <Eye className="h-4 w-4 mr-2" /> View
+                                                <DropdownMenuContent align="end" className="w-48 shadow-lg shadow-black/5 rounded-xl border-slate-200 dark:border-slate-800">
+                                                    <DropdownMenuItem onClick={() => openDocument(doc.id, false)} className="gap-2 focus:bg-indigo-50 dark:focus:bg-indigo-900/20 focus:text-indigo-600 dark:focus:text-indigo-400">
+                                                        <Eye className="h-4 w-4" /> Open Viewer
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => openDocument(doc.id, true)}>
-                                                        <Download className="h-4 w-4 mr-2" /> Download
+                                                    <DropdownMenuItem onClick={() => openDocument(doc.id, true)} className="gap-2 focus:bg-indigo-50 dark:focus:bg-indigo-900/20 focus:text-indigo-600 dark:focus:text-indigo-400">
+                                                        <Download className="h-4 w-4" /> Secure Download
                                                     </DropdownMenuItem>
+                                                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-1 mx-2" />
                                                     <DropdownMenuItem
-                                                        className="text-red-600 focus:text-red-600"
+                                                        className="gap-2 text-rose-600 focus:text-rose-700 focus:bg-rose-50 dark:focus:bg-rose-900/20"
                                                         onClick={() => setDeleteTarget({ id: doc.id, title: doc.title })}
                                                     >
-                                                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                                        <Trash2 className="h-4 w-4" /> Permanently Delete
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -704,33 +808,40 @@ function SuperAdminQuestionDocumentsList() {
                         </Table>
                     </div>
                 )}
+                {docsQuery.isFetchingNextPage && (
+                    <div className="flex justify-center py-6">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                )}
             </CardContent>
 
-            {deleteTarget && (
-                <AlertDialog open onOpenChange={open => !open && setDeleteTarget(null)}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Delete "{deleteTarget.title}"?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This permanently removes the question paper and cannot be undone.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                                className="bg-red-600 hover:bg-red-700"
-                                onClick={() => deleteMutation.mutate(deleteTarget.id)}
-                                disabled={deleteMutation.isPending}
-                            >
-                                {deleteMutation.isPending
-                                    ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Deleting...</>
-                                    : "Delete"}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            )}
-        </Card>
+    {
+        deleteTarget && (
+            <AlertDialog open onOpenChange={open => !open && setDeleteTarget(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete "{deleteTarget.title}"?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This permanently removes the question paper and cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-600 hover:bg-red-700"
+                            onClick={() => deleteMutation.mutate(deleteTarget.id)}
+                            disabled={deleteMutation.isPending}
+                        >
+                            {deleteMutation.isPending
+                                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Deleting...</>
+                                : "Delete"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        )
+    }
+        </Card >
     )
 }
 

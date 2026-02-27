@@ -35,10 +35,10 @@ import { SuperAdminSettingsPanel } from "@/app/super-admin/settings/page"
 import { SuperAdminTrashPanel } from "@/app/super-admin/trash/page"
 import { useAuth } from "@/contexts/AuthContext"
 import { useDebounce } from "@/hooks/useDebounce"
-import { useSchools, useCreateSchool, useDeleteSchool, CreateSchoolParams } from "@/hooks/useSchools"
+import { useInfiniteSchools, useCreateSchool, useDeleteSchool, CreateSchoolParams } from "@/hooks/useSchools"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
-import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit, Layers3, BookOpenCheck, Check, X, Shield, Sparkles, CheckCircle2, Save } from "lucide-react"
+import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit, Layers3, BookOpenCheck, Check, X, Shield, Sparkles, CheckCircle2, Save, ArrowRight } from "lucide-react"
 
 type SuperAdminTab = "schools" | "catalog" | "question-uploader" | "quiz-scheduler" | "materials" | "settings" | "trash"
 
@@ -66,21 +66,34 @@ function SchoolsSection() {
     const { user, isLoading } = useAuth()
     const isSuperAdmin = user?.role === "super_admin"
     const canLoad = isSuperAdmin && !isLoading
-    const { data: schools = [], isLoading: isSchoolsLoading } = useSchools(canLoad)
+    const { data: schoolsData, isLoading: isSchoolsLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteSchools(canLoad)
     const createSchool = useCreateSchool()
     const deleteSchool = useDeleteSchool()
 
+    const allSchools = useMemo(() => schoolsData?.pages.flatMap((p) => p.schools) ?? [], [schoolsData])
+
     const filteredSchools = useMemo(() => {
-        if (!schools || !Array.isArray(schools)) return []
-        return schools.filter((s) =>
+        return allSchools.filter((s) =>
             s.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
             s.contact_email?.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
-    }, [schools, debouncedSearch])
+    }, [allSchools, debouncedSearch])
 
-    const totalSchools = schools.length
-    const activeSchools = schools.filter((s) => s.is_active).length
+    const totalSchools = schoolsData?.pages[0]?.total ?? allSchools.length
+    const activeSchools = allSchools.filter((s) => s.is_active).length
     const inactiveSchools = Math.max(0, totalSchools - activeSchools)
+
+    useEffect(() => {
+        const onScroll = () => {
+            if (!hasNextPage || isFetchingNextPage) return
+            const el = document.documentElement
+            const scrollTop = window.scrollY || el.scrollTop
+            const viewportBottom = scrollTop + window.innerHeight
+            if (viewportBottom >= el.scrollHeight * 0.8) fetchNextPage()
+        }
+        window.addEventListener('scroll', onScroll, { passive: true })
+        return () => window.removeEventListener('scroll', onScroll)
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
     const validatePassword = (password: string) => {
         const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
@@ -158,12 +171,12 @@ function SchoolsSection() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 md:p-5 shadow-sm">
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-indigo-500" />
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 rounded-xl border border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-4 md:p-5 shadow-sm">
+                <div className="relative w-full md:w-[400px]">
+                    <Search className="absolute left-3.5 top-3 h-4 w-4 text-indigo-500/70" />
                     <Input
-                        placeholder="Search schools by name or email..."
-                        className="pl-10 bg-indigo-50/50 dark:bg-slate-800 border-indigo-100 dark:border-slate-700"
+                        placeholder="Search schools by name or contact email..."
+                        className="pl-11 h-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-indigo-500/30 transition-all shadow-sm rounded-lg"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -171,66 +184,85 @@ function SchoolsSection() {
 
                 <Dialog open={isAddSchoolOpen} onOpenChange={setIsAddSchoolOpen}>
                     <DialogTrigger asChild>
-                        <Button className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white">
+                        <Button className="w-full md:w-auto h-10 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 transition-all rounded-lg font-medium">
                             <Plus className="h-4 w-4 mr-2" />
                             Add New School
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px]">
-                        <DialogHeader>
-                            <DialogTitle>Add New School</DialogTitle>
-                            <DialogDescription>
-                                Create a new school namespace. This will automatically create a default Admin account.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">School Name</Label>
-                                <Input id="name" placeholder="e.g. Springfield High" value={newSchool.name} onChange={(e) => setNewSchool({ ...newSchool, name: e.target.value })} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="address">Address</Label>
-                                <Input id="address" placeholder="123 Education Lane" value={newSchool.address} onChange={(e) => setNewSchool({ ...newSchool, address: e.target.value })} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="contact">School Contact Email</Label>
-                                <Input id="contact" type="email" placeholder="info@school.com" value={newSchool.contact_email} onChange={(e) => setNewSchool({ ...newSchool, contact_email: e.target.value })} />
+                    <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-slate-200 dark:border-slate-800">
+                        <div className="h-2 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"></div>
+                        <div className="px-6 pt-6 pb-2">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                                    <SchoolIcon className="h-5 w-5 text-indigo-500" /> Register New School
+                                </DialogTitle>
+                                <DialogDescription className="text-base mt-2">
+                                    Create a new isolated tenant namespace. This automatically provisions a default Admin account for the school.
+                                </DialogDescription>
+                            </DialogHeader>
+                        </div>
+                        
+                        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto space-y-8 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+                            {/* School Information Section */}
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <MapPin className="h-4 w-4" /> School Intelligence
+                                </h3>
+                                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800 space-y-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="name" className="text-slate-700 dark:text-slate-300">Registered Name</Label>
+                                        <Input id="name" placeholder="e.g. Springfield High School" value={newSchool.name} onChange={(e) => setNewSchool({ ...newSchool, name: e.target.value })} className="bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30" />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="contact" className="text-slate-700 dark:text-slate-300">Primary Contact Email</Label>
+                                            <Input id="contact" type="email" placeholder="admin@springfield.edu" value={newSchool.contact_email} onChange={(e) => setNewSchool({ ...newSchool, contact_email: e.target.value })} className="bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="address" className="text-slate-700 dark:text-slate-300">Campus Address</Label>
+                                            <Input id="address" placeholder="123 Education Lane, City" value={newSchool.address} onChange={(e) => setNewSchool({ ...newSchool, address: e.target.value })} className="bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="border-t pt-4 mt-2">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h4 className="text-sm font-medium text-indigo-600">Admin Accounts</h4>
+                            {/* Admin Accounts Section */}
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-end border-b border-slate-100 dark:border-slate-800 pb-2">
+                                    <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Shield className="h-4 w-4" /> Root Administrators
+                                    </h3>
                                     <Button
                                         type="button"
-                                        variant="ghost"
+                                        variant="outline"
                                         size="sm"
                                         onClick={() => setNewSchool({ ...newSchool, admins: [...(newSchool.admins || []), { name: "", email: "", password: "" }] })}
-                                        className="text-xs h-7"
+                                        className="h-8 text-xs font-medium border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
                                     >
-                                        <Plus className="h-3 w-3 mr-1" /> Add Admin
+                                        <Plus className="h-3.5 w-3.5 mr-1" /> Add Additional Admin
                                     </Button>
                                 </div>
-                                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                                <div className="space-y-4">
                                     {(newSchool.admins || [{ name: "", email: "", password: "" }]).map((admin, index) => (
-                                        <div key={index} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border relative group">
+                                        <div key={index} className="p-4 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 relative group transition-all hover:border-indigo-200 dark:hover:border-indigo-800 shadow-sm">
                                             {index > 0 && (
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="absolute top-1 right-1 h-6 w-6 text-slate-400 hover:text-red-500"
+                                                    className="absolute -top-3 -right-3 h-7 w-7 rounded-full bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700 dark:bg-red-900/80 dark:text-red-300 dark:hover:bg-red-900 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                                                     onClick={() => {
                                                         const newAdmins = [...newSchool.admins]
                                                         newAdmins.splice(index, 1)
                                                         setNewSchool({ ...newSchool, admins: newAdmins })
                                                     }}
                                                 >
-                                                    <Trash2 className="h-3 w-3" />
+                                                    <X className="h-3.5 w-3.5" />
                                                 </Button>
                                             )}
-                                            <div className="grid gap-3">
+                                            <div className="grid gap-4">
                                                 <div className="grid gap-1.5">
-                                                    <Label className="text-xs">Admin Name</Label>
+                                                    <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Full Name</Label>
                                                     <Input
                                                         placeholder="e.g. Principal Skinner"
                                                         value={admin.name}
@@ -239,141 +271,173 @@ function SchoolsSection() {
                                                             newAdmins[index].name = e.target.value
                                                             setNewSchool({ ...newSchool, admins: newAdmins })
                                                         }}
-                                                        className={`h-8 text-sm ${validationErrors[`admin_${index}_name`] ? "border-red-500" : ""}`}
+                                                        className={`h-9 focus-visible:ring-indigo-500/30 ${validationErrors[`admin_${index}_name`] ? "border-red-500 focus-visible:ring-red-500/30" : ""}`}
                                                     />
                                                 </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="grid gap-1.5">
-                                                        <Label className="text-xs">Email</Label>
+                                                        <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Login Email</Label>
                                                         <Input
                                                             type="email"
-                                                            placeholder="admin@school.com"
+                                                            placeholder="admin@school.edu"
                                                             value={admin.email}
                                                             onChange={(e) => {
                                                                 const newAdmins = [...newSchool.admins]
                                                                 newAdmins[index].email = e.target.value
                                                                 setNewSchool({ ...newSchool, admins: newAdmins })
                                                             }}
-                                                            className={`h-8 text-sm ${validationErrors[`admin_${index}_email`] ? "border-red-500" : ""}`}
+                                                            className={`h-9 focus-visible:ring-indigo-500/30 ${validationErrors[`admin_${index}_email`] ? "border-red-500 focus-visible:ring-red-500/30" : ""}`}
                                                         />
                                                     </div>
                                                     <div className="grid gap-1.5">
-                                                        <Label className="text-xs">Password</Label>
+                                                        <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Secure Password</Label>
                                                         <div className="relative">
                                                             <Input
                                                                 type={showPasswords[index] ? "text" : "password"}
-                                                                placeholder="Strong Password"
+                                                                placeholder="Minimum 8 characters"
                                                                 value={admin.password}
                                                                 onChange={(e) => {
                                                                     const newAdmins = [...newSchool.admins]
                                                                     newAdmins[index].password = e.target.value
                                                                     setNewSchool({ ...newSchool, admins: newAdmins })
                                                                 }}
-                                                                className={`h-8 text-sm pr-9 ${validationErrors[`admin_${index}_password`] ? "border-red-500" : ""}`}
+                                                                className={`h-9 pr-9 focus-visible:ring-indigo-500/30 ${validationErrors[`admin_${index}_password`] ? "border-red-500 focus-visible:ring-red-500/30" : ""}`}
                                                             />
                                                             <button
                                                                 type="button"
-                                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
+                                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
                                                                 onClick={() => setShowPasswords({ ...showPasswords, [index]: !showPasswords[index] })}
                                                                 aria-label={showPasswords[index] ? "Hide password" : "Show password"}
                                                             >
                                                                 {showPasswords[index] ? (
-                                                                    <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                                                                    <EyeOff className="h-3.5 w-3.5 text-slate-400" />
                                                                 ) : (
-                                                                    <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                                                                    <Eye className="h-3.5 w-3.5 text-slate-400" />
                                                                 )}
                                                             </button>
                                                         </div>
+                                                        {validationErrors[`admin_${index}_password`] && (
+                                                            <div className="text-[10px] text-red-500 font-medium">
+                                                                {validationErrors[`admin_${index}_password`]}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
-                                                {validationErrors[`admin_${index}_password`] && (
-                                                    <div className="text-[10px] text-red-500 font-medium mt-1">
-                                                        {validationErrors[`admin_${index}_password`]}
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsAddSchoolOpen(false)}>Cancel</Button>
-                            <Button onClick={handleCreateSchool} disabled={createSchool.isPending}>
-                                {createSchool.isPending ? "Creating..." : "Create School & Admin"}
+                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
+                            <Button variant="outline" onClick={() => setIsAddSchoolOpen(false)} className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                Cancel
                             </Button>
-                        </DialogFooter>
+                            <Button onClick={handleCreateSchool} disabled={createSchool.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 min-w-[140px]">
+                                {createSchool.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                                {createSchool.isPending ? "Provisioning..." : "Provision School"}
+                            </Button>
+                        </div>
                     </DialogContent>
                 </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {isSchoolsLoading ? (
                     Array(4).fill(0).map((_, i) => (
-                        <Card key={i} className="animate-pulse rounded-2xl border-slate-200/80 dark:border-slate-800">
-                            <CardHeader className="h-24 bg-slate-100 dark:bg-slate-800 rounded-t-2xl" />
-                            <CardContent className="p-4 md:p-6 space-y-4">
-                                <div className="h-4 bg-slate-200 rounded w-3/4" />
-                                <div className="h-4 bg-slate-200 rounded w-1/2" />
+                        <Card key={i} className="animate-pulse rounded-2xl border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
+                            <CardHeader className="h-28 bg-slate-100/50 dark:bg-slate-800/50" />
+                            <CardContent className="p-5 space-y-4">
+                                <div className="h-4 bg-slate-200/70 dark:bg-slate-700/70 rounded w-3/4" />
+                                <div className="h-4 bg-slate-200/70 dark:bg-slate-700/70 rounded w-1/2" />
                             </CardContent>
                         </Card>
                     ))
                 ) : filteredSchools.length === 0 ? (
-                    <div className="col-span-full text-center py-20 text-muted-foreground">
-                        <SchoolIcon className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                        <p className="text-lg">No schools found.</p>
-                        <p className="text-sm">Click &quot;Add New School&quot; to get started.</p>
+                    <div className="col-span-full py-24 flex flex-col items-center justify-center text-center bg-white/30 dark:bg-slate-900/30 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-sm">
+                        <div className="p-5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 mb-6">
+                            <SchoolIcon className="h-12 w-12 text-indigo-300 dark:text-indigo-700" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2">No schools found</h3>
+                        <p className="text-sm text-slate-500 max-w-sm">We couldn't find any schools matching your search. Click "Add New School" to provision a new tenant.</p>
                     </div>
                 ) : (
                     filteredSchools.map((school) => (
                         <Card
                             key={school.id}
-                            className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-xl hover:shadow-indigo-500/10"
+                            className="group relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl cursor-pointer transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-500/10"
                             onClick={() => router.push(`/super-admin/school/${school.slug || school.id}`)}
                         >
-                            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500" />
-                            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/70 via-white to-indigo-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/30 pointer-events-none" />
-                            <CardHeader className="relative pb-3 pt-5">
-                                <div className="flex justify-between items-start">
-                                    <div className="p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-900/20">
-                                        <SchoolIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 opacity-70 group-hover:opacity-100 transition-opacity" />
+                            
+                            <CardHeader className="relative pb-2 pt-6 px-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 border border-indigo-100/50 dark:border-indigo-800/50 shadow-sm transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+                                        <SchoolIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                                     </div>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full" onClick={(e) => e.stopPropagation()}>
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="rounded-xl border-slate-200 dark:border-slate-800 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                                            <DropdownMenuItem className="cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-900/30">
+                                                <Edit className="h-4 w-4 mr-2 text-indigo-500" /> Edit Details
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                                            <DropdownMenuItem
+                                                className="cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/30 focus:text-red-700 dark:focus:text-red-300"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setDeleteConfirmation({ id: school.id, name: school.name })
+                                                }}
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" /> Delete School
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
-                                <CardTitle className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100 line-clamp-1" title={school.name}>
+                                <CardTitle className="text-xl font-bold tracking-tight text-slate-800 dark:text-white line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" title={school.name}>
                                     {school.name}
                                 </CardTitle>
-                                <CardDescription className="flex items-center text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
-                                    <MapPin className="h-3 w-3 mr-1" />
-                                    {school.address || "No address provided"}
+                                <CardDescription className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
+                                    <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                    <span className="truncate">{school.address || "Location unassigned"}</span>
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="relative pb-4 space-y-3">
-                                <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/70 p-2.5">
-                                    <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                                        <Mail className="h-4 w-4 mr-2" />
-                                        <span className="truncate">{school.contact_email || "No contact email"}</span>
-                                    </div>
+
+                            <CardContent className="relative px-6 pb-6 pt-3 space-y-5">
+                                <div className="flex items-center text-sm text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                                    <Mail className="h-4 w-4 mr-2.5 shrink-0 text-indigo-400" />
+                                    <span className="truncate font-medium">{school.contact_email || "No contact email"}</span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-2">
-                                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900 px-2 py-2 text-center">
-                                        <p className="text-[10px] uppercase tracking-wide text-slate-500">Admins</p>
-                                        <p className="text-sm font-semibold">{school.stats?.admins || school.admin_count || 0}</p>
+                                
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-100/50 dark:border-indigo-500/20 transition-all duration-300 group-hover:bg-indigo-100/50 dark:group-hover:bg-indigo-500/20">
+                                        <p className="text-[10px] uppercase font-bold tracking-wider text-indigo-600/70 dark:text-indigo-400/70 mb-1">Admins</p>
+                                        <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{school.stats?.admins || school.admin_count || 0}</p>
                                     </div>
-                                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900 px-2 py-2 text-center">
-                                        <p className="text-[10px] uppercase tracking-wide text-slate-500">Teachers</p>
-                                        <p className="text-sm font-semibold">{school.stats?.teachers || 0}</p>
+                                    <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-violet-50/50 dark:bg-violet-500/10 border border-violet-100/50 dark:border-violet-500/20 transition-all duration-300 group-hover:bg-violet-100/50 dark:group-hover:bg-violet-500/20">
+                                        <p className="text-[10px] uppercase font-bold tracking-wider text-violet-600/70 dark:text-violet-400/70 mb-1">Teachers</p>
+                                        <p className="text-lg font-bold text-violet-700 dark:text-violet-300">{school.stats?.teachers || 0}</p>
                                     </div>
-                                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900 px-2 py-2 text-center">
-                                        <p className="text-[10px] uppercase tracking-wide text-slate-500">Students</p>
-                                        <p className="text-sm font-semibold">{school.stats?.students || 0}</p>
+                                    <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-fuchsia-50/50 dark:bg-fuchsia-500/10 border border-fuchsia-100/50 dark:border-fuchsia-500/20 transition-all duration-300 group-hover:bg-fuchsia-100/50 dark:group-hover:bg-fuchsia-500/20">
+                                        <p className="text-[10px] uppercase font-bold tracking-wider text-fuchsia-600/70 dark:text-fuchsia-400/70 mb-1">Students</p>
+                                        <p className="text-lg font-bold text-fuchsia-700 dark:text-fuchsia-300">{school.stats?.students || 0}</p>
                                     </div>
                                 </div>
                             </CardContent>
-                            <CardFooter className="relative bg-slate-50/80 dark:bg-slate-900/40 p-3.5 border-t border-slate-200 dark:border-slate-800 flex gap-2">
+                            
+                            <CardFooter className="relative bg-slate-50/50 dark:bg-slate-900/30 px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center group-hover:bg-indigo-50/30 dark:group-hover:bg-indigo-900/20 transition-colors">
+                                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                    Open Dashboard <ArrowRight className="h-3 w-3" />
+                                </span>
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="flex-1 text-xs bg-white dark:bg-slate-900"
+                                    className="ml-auto text-xs font-medium border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-white dark:hover:bg-slate-900 shadow-sm"
                                     onClick={(e) => {
                                         e.stopPropagation()
                                         router.push(`/super-admin/school/${school.slug || school.id}?tab=admins`)
@@ -381,52 +445,36 @@ function SchoolsSection() {
                                 >
                                     Manage Admins
                                 </Button>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={(e) => e.stopPropagation()}>
-                                            <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                        <DropdownMenuItem>
-                                            <Edit className="h-4 w-4 mr-2" /> Edit Details
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                            className="text-red-600"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setDeleteConfirmation({ id: school.id, name: school.name })
-                                            }}
-                                        >
-                                            <Trash2 className="h-4 w-4 mr-2" /> Delete School
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
                             </CardFooter>
                         </Card>
                     ))
                 )}
             </div>
 
+            {isFetchingNextPage && (
+                <div className="flex justify-center py-6">
+                    <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                </div>
+            )}
+
             <PasswordPromptDialog
                 open={!!deleteConfirmation}
                 onOpenChange={(open) => !open && setDeleteConfirmation(null)}
                 onConfirm={confirmDeleteSchool}
-                title={`Delete School: ${deleteConfirmation?.name}`}
-                description="Enter your password to soft delete this school. It will be moved to trash and can be restored within 24 hours."
-                actionLabel="Delete School"
+                title={`Delete Target: ${deleteConfirmation?.name}`}
+                description="Authentication required to perform this tenant deletion. The school will be moved to the Trash Bin and can be restored within 24 hours."
+                actionLabel="Confirm Deletion"
                 actionVariant="destructive"
-                warningMessage="⚠️ After 24 hours, the school will be permanently deleted along with all associated data including admins, teachers, students, classes, attendance records, and the entire database schema."
+                warningMessage="⚠️ After 24 hours, the tenant schema, including all admins, teachers, students, and materials, will be permanently purged from the database."
             />
 
             <PasswordPromptDialog
                 open={showCreatePasswordPrompt}
                 onOpenChange={setShowCreatePasswordPrompt}
                 onConfirm={handleCreateSchoolWithPassword}
-                title="Verify Your Password"
-                description={`Enter your password to create "${newSchool.name}". This will set up a new school with admin accounts and database schema.`}
-                actionLabel="Create School"
+                title="Authorize New Tenant"
+                description={`Provide your super-admin credentials to provision the infrastructure for "${newSchool.name}".`}
+                actionLabel="Authorize & Provision"
                 actionVariant="default"
             />
         </div>

@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -9,7 +10,6 @@ import { Badge } from '@/components/ui/badge'
 import {
     Trophy,
     Calendar,
-    Users,
     HelpCircle,
     BookOpen,
     Award,
@@ -17,40 +17,72 @@ import {
     Crown,
     Sparkles,
     TrendingUp,
-    Flame,
     Target,
     Zap,
-    GraduationCap,
     FlaskConical,
     Calculator,
     Globe,
     Languages,
-    MessageCircle,
     Star,
     ArrowUpRight,
     BookOpenCheck,
+    AlertCircle,
 } from 'lucide-react'
-import { mockStudents } from '@/lib/mockData'
+import { api } from '@/lib/api'
 
-// Subject data with progress and icons — refined professional palette
-const subjectProgress = [
-    { name: 'Science', progress: 80, color: '#0d9488', bgColor: '#ccfbf1', icon: FlaskConical, iconColor: '#0d9488', accentColor: '#14b8a6' },
-    { name: 'Maths', progress: 70, color: '#4f46e5', bgColor: '#e0e7ff', icon: Calculator, iconColor: '#4f46e5', accentColor: '#6366f1' },
-    { name: 'Social', progress: 60, color: '#0284c7', bgColor: '#e0f2fe', icon: Globe, iconColor: '#0284c7', accentColor: '#0ea5e9' },
-    { name: 'English', progress: 50, color: '#7c3aed', bgColor: '#f3e8ff', icon: BookOpen, iconColor: '#7c3aed', accentColor: '#a855f7' },
-    { name: 'Hindi', progress: 40, color: '#ea580c', bgColor: '#ffedd5', icon: Languages, iconColor: '#ea580c', accentColor: '#f97316' },
-]
+interface DashboardResponse {
+    student?: { id: string }
+    class?: { id?: string; name?: string }
+}
 
-// Leaderboard data with Lucide icons
-const leaderboardData = [
-    { rank: 1, name: 'Charlie Brown', badge: 'Gold', badgeColor: '#d97706' },
-    { rank: 2, name: 'Alice Johnson', badge: 'Silver', badgeColor: '#64748b' },
-    { rank: 3, name: 'Grace Lee', badge: 'Bronze', badgeColor: '#b45309' },
-    { rank: 4, name: 'Bob Smith', badge: '', badgeColor: '' },
-    { rank: 5, name: 'Eve Davis', badge: '', badgeColor: '' },
-    { rank: 6, name: 'Henry Clark', badge: '', badgeColor: '' },
-    { rank: 7, name: 'Diana Prince', badge: '', badgeColor: '' },
-    { rank: 8, name: 'Frank Wilson', badge: '', badgeColor: '' },
+interface TimetableResponse {
+    timetable: Array<{
+        periods: Array<{
+            subject_name?: string
+        }>
+    }>
+}
+
+interface QuizListItem {
+    subject_name: string
+    status: 'upcoming' | 'active' | 'completed'
+}
+
+interface QuizListResponse {
+    quizzes: QuizListItem[]
+}
+
+interface QuizLeaderboardEntry {
+    student_id: string
+    student_name: string
+    rank: number
+    is_current_student: boolean
+}
+
+interface QuizLeaderboardResponse {
+    total_students: number
+    entries: QuizLeaderboardEntry[]
+    my_entry?: QuizLeaderboardEntry
+}
+
+interface AssessmentStage {
+    assessment_id: string
+    name: string
+    completed: boolean
+}
+
+interface AssessmentStagesResponse {
+    completed_count: number
+    total_count: number
+    stages: AssessmentStage[]
+}
+
+const SUBJECT_VISUALS = [
+    { color: '#0d9488', bgColor: '#ccfbf1', icon: FlaskConical, iconColor: '#0d9488', accentColor: '#14b8a6' },
+    { color: '#4f46e5', bgColor: '#e0e7ff', icon: Calculator, iconColor: '#4f46e5', accentColor: '#6366f1' },
+    { color: '#0284c7', bgColor: '#e0f2fe', icon: Globe, iconColor: '#0284c7', accentColor: '#0ea5e9' },
+    { color: '#7c3aed', bgColor: '#f3e8ff', icon: BookOpen, iconColor: '#7c3aed', accentColor: '#a855f7' },
+    { color: '#ea580c', bgColor: '#ffedd5', icon: Languages, iconColor: '#ea580c', accentColor: '#f97316' },
 ]
 
 // Quick action buttons — refined muted palette
@@ -72,13 +104,35 @@ const quotes = [
 
 export default function StudentDashboard() {
     const router = useRouter()
-    const [mounted, setMounted] = useState(false)
     const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
-    const [currentStreak, setCurrentStreak] = useState(7)
-    const student = mockStudents[0]
+
+    const dashboardQuery = useQuery({
+        queryKey: ['student-dashboard'],
+        queryFn: () => api.get<DashboardResponse>('/student/dashboard'),
+        staleTime: 60_000,
+    })
+    const timetableQuery = useQuery({
+        queryKey: ['student-dashboard-timetable'],
+        queryFn: () => api.get<TimetableResponse>('/academic/timetable'),
+        staleTime: 60_000,
+    })
+    const quizzesQuery = useQuery({
+        queryKey: ['student-dashboard-quizzes'],
+        queryFn: () => api.get<QuizListResponse>('/student/quizzes'),
+        staleTime: 60_000,
+    })
+    const leaderboardQuery = useQuery({
+        queryKey: ['student-dashboard-leaderboard-quiz'],
+        queryFn: () => api.get<QuizLeaderboardResponse>('/student/leaderboard/quiz'),
+        staleTime: 60_000,
+    })
+    const stagesQuery = useQuery({
+        queryKey: ['student-dashboard-assessment-stages'],
+        queryFn: () => api.get<AssessmentStagesResponse>('/student/assessments/stages'),
+        staleTime: 60_000,
+    })
 
     useEffect(() => {
-        setMounted(true)
         // Rotate quotes every 10 seconds
         const quoteInterval = setInterval(() => {
             setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length)
@@ -94,25 +148,76 @@ export default function StudentDashboard() {
         router.push('/student/leaderboard')
     }
 
-    // Calculate overall progress
-    const overallProgress = Math.round(
-        subjectProgress.reduce((acc, sub) => acc + sub.progress, 0) / subjectProgress.length
-    )
+    const quizzes = useMemo(() => quizzesQuery.data?.quizzes ?? [], [quizzesQuery.data?.quizzes])
+    const leaderboardEntries = useMemo(() => leaderboardQuery.data?.entries ?? [], [leaderboardQuery.data?.entries])
+    const myEntry = leaderboardQuery.data?.my_entry
+    const totalStudents = leaderboardQuery.data?.total_students || leaderboardEntries.length || 0
 
-    if (!mounted) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="relative">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-teal-600"></div>
-                    <GraduationCap className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-teal-600" />
-                </div>
-            </div>
-        )
-    }
+    const timetableSubjects = useMemo(() => {
+        const set = new Set<string>()
+        ;(timetableQuery.data?.timetable || []).forEach((day) => {
+            ;(day.periods || []).forEach((period) => {
+                const name = (period.subject_name || '').trim()
+                if (name) set.add(name)
+            })
+        })
+        return Array.from(set)
+    }, [timetableQuery.data?.timetable])
+
+    const normalized = (value: string) => value.trim().toLowerCase()
+    const subjectProgress = useMemo(() => {
+        return timetableSubjects.map((name, idx) => {
+            const scoped = quizzes.filter((item) => normalized(item.subject_name) === normalized(name))
+            const completed = scoped.filter((item) => item.status === 'completed').length
+            const total = scoped.length
+            const progress = total > 0 ? Math.round((completed / total) * 100) : 0
+            const visual = SUBJECT_VISUALS[idx % SUBJECT_VISUALS.length]
+            return {
+                name,
+                progress,
+                total,
+                completed,
+                ...visual,
+            }
+        })
+    }, [timetableSubjects, quizzes])
+
+    const completedQuizzes = useMemo(
+        () => quizzes.filter((item) => item.status === 'completed').length,
+        [quizzes],
+    )
+    const totalQuizzes = quizzes.length
+    const overallProgress = totalQuizzes > 0 ? Math.round((completedQuizzes / totalQuizzes) * 100) : 0
+    const subjectsToMaster = subjectProgress.filter((item) => item.progress < 80).length
+
+    const leaderboardData = useMemo(() => {
+        return leaderboardEntries.slice(0, 8).map((item) => ({
+            rank: item.rank,
+            name: item.student_name,
+            badge: item.rank === 1 ? 'Gold' : item.rank === 2 ? 'Silver' : item.rank === 3 ? 'Bronze' : '',
+            badgeColor: item.rank === 1 ? '#d97706' : item.rank === 2 ? '#64748b' : item.rank === 3 ? '#b45309' : '',
+        }))
+    }, [leaderboardEntries])
+
+    const assessmentStages = stagesQuery.data?.stages || []
+    const completedAssessments = stagesQuery.data?.completed_count || 0
+    const totalAssessments = stagesQuery.data?.total_count || 0
+    const assessmentProgressPct = totalAssessments > 0 ? (completedAssessments / totalAssessments) * 100 : 0
+    const hasDataError = dashboardQuery.isError || timetableQuery.isError || quizzesQuery.isError || leaderboardQuery.isError || stagesQuery.isError
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 p-4 md:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 max-w-[1600px] mx-auto">
+                {hasDataError && (
+                    <div className="order-0 lg:col-span-12">
+                        <Card className="border border-red-200 bg-red-50">
+                            <CardContent className="p-3 flex items-center gap-2 text-red-700 text-sm">
+                                <AlertCircle className="w-4 h-4" />
+                                Some dashboard sections failed to load. Refresh to retry.
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
 
                 {/* ── MOBILE ORDER 1: Motivational Quote ───────────────── */}
                 <div className="order-1 lg:order-none lg:col-span-6 lg:col-start-4 lg:row-start-1">
@@ -162,7 +267,7 @@ export default function StudentDashboard() {
                                 </Badge>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                {quickActions.map((action, index) => (
+                                {quickActions.map((action) => (
                                     <button
                                         key={action.label}
                                         className="flex flex-col items-center gap-2.5 p-4 rounded-xl bg-slate-50/50 hover:bg-white hover:shadow-md transition-all duration-300 hover:-translate-y-1 group border border-slate-100 hover:border-slate-200"
@@ -189,7 +294,7 @@ export default function StudentDashboard() {
 
                 {/* ── MOBILE ORDER 3: Subject Progress (Performance) ──── */}
                 <div className="order-3 lg:order-none lg:col-span-3 lg:row-span-4 lg:row-start-1 space-y-4">
-                    {subjectProgress.map((subject, index) => {
+                    {subjectProgress.map((subject) => {
                         const IconComponent = subject.icon
                         return (
                             <Card
@@ -237,7 +342,7 @@ export default function StudentDashboard() {
 
                 {/* ── MOBILE ORDER 4: Leaderboard ──────────────────────── */}
                 <div className="order-4 lg:order-none lg:col-span-3 lg:row-span-4 lg:row-start-1 lg:col-start-10">
-                    <Card className="border-0 shadow-sm bg-white overflow-hidden sticky top-6">
+                    <Card className="border-0 shadow-sm bg-white overflow-hidden">
                         <CardContent className="p-5">
                             {/* Leaderboard Header */}
                             <div className="flex items-center justify-between mb-5">
@@ -257,11 +362,13 @@ export default function StudentDashboard() {
                             <div className="bg-gradient-to-r from-teal-100/80 to-emerald-100/70 rounded-xl p-3.5 mb-4 border border-teal-300/50">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold shadow-lg shadow-teal-500/30 text-sm">
-                                        {student.performance.rank}
+                                        {myEntry?.rank || '-'}
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Your Rank</p>
-                                        <p className="font-semibold text-slate-800 text-sm">#{student.performance.rank} of {student.performance.totalStudents}</p>
+                                        <p className="font-semibold text-slate-800 text-sm">
+                                            {myEntry ? `#${myEntry.rank} of ${totalStudents}` : 'Not ranked yet'}
+                                        </p>
                                     </div>
                                     <TrendingUp className="w-5 h-5 text-emerald-500" />
                                 </div>
@@ -269,7 +376,11 @@ export default function StudentDashboard() {
 
                             {/* Leaderboard List */}
                             <div className="space-y-1.5">
-                                {leaderboardData.map((item, index) => (
+                                {leaderboardData.length === 0 ? (
+                                    <div className="text-sm text-muted-foreground py-4 text-center">
+                                        No quiz leaderboard data available.
+                                    </div>
+                                ) : leaderboardData.map((item) => (
                                     <div
                                         key={item.rank}
                                         className={`flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 hover:shadow-sm hover:-translate-x-1 cursor-pointer ${item.rank <= 3
@@ -281,7 +392,6 @@ export default function StudentDashboard() {
                                             : 'bg-slate-50/50 hover:bg-slate-100 border border-transparent'
                                             }`}
                                     >
-                                        {/* Rank Badge */}
                                         <div
                                             className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-sm ${item.rank === 1
                                                 ? 'bg-gradient-to-br from-amber-400 to-amber-600'
@@ -294,8 +404,6 @@ export default function StudentDashboard() {
                                         >
                                             {item.rank}
                                         </div>
-
-                                        {/* Name and Badge */}
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium text-slate-700 truncate text-sm">{item.name}</p>
                                             {item.badge && (
@@ -307,8 +415,6 @@ export default function StudentDashboard() {
                                                 </div>
                                             )}
                                         </div>
-
-                                        {/* Icon based on rank */}
                                         {item.rank <= 3 ? (
                                             <Award className="w-4 h-4" style={{ color: item.badgeColor }} />
                                         ) : (
@@ -348,13 +454,15 @@ export default function StudentDashboard() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xl md:text-3xl font-bold text-teal-500">{5 - subjectProgress.filter(s => s.progress >= 80).length}</p>
+                                    <p className="text-xl md:text-3xl font-bold text-teal-500">{subjectsToMaster}</p>
                                     <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Subjects to master</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2.5 text-slate-600 bg-teal-100/60 rounded-lg p-3 border border-teal-200">
                                 <ArrowUpRight className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                                <span className="text-sm font-medium">Great job! You&apos;re {overallProgress}% through your assessments. Keep going!</span>
+                                <span className="text-sm font-medium">
+                                    Quiz completion: {completedQuizzes} of {totalQuizzes} completed ({overallProgress}%).
+                                </span>
                                 <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
                             </div>
                         </CardContent>
@@ -369,37 +477,27 @@ export default function StudentDashboard() {
                         {/* Inner Container for Padding */}
                         <div className="px-0 pt-12">
                             {/* Floating Labels - Appear ABOVE the bar on hover */}
-                            <div className="absolute top-0 left-0 w-full px-2 flex justify-between items-end 
-                                            opacity-0 translate-y-2 pointer-events-none
-                                            group-hover/tracker:opacity-100 group-hover/tracker:translate-y-0 group-hover/tracker:pointer-events-auto
-                                            transition-all duration-500 ease-out z-20">
-                                {[
-                                    { label: 'FA 1', status: 'completed' },
-                                    { label: 'FA 2', status: 'completed' },
-                                    { label: 'SA 1', status: 'completed' },
-                                    { label: 'FA 3', status: 'upcoming' },
-                                    { label: 'FA 4', status: 'upcoming' },
-                                    { label: 'SA 2', status: 'upcoming' },
-                                ].map((exam, i) => (
+                            <div className="absolute top-0 left-0 w-full px-2 flex justify-between items-end z-20">
+                                {assessmentStages.map((exam) => (
                                     <div
-                                        key={exam.label}
+                                        key={exam.assessment_id}
                                         className={`
                                             flex flex-col items-center gap-1
-                                            ${exam.status === 'completed' ? 'text-emerald-600' : 'text-slate-500'}
+                                            ${exam.completed ? 'text-emerald-600' : 'text-slate-500'}
                                         `}
                                     >
                                         <div className={`
                                             px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md border transform transition-transform duration-300
-                                            ${exam.status === 'completed'
+                                            ${exam.completed
                                                 ? 'bg-emerald-100/95 border-emerald-300 shadow-emerald-500/15 text-emerald-700'
                                                 : 'bg-white/95 border-slate-200 shadow-slate-500/10 text-slate-600'
                                             }
                                         `}>
-                                            {exam.status === 'completed' && <span className="mr-1 text-[10px]">✓</span>}
-                                            {exam.label}
+                                            {exam.completed && <span className="mr-1 text-[10px]">✓</span>}
+                                            {exam.name}
                                         </div>
                                         {/* Connectivity Line */}
-                                        <div className={`w-0.5 h-2 rounded-full ${exam.status === 'completed' ? 'bg-emerald-400' : 'bg-slate-300'}`} />
+                                        <div className={`w-0.5 h-2 rounded-full ${exam.completed ? 'bg-emerald-400' : 'bg-slate-300'}`} />
                                     </div>
                                 ))}
                             </div>
@@ -417,7 +515,7 @@ export default function StudentDashboard() {
                                     {/* Active Gradient Fill */}
                                     <div
                                         className="h-full bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400 relative transition-all duration-1000 ease-out group-hover/tracker:brightness-110"
-                                        style={{ width: '50%' }}
+                                        style={{ width: `${assessmentProgressPct}%` }}
                                     >
                                         {/* Animated Shine */}
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent w-full -translate-x-full animate-[shimmer_2s_infinite]" />
@@ -427,7 +525,7 @@ export default function StudentDashboard() {
                                 {/* Glow Effect behind the active part (visible on hover) */}
                                 <div
                                     className="absolute top-0 left-0 h-full blur-lg bg-teal-400/35 rounded-full transition-opacity duration-500 opacity-0 group-hover/tracker:opacity-100 -z-10"
-                                    style={{ width: '50%' }}
+                                    style={{ width: `${assessmentProgressPct}%` }}
                                 />
                             </div>
 
@@ -437,7 +535,9 @@ export default function StudentDashboard() {
 
                                 <div className="flex items-center gap-2 opacity-60 group-hover/tracker:opacity-100 transition-opacity duration-300">
                                     <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600">3 of 6 Completed</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600">
+                                        {completedAssessments} of {totalAssessments} Completed
+                                    </span>
                                 </div>
 
                                 <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold group-hover/tracker:text-slate-600 transition-colors">Finish</span>

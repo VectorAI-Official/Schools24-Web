@@ -57,6 +57,7 @@ export interface Teacher {
     employeeId: string;
     department: string;
     subjects: string[];
+    subjectIds?: string[];
     classes: string[];
     qualification: string;
     experience: string;

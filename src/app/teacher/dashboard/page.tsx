@@ -1,21 +1,18 @@
 "use client"
 
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
     Users,
     BookOpen,
     ClipboardCheck,
-    Clock,
     Calendar,
-    Bell,
     Play,
     FileText,
     CheckCircle,
-    AlertCircle,
     TrendingUp,
 } from 'lucide-react'
 import {
@@ -26,26 +23,9 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    LineChart,
-    Line,
 } from 'recharts'
-import { dashboardStats, mockQuizzes, mockStudents, mockTimetable } from '@/lib/mockData'
 import { getInitials } from '@/lib/utils'
-
-const performanceData = [
-    { class: '9-A', avg: 82 },
-    { class: '9-B', avg: 78 },
-    { class: '10-A', avg: 85 },
-    { class: '10-B', avg: 80 },
-]
-
-const weeklyProgress = [
-    { day: 'Mon', classes: 6, completed: 6 },
-    { day: 'Tue', classes: 5, completed: 5 },
-    { day: 'Wed', classes: 6, completed: 6 },
-    { day: 'Thu', classes: 5, completed: 4 },
-    { day: 'Fri', classes: 4, completed: 0 },
-]
+import { api } from '@/lib/api'
 
 const quickActions = [
     { icon: <Play className="h-5 w-5" />, label: 'Start Class', href: '/teacher/teach', color: 'bg-gradient-to-br from-teal-500 to-emerald-600 shadow-teal-500/20' },
@@ -54,16 +34,76 @@ const quickActions = [
     { icon: <BookOpen className="h-5 w-5" />, label: 'Upload Material', href: '/teacher/materials', color: 'bg-gradient-to-br from-green-500 to-emerald-700 shadow-green-500/20' },
 ]
 
+interface TeacherDashboardResponse {
+    teacher?: {
+        full_name?: string
+        rating?: number | null
+        status?: string | null
+    }
+    today_schedule?: Array<{
+        class_id?: string
+        class_name?: string
+        subject_name?: string
+        period_number?: number
+        start_time?: string
+        end_time?: string
+    }>
+    today_unique_classes?: number
+    assigned_class_count?: number
+    pending_homework_to_grade?: number
+    homework_submitted?: number
+    teacher_rank?: number
+    total_students?: number
+    class_performance?: Array<{
+        class_id: string
+        class_name: string
+        average_score: number
+        student_count: number
+    }>
+    upcoming_quizzes?: Array<{
+        id: string
+        title: string
+        subject_name: string
+        class_name: string
+        scheduled_at: string
+        duration_minutes: number
+        is_anytime: boolean
+    }>
+    recent_student_activity?: Array<{
+        student_id: string
+        student_name: string
+        homework_id: string
+        homework_title: string
+        submitted_at: string
+        status: string
+    }>
+}
+
 export default function TeacherDashboard() {
-    const todayClasses = mockTimetable.filter(slot => slot.day === 'Monday').slice(0, 4)
+    const { data: dashboardData } = useQuery({
+        queryKey: ['teacher-dashboard'],
+        queryFn: () => api.get<TeacherDashboardResponse>('/teacher/dashboard'),
+    })
+
+    const totalStudents = Number(dashboardData?.total_students ?? 0)
+    const todayUniqueClasses = Number(dashboardData?.today_unique_classes ?? 0)
+    const pendingReviews = Number(dashboardData?.pending_homework_to_grade ?? 0)
+    const teacherRating = Number(dashboardData?.teacher?.rating ?? 0)
+    const teacherName = (dashboardData?.teacher?.full_name || 'Teacher').trim()
+    const classPerformance = (dashboardData?.class_performance || []).map((item) => ({
+        class: item.class_name,
+        avg: Number(item.average_score || 0),
+    }))
+    const upcomingQuizzes = dashboardData?.upcoming_quizzes || []
+    const recentActivity = dashboardData?.recent_student_activity || []
 
     return (
         <div className="space-y-6">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-teal-700 to-emerald-600 dark:from-teal-400 dark:to-emerald-200 bg-clip-text text-transparent">Welcome back, Rajesh!</h1>
-                    <p className="text-muted-foreground mt-1">Here's what's on your schedule today.</p>
+                    <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-teal-700 to-emerald-600 dark:from-teal-400 dark:to-emerald-200 bg-clip-text text-transparent">Welcome back, {teacherName}!</h1>
+                    <p className="text-muted-foreground mt-1">Here&apos;s what&apos;s on your schedule today.</p>
                 </div>
                 <div className="flex gap-3">
                     <Button variant="outline" className="hidden md:flex">
@@ -99,10 +139,10 @@ export default function TeacherDashboard() {
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg shadow-teal-500/20">
                                 <BookOpen className="h-5 w-5" />
                             </div>
-                            <Badge variant="secondary">{dashboardStats.teacher.totalClasses} Today</Badge>
+                            <Badge variant="secondary">{todayUniqueClasses} Today</Badge>
                         </div>
                         <div className="mt-4">
-                            <p className="text-2xl font-bold">{dashboardStats.teacher.totalClasses}</p>
+                            <p className="text-2xl font-bold">{todayUniqueClasses}</p>
                             <p className="text-sm text-muted-foreground">Total Classes</p>
                         </div>
                     </CardContent>
@@ -117,7 +157,7 @@ export default function TeacherDashboard() {
                             <Badge variant="success">Active</Badge>
                         </div>
                         <div className="mt-4">
-                            <p className="text-2xl font-bold">{dashboardStats.teacher.totalStudents}</p>
+                            <p className="text-2xl font-bold">{totalStudents}</p>
                             <p className="text-sm text-muted-foreground">Total Students</p>
                         </div>
                     </CardContent>
@@ -129,10 +169,10 @@ export default function TeacherDashboard() {
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 text-white shadow-lg shadow-amber-500/20">
                                 <ClipboardCheck className="h-5 w-5" />
                             </div>
-                            <Badge variant="warning">{dashboardStats.teacher.pendingAssignments} Pending</Badge>
+                            <Badge variant="warning">{pendingReviews} Pending</Badge>
                         </div>
                         <div className="mt-4">
-                            <p className="text-2xl font-bold">{dashboardStats.teacher.pendingAssignments}</p>
+                            <p className="text-2xl font-bold">{pendingReviews}</p>
                             <p className="text-sm text-muted-foreground">Pending Reviews</p>
                         </div>
                     </CardContent>
@@ -145,11 +185,11 @@ export default function TeacherDashboard() {
                                 <TrendingUp className="h-5 w-5" />
                             </div>
                             <div className="flex items-center text-yellow-500">
-                                {'★'.repeat(Math.floor(dashboardStats.teacher.rating))}
+                                {'★'.repeat(Math.max(0, Math.min(5, Math.floor(teacherRating))))}
                             </div>
                         </div>
                         <div className="mt-4">
-                            <p className="text-2xl font-bold">{dashboardStats.teacher.rating}</p>
+                            <p className="text-2xl font-bold">{teacherRating.toFixed(1)}</p>
                             <p className="text-sm text-muted-foreground">Your Rating</p>
                         </div>
                     </CardContent>
@@ -166,9 +206,13 @@ export default function TeacherDashboard() {
                         <CardDescription>Average scores across your classes</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[300px] w-full" style={{ minHeight: '300px', minWidth: '0' }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={performanceData} layout="vertical">
+                        {classPerformance.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No class performance data available yet</p>
+                        ) : (
+                        <div className={`${classPerformance.length > 4 ? 'max-h-[260px] overflow-y-auto pr-2' : ''}`}>
+                            <div className="w-full" style={{ minWidth: '0', height: `${Math.max(224, classPerformance.length * 56)}px` }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={classPerformance} layout="vertical" margin={{ left: 8, right: 16 }}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis type="number" domain={[0, 100]} className="text-xs" />
                                     <YAxis dataKey="class" type="category" className="text-xs" width={50} />
@@ -182,8 +226,10 @@ export default function TeacherDashboard() {
                                     />
                                     <Bar dataKey="avg" fill="#10b981" radius={[0, 4, 4, 0]} />
                                 </BarChart>
-                            </ResponsiveContainer>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
@@ -195,23 +241,29 @@ export default function TeacherDashboard() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>Scheduled Quizzes</CardTitle>
-                            <Button variant="ghost" size="sm">View All</Button>
+                            <Button variant="ghost" size="sm" onClick={() => { window.location.href = '/teacher/quiz-scheduler' }}>View All</Button>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {mockQuizzes.filter(q => q.status === 'upcoming').slice(0, 3).map((quiz) => (
+                            {upcomingQuizzes.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No quizzes found</p>
+                            ) : upcomingQuizzes.slice(0, 3).map((quiz) => (
                                 <div key={quiz.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted transition-colors">
                                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                         <FileText className="h-5 w-5" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium truncate">{quiz.title}</p>
-                                        <p className="text-sm text-muted-foreground">{quiz.subject} • {quiz.class}</p>
+                                        <p className="text-sm text-muted-foreground">{quiz.subject_name} • {quiz.class_name}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-medium">{quiz.scheduledDate}</p>
-                                        <p className="text-xs text-muted-foreground">{quiz.duration} mins</p>
+                                    <div className="text-right shrink-0">
+                                        {quiz.is_anytime ? (
+                                            <Badge variant="secondary">Anytime</Badge>
+                                        ) : (
+                                            <p className="text-sm font-medium">{new Date(quiz.scheduled_at).toLocaleDateString()}</p>
+                                        )}
+                                        <p className="text-xs text-muted-foreground mt-0.5">{quiz.duration_minutes} mins</p>
                                     </div>
                                 </div>
                             ))}
@@ -224,24 +276,25 @@ export default function TeacherDashboard() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>Student Activity</CardTitle>
-                            <Button variant="ghost" size="sm">View All</Button>
+                            <Button variant="ghost" size="sm" onClick={() => { window.location.href = '/teacher/homework' }}>View All</Button>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {mockStudents.slice(0, 4).map((student) => (
-                                <div key={student.id} className="flex items-center gap-4">
+                            {recentActivity.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No recent homework submissions</p>
+                            ) : recentActivity.slice(0, 4).map((student) => (
+                                <div key={`${student.homework_id}-${student.student_id}-${student.submitted_at}`} className="flex items-center gap-4">
                                     <Avatar>
-                                        <AvatarImage src={student.avatar} />
-                                        <AvatarFallback>{getInitials(student.name)}</AvatarFallback>
+                                        <AvatarFallback>{getInitials(student.student_name)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-medium">{student.name}</p>
-                                        <p className="text-sm text-muted-foreground">Submitted homework • 2h ago</p>
+                                        <p className="font-medium">{student.student_name}</p>
+                                        <p className="text-sm text-muted-foreground">{student.homework_title} • {new Date(student.submitted_at).toLocaleString()}</p>
                                     </div>
                                     <Badge variant="success">
                                         <CheckCircle className="h-3 w-3 mr-1" />
-                                        Submitted
+                                        {student.status === 'graded' ? 'Graded' : 'Submitted'}
                                     </Badge>
                                 </div>
                             ))}
@@ -250,34 +303,6 @@ export default function TeacherDashboard() {
                 </Card>
             </div>
 
-            {/* Weekly Progress */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Weekly Progress</CardTitle>
-                    <CardDescription>Classes completed this week</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="h-[250px] w-full" style={{ minHeight: '250px', minWidth: '0' }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={weeklyProgress}>
-                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                <XAxis dataKey="day" className="text-xs" />
-                                <YAxis className="text-xs" />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: 'hsl(var(--card))',
-                                        border: '1px solid hsl(var(--border))',
-                                        borderRadius: '8px',
-                                    }}
-                                    cursor={false}
-                                />
-                                <Line type="monotone" dataKey="classes" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} name="Scheduled" />
-                                <Line type="monotone" dataKey="completed" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981' }} name="Completed" />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     )
 }

@@ -2,9 +2,9 @@
 
 import { getSubjectColor } from '@/lib/constants'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -24,12 +24,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Download, Printer, Calendar, Plus, Edit, Trash2, Save, User, MapPin, Settings, Clock, BookOpen, X } from 'lucide-react'
+import { Download, Printer, Calendar, Plus, Edit, Trash2, Save, User, MapPin, Settings, Clock, BookOpen } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useClasses } from '@/hooks/useClasses'
 import { sortSchoolClasses } from '@/lib/classOrdering'
 import { useTeachers } from '@/hooks/useAdminTeachers'
 import { useClassSubjects, useCreateSubject, useUpdateSubject, useDeleteSubject, type CreateSubjectRequest } from '@/hooks/useClassSubjects'
+import { useSubjects } from '@/hooks/useSubjects'
 import {
     useAdminTimetableConfig,
     useUpdateTimetableConfig,
@@ -40,7 +41,7 @@ import {
 } from '@/hooks/useAdminTimetable'
 import { toast } from 'sonner'
 
-const fallbackDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const EMPTY_SUBJECTS: { id: string; name: string; code: string; description?: string | null; grade_levels?: number[]; credits?: number; is_optional?: boolean }[] = []
 
 const getCurrentAcademicYear = () => {
     const now = new Date()
@@ -55,7 +56,6 @@ const getCurrentAcademicYear = () => {
 const formatTime = (time: string) => {
     const [hours, minutes] = time.split(':')
     const h = parseInt(hours)
-    const ampm = h >= 12 ? 'PM' : 'AM'
     const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h
     return `${h12.toString().padStart(2, '0')}:${minutes}`
 }
@@ -88,32 +88,29 @@ export default function StudentsTimetablePage() {
     const { data: classesData } = useClasses(academicYear)
     const classOptions = useMemo(() => sortSchoolClasses(classesData?.classes || []), [classesData?.classes])
     const [selectedClassId, setSelectedClassId] = useState('')
-
-    useEffect(() => {
-        if (!selectedClassId && classOptions.length > 0) {
-            setSelectedClassId(classOptions[0].id)
-        }
-    }, [classOptions, selectedClassId])
+    const effectiveSelectedClassId = selectedClassId || classOptions[0]?.id || ''
 
     const { data: configData } = useAdminTimetableConfig(schoolId, { enabled: canLoad })
     const updateConfig = useUpdateTimetableConfig()
-    const { data: classTimetableData } = useClassTimetable(selectedClassId, academicYear, schoolId, { enabled: canLoad && !!selectedClassId })
+    const { data: classTimetableData } = useClassTimetable(effectiveSelectedClassId, academicYear, schoolId, { enabled: canLoad && !!effectiveSelectedClassId })
     const upsertSlot = useUpsertTimetableSlot()
     const deleteSlot = useDeleteTimetableSlot()
 
     const { data: teachersData } = useTeachers('', 200, schoolId, undefined, undefined, { enabled: canLoad })
     const teachers = useMemo(() => teachersData?.pages.flatMap(page => page.teachers) || [], [teachersData])
-    const { data: classSubjectsData } = useClassSubjects(selectedClassId, { enabled: canLoad && !!selectedClassId })
-    const classSubjects = classSubjectsData?.subjects || []
-    const createSubject = useCreateSubject(selectedClassId)
-    const updateSubject = useUpdateSubject(selectedClassId)
-    const deleteSubject = useDeleteSubject(selectedClassId)
+    const { data: classSubjectsData } = useClassSubjects(effectiveSelectedClassId, { enabled: canLoad && !!effectiveSelectedClassId })
+    const classSubjects = useMemo(() => classSubjectsData?.subjects || EMPTY_SUBJECTS, [classSubjectsData?.subjects])
+    const { data: allSubjectsData } = useSubjects({ enabled: canLoad, schoolId })
+    const allSubjects = useMemo(() => allSubjectsData?.subjects || EMPTY_SUBJECTS, [allSubjectsData?.subjects])
+    const createSubject = useCreateSubject(effectiveSelectedClassId)
+    const updateSubject = useUpdateSubject(effectiveSelectedClassId)
+    const deleteSubject = useDeleteSubject(effectiveSelectedClassId)
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isPeriodsDialogOpen, setIsPeriodsDialogOpen] = useState(false)
     const [isSubjectsDialogOpen, setIsSubjectsDialogOpen] = useState(false)
     const [isSubjectFormOpen, setIsSubjectFormOpen] = useState(false)
-    const [editingSubject, setEditingSubject] = useState<any>(null)
+    const [editingSubject, setEditingSubject] = useState<(typeof classSubjects)[number] | null>(null)
     const [selectedSlot, setSelectedSlot] = useState<{ dayOfWeek: number; periodNumber: number; entryId?: string } | null>(null)
     const [formData, setFormData] = useState({
         subjectId: '',
@@ -150,17 +147,58 @@ export default function StudentsTimetablePage() {
     }, [configData])
 
     const timetableEntries = classTimetableData?.timetable || []
-    const selectedClass = useMemo(() => classOptions.find(c => c.id === selectedClassId), [classOptions, selectedClassId])
+    const selectedClass = useMemo(() => classOptions.find(c => c.id === effectiveSelectedClassId), [classOptions, effectiveSelectedClassId])
     const selectedClassLabel = selectedClass ? getDisplayClassLabel(selectedClass) : ''
+    const selectedTeacher = useMemo(
+        () => teachers.find((teacher) => teacher.id === formData.teacherId),
+        [teachers, formData.teacherId]
+    )
+    const teacherSubjectOptionsFromAll = useMemo(() => {
+        if (!selectedTeacher || !selectedTeacher.subjects || selectedTeacher.subjects.length === 0) {
+            return EMPTY_SUBJECTS
+        }
+        const selectedSubjectSet = new Set(selectedTeacher.subjects.map((subject) => subject.trim().toLowerCase()))
+        return allSubjects.filter((subject) => {
+            const subjectName = subject.name.trim().toLowerCase()
+            const subjectCode = subject.code.trim().toLowerCase()
+            const subjectID = subject.id.trim().toLowerCase()
+            return selectedSubjectSet.has(subjectName) || selectedSubjectSet.has(subjectCode) || selectedSubjectSet.has(subjectID)
+        })
+    }, [selectedTeacher, allSubjects])
+    const teacherSubjectOptions = useMemo(() => {
+        if (!selectedTeacher || !selectedTeacher.subjects || selectedTeacher.subjects.length === 0) {
+            return classSubjects
+        }
+
+        const selectedSubjectSet = new Set(selectedTeacher.subjects.map((subject) => subject.trim().toLowerCase()))
+        return classSubjects.filter((subject) => {
+            const subjectName = subject.name.trim().toLowerCase()
+            const subjectCode = subject.code.trim().toLowerCase()
+            const subjectID = subject.id.trim().toLowerCase()
+            return selectedSubjectSet.has(subjectName) || selectedSubjectSet.has(subjectCode) || selectedSubjectSet.has(subjectID)
+        })
+    }, [selectedTeacher, classSubjects])
+
+    const availableSubjectOptions = useMemo(() => {
+        const hasTeacherScopedSubjects = !!selectedTeacher && !!selectedTeacher.subjects && selectedTeacher.subjects.length > 0
+        if (hasTeacherScopedSubjects) {
+            if (teacherSubjectOptions.length > 0) return teacherSubjectOptions
+            if (teacherSubjectOptionsFromAll.length > 0) return teacherSubjectOptionsFromAll
+            return EMPTY_SUBJECTS
+        }
+        if (teacherSubjectOptions.length > 0) return teacherSubjectOptions
+        if (classSubjects.length > 0) return classSubjects
+        return allSubjects
+    }, [selectedTeacher, teacherSubjectOptions, teacherSubjectOptionsFromAll, classSubjects, allSubjects])
+    const effectiveSubjectId = useMemo(
+        () => (availableSubjectOptions.some((subject) => subject.id === formData.subjectId) ? formData.subjectId : ''),
+        [availableSubjectOptions, formData.subjectId]
+    )
 
     const [tempConfig, setTempConfig] = useState({
         days: dayConfigs,
         periods: periodsConfig
     })
-
-    useEffect(() => {
-        setTempConfig({ days: dayConfigs, periods: periodsConfig })
-    }, [dayConfigs, periodsConfig])
 
     // Generate time slots from periods config
     const timeSlots = useMemo(() => {
@@ -208,21 +246,21 @@ export default function StudentsTimetablePage() {
     }
 
     const handleSaveSlot = () => {
-        if (!selectedSlot || !selectedClassId) return
+        if (!selectedSlot || !effectiveSelectedClassId) return
         const period = periodsConfig.find(p => p.period_number === selectedSlot.periodNumber)
         if (!period) return
 
-        if (!formData.subjectId || !formData.teacherId) {
+        if (!effectiveSubjectId || !formData.teacherId) {
             toast.error('Please select both subject and teacher')
             return
         }
 
         upsertSlot.mutate({
             payload: {
-                class_id: selectedClassId,
+                class_id: effectiveSelectedClassId,
                 day_of_week: selectedSlot.dayOfWeek,
                 period_number: selectedSlot.periodNumber,
-                subject_id: formData.subjectId,
+                subject_id: effectiveSubjectId,
                 teacher_id: formData.teacherId,
                 start_time: period.start_time,
                 end_time: period.end_time,
@@ -238,9 +276,9 @@ export default function StudentsTimetablePage() {
     }
 
     const handleDeleteSlot = () => {
-        if (!selectedSlot || !selectedClassId) return
+        if (!selectedSlot || !effectiveSelectedClassId) return
         deleteSlot.mutate({
-            classId: selectedClassId,
+            classId: effectiveSelectedClassId,
             dayOfWeek: selectedSlot.dayOfWeek,
             periodNumber: selectedSlot.periodNumber,
             academicYear,
@@ -297,7 +335,7 @@ export default function StudentsTimetablePage() {
         )
         setTempConfig({ ...tempConfig, days: newDays })
     }
-    const handleOpenSubjectForm = (subject?: any) => {
+    const handleOpenSubjectForm = (subject?: (typeof classSubjects)[number]) => {
         if (subject) {
             setEditingSubject(subject)
             setSubjectForm({
@@ -354,7 +392,7 @@ export default function StudentsTimetablePage() {
                 await createSubject.mutateAsync(subjectForm)
             }
             setIsSubjectFormOpen(false)
-        } catch (error) {
+        } catch {
             // Error handled by mutation
         }
     }
@@ -363,7 +401,7 @@ export default function StudentsTimetablePage() {
         if (!confirm('Are you sure you want to delete this subject?')) return
         try {
             await deleteSubject.mutateAsync(subjectId)
-        } catch (error) {
+        } catch {
             // Error handled by mutation
         }
     }
@@ -392,11 +430,11 @@ export default function StudentsTimetablePage() {
                     <p className="text-xs text-muted-foreground hidden sm:block">View and manage class timetables</p>
                 </div>
                 <div className="flex items-center gap-1 flex-wrap">
-                    <Button variant="outline" size="sm" onClick={() => setIsSubjectsDialogOpen(true)} disabled={!selectedClassId}>
+                    <Button variant="outline" size="sm" onClick={() => setIsSubjectsDialogOpen(true)} disabled={!effectiveSelectedClassId}>
                         <BookOpen className="mr-1.5 h-3.5 w-3.5" />
                         <span className="hidden sm:inline">Subjects</span>
                     </Button>
-                    <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                    <Select value={effectiveSelectedClassId} onValueChange={setSelectedClassId}>
                         <SelectTrigger className="w-[90px] sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs">
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
@@ -520,14 +558,14 @@ export default function StudentsTimetablePage() {
                         <div className="grid gap-2">
                             <Label>Subject</Label>
                             <Select
-                                value={formData.subjectId}
+                                value={effectiveSubjectId}
                                 onValueChange={(value) => setFormData({ ...formData, subjectId: value })}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select subject" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {classSubjects.map((subject) => (
+                                    {availableSubjectOptions.map((subject) => (
                                         <SelectItem key={subject.id} value={subject.id}>
                                             {subject.name}
                                         </SelectItem>
@@ -547,7 +585,10 @@ export default function StudentsTimetablePage() {
                                 <SelectContent>
                                     {teachers.map((teacher) => (
                                         <SelectItem key={teacher.id} value={teacher.id}>
-                                            {teacher.name}
+                                            <div className="flex items-center gap-2">
+                                                <span>{teacher.name}</span>
+                                                <span className="text-xs text-muted-foreground">{teacher.email}</span>
+                                            </div>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

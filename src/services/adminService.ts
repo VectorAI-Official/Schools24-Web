@@ -25,6 +25,34 @@ export interface AdminDashboardData {
     inventory_alerts: InventoryItem[];
 }
 
+export interface RevenueChartPoint {
+    label: string;
+    revenue: number;
+}
+
+export interface FinanceChartResponse {
+    period: string;
+    data: RevenueChartPoint[];
+}
+
+export interface RecentPayment {
+    id: string;
+    student_id: string;
+    student_fee_id?: string;
+    amount: number;
+    payment_method: string;
+    transaction_id?: string;
+    receipt_number: string;
+    payment_date: string;
+    status: string;
+    notes?: string;
+    purpose?: string;
+    collected_by?: string;
+    created_at: string;
+    student_name: string;
+    collector_name: string;
+}
+
 export interface StudentLeaderboardItem {
     rank: number;
     student_id: string;
@@ -33,12 +61,8 @@ export interface StudentLeaderboardItem {
     roll_number?: string;
     class_name: string;
     section?: string;
-    average_score: number;
-    attendance_percent: number;
-    exams_taken: number;
-    trend: 'up' | 'down' | 'stable';
-    composite_score: number;
-    last_calculated_at: string;
+    avg_assessment_pct: number;
+    assessments_with_scores: number;
 }
 
 export interface TeacherLeaderboardItem {
@@ -49,6 +73,7 @@ export interface TeacherLeaderboardItem {
     department: string;
     rating: number;
     students_count: number;
+    status: string;
     assignments_count: number;
     graded_records_count: number;
     average_student_score: number;
@@ -106,5 +131,13 @@ export const adminService = {
             `/admin/leaderboards/refresh${query.toString() ? `?${query.toString()}` : ''}`,
             { academic_year: academicYear || '' },
         );
+    },
+
+    getRevenueChart: async (period: 'week' | 'month' | 'year' = 'month') => {
+        return api.get<FinanceChartResponse>(`/admin/finance/chart?period=${period}`);
+    },
+
+    getRecentPayments: async (limit = 5) => {
+        return api.get<{ payments: RecentPayment[] }>(`/admin/payments?limit=${limit}`);
     },
 };

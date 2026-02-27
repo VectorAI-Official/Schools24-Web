@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Trophy, Star, Users, TrendingUp } from 'lucide-react'
+import { Trophy, Star, Users, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useTeacherLeaderboard } from '@/hooks/useTeacherLeaderboard'
 
@@ -19,8 +19,11 @@ export default function TeacherLeaderboardPage() {
     const myTrend = data?.my_trend || 'stable'
 
     const myRankDisplay = myRank > 0 ? `#${myRank}` : '—'
-    const rankDelta = myTrend === 'up' ? 2 : myTrend === 'down' ? -2 : 0
-    const rankDeltaDisplay = `${rankDelta >= 0 ? '+' : ''}${rankDelta}`
+    const totalTeachers = allTeachers.length
+    const percentile = myRank > 0 && totalTeachers > 0
+        ? Math.ceil((myRank / totalTeachers) * 100)
+        : null
+    const percentileLabel = percentile !== null ? `Top ${percentile}%` : null
 
     return (
         <div className="space-y-6">
@@ -37,7 +40,7 @@ export default function TeacherLeaderboardPage() {
                 {topTeachers.map((teacher, index) => (
                     <Card
                         key={teacher.rank}
-                        className={`relative overflow-hidden transition-all hover:shadow-lg ${index === 0 ? 'border-yellow-500/50 border-2' :
+                        className={`relative overflow-hidden transition-all hover:shadow-lg ${teacher.rank === 1 ? 'border-yellow-500/50 border-2' :
                             teacher.teacher_id === myTeacherId ? 'border-emerald-500/50 border-2' : ''
                             }`}
                     >
@@ -49,18 +52,18 @@ export default function TeacherLeaderboardPage() {
                         <CardContent className="p-4 text-center">
                             <div className="relative inline-block mb-3">
                                 <Avatar className="h-16 w-16">
-                                    <AvatarFallback className={`text-lg ${index === 0 ? 'bg-yellow-500 text-white' :
-                                        index === 1 ? 'bg-emerald-500 text-white' :
+                                    <AvatarFallback className={`text-lg ${teacher.rank === 1 ? 'bg-yellow-500 text-white' :
+                                        teacher.rank === 2 ? 'bg-gray-400 text-white' :
                                             'bg-amber-600 text-white'
                                         }`}>
                                         {getInitials(teacher.name)}
                                     </AvatarFallback>
                                 </Avatar>
-                                <div className={`absolute -top-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full text-white text-sm font-bold shadow-md ${index === 0 ? 'bg-yellow-500' :
-                                    index === 1 ? 'bg-gray-400' :
+                                <div className={`absolute -top-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full text-white text-sm font-bold shadow-md ${teacher.rank === 1 ? 'bg-yellow-500' :
+                                    teacher.rank === 2 ? 'bg-gray-400' :
                                         'bg-amber-600'
                                     }`}>
-                                    {index === 0 ? <Trophy className="h-4 w-4" /> : teacher.rank}
+                                    {teacher.rank === 1 ? <Trophy className="h-4 w-4" /> : teacher.rank}
                                 </div>
                             </div>
                             <h3 className="font-semibold">{teacher.name}</h3>
@@ -95,7 +98,7 @@ export default function TeacherLeaderboardPage() {
                                 </div>
                             </div>
                             <div className="hidden md:block">
-                                <Badge className="bg-emerald-500 text-white">Top 10%</Badge>
+                                {percentileLabel && <Badge className="bg-emerald-500 text-white">{percentileLabel}</Badge>}
                             </div>
                         </div>
                     </CardContent>
@@ -114,9 +117,14 @@ export default function TeacherLeaderboardPage() {
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent" />
                     <CardContent className="p-4 md:p-6 text-center relative">
-                        <TrendingUp className="h-8 w-8 mx-auto mb-2 text-amber-500" />
-                        <p className="text-2xl font-bold">{rankDeltaDisplay}</p>
-                        <p className="text-xs text-muted-foreground">Rank Improvement</p>
+                        {myTrend === 'up' && <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-500" />}
+                        {myTrend === 'down' && <TrendingDown className="h-8 w-8 mx-auto mb-2 text-red-500" />}
+                        {myTrend === 'stable' && <Minus className="h-8 w-8 mx-auto mb-2 text-amber-500" />}
+                        <p className={`text-lg font-bold capitalize ${
+                            myTrend === 'up' ? 'text-green-600' :
+                            myTrend === 'down' ? 'text-red-600' : 'text-amber-600'
+                        }`}>{myTrend === 'up' ? 'Improving' : myTrend === 'down' ? 'Declining' : 'Stable'}</p>
+                        <p className="text-xs text-muted-foreground">Rating Trend</p>
                     </CardContent>
                 </Card>
             </div>
@@ -135,12 +143,12 @@ export default function TeacherLeaderboardPage() {
                                 className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${teacher.teacher_id === myTeacherId ? 'border-emerald-500/50 bg-emerald-500/5' : 'hover:bg-muted/50'
                                     }`}
                             >
-                                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${index === 0 ? 'bg-yellow-500 text-white' :
-                                    index === 1 ? 'bg-gray-400 text-white' :
-                                        index === 2 ? 'bg-amber-600 text-white' :
+                                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${teacher.rank === 1 ? 'bg-yellow-500 text-white' :
+                                    teacher.rank === 2 ? 'bg-gray-400 text-white' :
+                                        teacher.rank === 3 ? 'bg-amber-600 text-white' :
                                             'bg-muted text-muted-foreground'
                                     }`}>
-                                    {index + 1}
+                                    {teacher.rank}
                                 </div>
                                 <Avatar className="h-8 w-8">
                                     <AvatarFallback className="text-xs">{getInitials(teacher.name)}</AvatarFallback>

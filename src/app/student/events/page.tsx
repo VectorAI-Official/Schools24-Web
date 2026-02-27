@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,12 +9,25 @@ import {
     Calendar, Clock, MapPin, CalendarDays, Users, ArrowLeft, Bell,
     PartyPopper, BookOpen, Trophy, Sparkles, ExternalLink
 } from 'lucide-react'
-import { mockEvents } from '@/lib/mockData'
+import { useStudentEvents } from '@/hooks/useEvents'
 import { toast } from 'sonner'
 
 export default function StudentEventsPage() {
     const router = useRouter()
-    const upcomingEvents = mockEvents.filter(e => e.type !== 'meeting')
+    const { data, isLoading } = useStudentEvents({ page: 1, pageSize: 500 })
+    const allEvents = useMemo(() => data?.events || [], [data?.events])
+    const upcomingEvents = useMemo(() => {
+        const today = new Date()
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        return [...allEvents]
+            .filter(e => e.type !== 'meeting')
+            .filter(e => {
+                const [y, m, d] = e.date.split('-').map(Number)
+                if (!y || !m || !d) return true
+                return new Date(y, m - 1, d) >= startOfToday
+            })
+            .sort((a, b) => a.date.localeCompare(b.date))
+    }, [allEvents])
 
     const getEventColor = (type: string) => {
         switch (type) {
@@ -57,6 +71,17 @@ export default function StudentEventsPage() {
         })
     }
 
+    if (isLoading) {
+        return (
+            <div className="space-y-6 animate-fade-in">
+                <div className="flex items-center gap-2 p-6 text-muted-foreground">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Loading events...
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
@@ -87,7 +112,7 @@ export default function StudentEventsPage() {
                                 <CalendarDays className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{upcomingEvents.length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{allEvents.length}</p>
                                 <p className="text-sm text-muted-foreground">Upcoming Events</p>
                             </div>
                         </div>
@@ -101,7 +126,7 @@ export default function StudentEventsPage() {
                                 <BookOpen className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-xl md:text-3xl font-bold text-red-700 dark:text-red-400">{mockEvents.filter(e => e.type === 'exam').length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-red-700 dark:text-red-400">{allEvents.filter(e => e.type === 'exam').length}</p>
                                 <p className="text-sm text-muted-foreground">Exams</p>
                             </div>
                         </div>
@@ -115,7 +140,7 @@ export default function StudentEventsPage() {
                                 <PartyPopper className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">{mockEvents.filter(e => e.type === 'holiday').length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">{allEvents.filter(e => e.type === 'holiday').length}</p>
                                 <p className="text-sm text-muted-foreground">Holidays</p>
                             </div>
                         </div>
@@ -129,7 +154,7 @@ export default function StudentEventsPage() {
                                 <Trophy className="h-7 w-7" />
                             </div>
                             <div>
-                                <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">{mockEvents.filter(e => e.type === 'sports').length}</p>
+                                <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">{allEvents.filter(e => e.type === 'sports').length}</p>
                                 <p className="text-sm text-muted-foreground">Sports Events</p>
                             </div>
                         </div>

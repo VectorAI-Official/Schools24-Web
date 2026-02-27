@@ -12,6 +12,7 @@ interface TeacherApi {
     avatar?: string | null
     employeeId: string
     department: string
+    subject_ids?: string[]
     designation?: string | null
     qualifications?: string[]
     subjects?: string[]
@@ -30,6 +31,14 @@ interface TeachersResponse {
     page_size: number
 }
 
+type TeacherMutationPayload = Record<string, unknown>
+type ApiErrorLike = { response?: { data?: { error?: string } } }
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+    const apiError = error as ApiErrorLike
+    return apiError?.response?.data?.error || fallback
+}
+
 const mapTeacher = (t: TeacherApi): Teacher => ({
     id: t.id,
     name: t.name,
@@ -38,6 +47,7 @@ const mapTeacher = (t: TeacherApi): Teacher => ({
     employeeId: t.employeeId,
     department: t.department,
     subjects: t.subjects || [],
+    subjectIds: t.subject_ids || [],
     classes: t.classes || [],
     qualification: (t.qualifications && t.qualifications.length > 0) ? t.qualifications.join(', ') : '',
     experience: t.experience != null ? `${t.experience} years` : '',
@@ -70,7 +80,7 @@ export function useTeachers(
             const res = await api.get<TeachersResponse>(`/admin/teachers?${params.toString()}`)
             return {
                 ...res,
-                teachers: res.teachers.map(mapTeacher),
+                teachers: (res.teachers ?? []).map(mapTeacher),
             }
         },
         initialPageParam: 1,
@@ -85,7 +95,7 @@ export function useTeachers(
 export function useCreateTeacher() {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: ({ data, schoolId }: { data: any; schoolId?: string }) => {
+        mutationFn: ({ data, schoolId }: { data: TeacherMutationPayload; schoolId?: string }) => {
             const params = new URLSearchParams()
             if (schoolId) params.append('school_id', schoolId)
             const url = `/admin/teachers${params.toString() ? `?${params.toString()}` : ''}`
@@ -95,8 +105,8 @@ export function useCreateTeacher() {
             queryClient.invalidateQueries({ queryKey: ['teachers'] })
             toast.success('Teacher added successfully')
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.error || 'Failed to create teacher')
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, 'Failed to create teacher'))
         },
     })
 }
@@ -104,7 +114,7 @@ export function useCreateTeacher() {
 export function useUpdateTeacher() {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: ({ id, data, schoolId }: { id: string; data: any; schoolId?: string }) => {
+        mutationFn: ({ id, data, schoolId }: { id: string; data: TeacherMutationPayload; schoolId?: string }) => {
             const params = new URLSearchParams()
             if (schoolId) params.append('school_id', schoolId)
             const url = `/admin/teachers/${id}${params.toString() ? `?${params.toString()}` : ''}`
@@ -114,8 +124,8 @@ export function useUpdateTeacher() {
             queryClient.invalidateQueries({ queryKey: ['teachers'] })
             toast.success('Teacher updated successfully')
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.error || 'Failed to update teacher')
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, 'Failed to update teacher'))
         },
     })
 }
@@ -133,8 +143,8 @@ export function useDeleteTeacher() {
             queryClient.invalidateQueries({ queryKey: ['teachers'] })
             toast.success('Teacher deleted successfully')
         },
-        onError: (error: any) => {
-            toast.error(error.response?.data?.error || 'Failed to delete teacher')
+        onError: (error: unknown) => {
+            toast.error(getErrorMessage(error, 'Failed to delete teacher'))
         },
     })
 }

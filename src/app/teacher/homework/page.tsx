@@ -24,7 +24,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { BookOpen, Calendar, Eye, GraduationCap, Loader2, Plus, Search, Upload } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { BookOpen, Calendar, Eye, GraduationCap, Loader2, Pencil, Plus, Search, Trash2, Upload, Users, XCircle } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 
@@ -66,6 +76,24 @@ interface HomeworkItem {
   created_at: string
 }
 
+interface HomeworkSubmissionEntry {
+  student_id: string
+  student_name: string
+  roll_number?: string
+  submitted_at: string
+  status: string
+  marks_obtained?: number | null
+  feedback?: string
+}
+
+interface HomeworkSubmissionsResponse {
+  homework_id: string
+  title: string
+  submissions_count: number
+  students_count: number
+  submissions: HomeworkSubmissionEntry[]
+}
+
 const STORAGE_KEYS = {
   TOKEN: "School24_token",
   REMEMBER: "School24_remember",
@@ -88,6 +116,19 @@ function formatDate(iso: string) {
   return date.toLocaleDateString()
 }
 
+function formatDateTime(iso: string) {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso
+  return date.toLocaleString()
+}
+
+function toDateInputValue(iso: string | undefined): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ""
+  return d.toISOString().split("T")[0]
+}
+
 function formatFileSize(bytes?: number) {
   if (!bytes || bytes <= 0) return ""
   const units = ["B", "KB", "MB", "GB"]
@@ -106,6 +147,17 @@ export default function HomeworkPage() {
 
   const [openAssign, setOpenAssign] = useState(false)
   const [viewHomework, setViewHomework] = useState<HomeworkItem | null>(null)
+
+  // edit dialog
+  const [editHomework, setEditHomework] = useState<HomeworkItem | null>(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [editDescription, setEditDescription] = useState("")
+  const [editDueDate, setEditDueDate] = useState("")
+  const [editMaxMarks, setEditMaxMarks] = useState("100")
+
+  // delete confirm
+  const [deleteTarget, setDeleteTarget] = useState<HomeworkItem | null>(null)
+
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [classFilter, setClassFilter] = useState("all")
@@ -142,6 +194,25 @@ export default function HomeworkPage() {
       return api.get<{ homework: HomeworkItem[] }>(`/teacher/homework?${params.toString()}`)
     },
   })
+
+  // submissions query: enabled only when view dialog is open
+  const submissionsQuery = useQuery({
+    queryKey: ["teacher-homework-submissions", viewHomework?.id],
+    queryFn: () =>
+      api.get<HomeworkSubmissionsResponse>(
+        `/teacher/homework/${viewHomework!.id}/submissions`
+      ),
+    enabled: !!viewHomework,
+  })
+
+  // open edit dialog – populate fields from the selected homework
+  const openEditDialog = (hw: HomeworkItem) => {
+    setEditHomework(hw)
+    setEditTitle(hw.title)
+    setEditDescription(hw.description || "")
+    setEditDueDate(toDateInputValue(hw.due_date))
+    setEditMaxMarks(String(hw.max_marks || 100))
+  }
 
   const classOptions = optionsQuery.data?.options || []
   const selectedClass = useMemo(
@@ -192,7 +263,7 @@ export default function HomeworkPage() {
       form.append("max_marks", maxMarks || "100")
       files.forEach((file) => form.append("attachments", file))
 
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1"
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL
       const response = await fetch(`${baseUrl}/teacher/homework`, {
         method: "POST",
         headers: {
@@ -219,13 +290,53 @@ export default function HomeworkPage() {
     },
   })
 
+  // update mutation
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editHomework) throw new Error("No homework selected")
+      if (!editTitle.trim()) throw new Error("Title is required")
+      if (!editDueDate) throw new Error("Due date is required")
+      return api.put(`/teacher/homework/${editHomework.id}`, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        due_date: editDueDate,
+        max_marks: parseInt(editMaxMarks || "100", 10),
+      })
+    },
+    onSuccess: () => {
+      toast.success("Homework updated")
+      setEditHomework(null)
+      queryClient.invalidateQueries({ queryKey: ["teacher-homework-list"] })
+    },
+    onError: (error: unknown) => {
+      toast.error("Failed to update homework", {
+        description: error instanceof Error ? error.message : "Unexpected error",
+      })
+    },
+  })
+
+  // delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (hwId: string) => api.delete(`/teacher/homework/${hwId}`),
+    onSuccess: () => {
+      toast.success("Homework deleted")
+      setDeleteTarget(null)
+      queryClient.invalidateQueries({ queryKey: ["teacher-homework-list"] })
+    },
+    onError: (error: unknown) => {
+      toast.error("Failed to delete homework", {
+        description: error instanceof Error ? error.message : "Unexpected error",
+      })
+    },
+  })
+
   const downloadAttachment = async (homeworkID: string, attachmentID: string, fileName?: string) => {
     const token = getToken()
     if (!token) {
       toast.error("Session expired. Please login again.")
       return
     }
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1"
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL
     const response = await fetch(
       `${baseUrl}/teacher/homework/${homeworkID}/attachments/${attachmentID}/download`,
       {
@@ -513,8 +624,21 @@ export default function HomeworkPage() {
                     </div>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => setViewHomework(homework)}>
-                        <Eye className="mr-2 h-4 w-4" />
+                        <Eye className="mr-1.5 h-4 w-4" />
                         View
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(homework)}>
+                        <Pencil className="mr-1.5 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+                        onClick={() => setDeleteTarget(homework)}
+                      >
+                        <Trash2 className="mr-1.5 h-4 w-4" />
+                        Delete
                       </Button>
                     </div>
                   </div>
@@ -525,8 +649,9 @@ export default function HomeworkPage() {
         )}
       </div>
 
+      {/* ── View / Submissions dialog ─────────────────────────────────────── */}
       <Dialog open={!!viewHomework} onOpenChange={(open) => !open && setViewHomework(null)}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{viewHomework?.title}</DialogTitle>
             <DialogDescription>
@@ -534,16 +659,28 @@ export default function HomeworkPage() {
             </DialogDescription>
           </DialogHeader>
           {viewHomework ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">{viewHomework.description || "No description"}</p>
-              <p className="text-sm">Due: {formatDate(viewHomework.due_date)}</p>
-              <p className="text-sm">
-                Submissions: {viewHomework.submissions_count}/{viewHomework.students_count}
-              </p>
-              <div className="space-y-2">
-                <Label>Attachments</Label>
-                {viewHomework.attachments?.length ? (
-                  viewHomework.attachments.map((att) => (
+            <div className="flex flex-col gap-4 overflow-y-auto pr-1">
+              {/* Meta */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-xs text-muted-foreground mb-0.5">Due Date</p>
+                  <p className="font-medium">{formatDate(viewHomework.due_date)}</p>
+                </div>
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-xs text-muted-foreground mb-0.5">Max Marks</p>
+                  <p className="font-medium">{viewHomework.max_marks}</p>
+                </div>
+                <div className="rounded-lg bg-muted/50 p-3 col-span-2">
+                  <p className="text-xs text-muted-foreground mb-0.5">Description</p>
+                  <p>{viewHomework.description || "No description"}</p>
+                </div>
+              </div>
+
+              {/* Attachments */}
+              {viewHomework.attachments?.length ? (
+                <div className="space-y-2">
+                  <Label>Attachments</Label>
+                  {viewHomework.attachments.map((att) => (
                     <div key={att.id} className="flex items-center justify-between border rounded-md p-2">
                       <div className="text-sm">
                         <p>{att.file_name || "Attachment"}</p>
@@ -557,15 +694,179 @@ export default function HomeworkPage() {
                         Download
                       </Button>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">No attachments</p>
+                  ))}
+                </div>
+              ) : null}
+
+              {/* Submissions */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <Label>Student Submissions</Label>
+                  {submissionsQuery.isSuccess && (
+                    <Badge variant="secondary">
+                      {submissionsQuery.data.submissions_count}/{submissionsQuery.data.students_count}
+                    </Badge>
+                  )}
+                </div>
+
+                {submissionsQuery.isLoading && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-3">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Loading submissions…
+                  </div>
                 )}
+                {submissionsQuery.isError && (
+                  <p className="text-sm text-destructive py-2">Failed to load submissions</p>
+                )}
+                {submissionsQuery.isSuccess && submissionsQuery.data.submissions.length === 0 && (
+                  <p className="text-sm text-muted-foreground py-2">No submissions yet.</p>
+                )}
+                {submissionsQuery.isSuccess && submissionsQuery.data.submissions.length > 0 && (
+                  <div className="rounded-lg border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="text-left p-3 font-medium">Student</th>
+                          <th className="text-left p-3 font-medium hidden sm:table-cell">Roll No.</th>
+                          <th className="text-left p-3 font-medium">Submitted</th>
+                          <th className="text-left p-3 font-medium hidden sm:table-cell">Marks</th>
+                          <th className="text-center p-3 font-medium">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {submissionsQuery.data.submissions.map((sub) => (
+                          <tr key={sub.student_id} className="hover:bg-muted/30 transition-colors">
+                            <td className="p-3 font-medium">{sub.student_name}</td>
+                            <td className="p-3 text-muted-foreground hidden sm:table-cell">{sub.roll_number || "—"}</td>
+                            <td className="p-3 text-muted-foreground">{formatDateTime(sub.submitted_at)}</td>
+                            <td className="p-3 text-muted-foreground hidden sm:table-cell">
+                              {sub.marks_obtained != null ? sub.marks_obtained : "—"}
+                            </td>
+                            <td className="p-3 text-center">
+                              <Badge
+                                variant={
+                                  sub.status === "graded"
+                                    ? "success"
+                                    : sub.status === "late"
+                                    ? "destructive"
+                                    : "secondary"
+                                }
+                                className="text-xs"
+                              >
+                                {sub.status}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {submissionsQuery.isSuccess &&
+                  submissionsQuery.data.students_count - submissionsQuery.data.submissions_count > 0 && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <XCircle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                      <span>
+                        {submissionsQuery.data.students_count - submissionsQuery.data.submissions_count} student
+                        {submissionsQuery.data.students_count - submissionsQuery.data.submissions_count !== 1
+                          ? "s"
+                          : ""}{" "}
+                        have not submitted yet
+                      </span>
+                    </div>
+                  )}
               </div>
             </div>
           ) : null}
         </DialogContent>
       </Dialog>
+
+      {/* ── Edit dialog ───────────────────────────────────────────────────── */}
+      <Dialog open={!!editHomework} onOpenChange={(open) => !open && setEditHomework(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Homework</DialogTitle>
+            <DialogDescription>Update the details below. Class and subject cannot be changed.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Title</Label>
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Homework title" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-2">
+                <Label>Due Date</Label>
+                <Input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Max Marks</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={1000}
+                  value={editMaxMarks}
+                  onChange={(e) => setEditMaxMarks(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Description</Label>
+              <Textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={4}
+                placeholder="Description (optional)"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditHomework(null)}>
+              Cancel
+            </Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete confirm ────────────────────────────────────────────────── */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Homework?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete &quot;{deleteTarget?.title}&quot; and all its submission records. This
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting…
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
+

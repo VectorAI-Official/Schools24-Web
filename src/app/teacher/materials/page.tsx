@@ -243,7 +243,7 @@ export default function TeacherMaterialsPage() {
     const token = getToken()
     if (!token) throw new Error('Session expired. Please login again.')
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1'
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL
     const response = await fetch(`${baseUrl}/teacher/materials/${id}/${mode}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
@@ -274,7 +274,7 @@ export default function TeacherMaterialsPage() {
       formData.append('subject', selectedSubject)
       formData.append('class_level', selectedClassLevel)
 
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1'
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL
       const response = await fetch(`${baseUrl}/teacher/materials`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -409,10 +409,6 @@ export default function TeacherMaterialsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Uploaded Materials</CardTitle>
-          <CardDescription>Only materials uploaded by your account are listed.</CardDescription>
-        </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center mb-4">
             <div className="relative flex-1 min-w-[280px]">
@@ -740,3 +736,4 @@ export default function TeacherMaterialsPage() {
     </div>
   )
 }
+

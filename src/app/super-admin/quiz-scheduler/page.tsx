@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -170,20 +170,33 @@ export default function SuperAdminQuizSchedulerPage() {
     refetchOnWindowFocus: false,
   });
 
-  const quizzesQuery = useQuery({
+  const quizzesQuery = useInfiniteQuery({
     queryKey: ["super-admin-quizzes", classFilter, subjectFilter, debouncedSearch],
-    queryFn: () => {
+    queryFn: ({ pageParam = 1 }) => {
       const params = new URLSearchParams();
-      params.set("page", "1");
-      params.set("page_size", "100");
+      params.set("page", String(pageParam));
+      params.set("page_size", "50");
       if (classFilter !== "all") params.set("class_id", classFilter);
       if (subjectFilter !== "all") params.set("subject_id", subjectFilter);
       if (debouncedSearch) params.set("search", debouncedSearch);
-      return api.get<{ quizzes: QuizItem[] }>(`/super-admin/quizzes?${params.toString()}`);
+      return api.get<{ quizzes: QuizItem[]; has_more: boolean; next_page: number }>(`/super-admin/quizzes?${params.toString()}`);
     },
+    getNextPageParam: (lastPage) => lastPage.has_more ? lastPage.next_page : undefined,
+    initialPageParam: 1,
     staleTime: 30_000,
     refetchInterval: 30_000,
   });
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (!quizzesQuery.hasNextPage || quizzesQuery.isFetchingNextPage) return;
+      const el = document.documentElement;
+      const viewportBottom = (window.scrollY || el.scrollTop) + window.innerHeight;
+      if (viewportBottom >= el.scrollHeight * 0.8) quizzesQuery.fetchNextPage();
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [quizzesQuery.hasNextPage, quizzesQuery.isFetchingNextPage, quizzesQuery.fetchNextPage]);
 
   const classOptions = useMemo<ClassOption[]>(() => {
     const classes = classesQuery.data?.classes || [];
@@ -238,7 +251,7 @@ export default function SuperAdminQuizSchedulerPage() {
   const managedSubjectOptions = managedSelectedClass?.subjects || [];
   const selectedFilterClass = useMemo(() => classOptions.find((c) => c.class_id === classFilter) || null, [classOptions, classFilter]);
   const subjectFilterOptions = selectedFilterClass?.subjects || [];
-  const quizzes = useMemo(() => quizzesQuery.data?.quizzes || [], [quizzesQuery.data?.quizzes]);
+  const quizzes = useMemo(() => quizzesQuery.data?.pages.flatMap(p => p.quizzes) || [], [quizzesQuery.data]);
 
   const stats = useMemo(() => {
     const upcoming = quizzes.filter((q) => q.status === "upcoming").length;
@@ -520,11 +533,11 @@ export default function SuperAdminQuizSchedulerPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="space-y-6 lg:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-3xl font-bold">Super Admin Quiz Scheduler</h1>
-          <p className="text-muted-foreground">Schedule global quizzes by class and subject</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Quiz Engine</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm md:text-base">Orchestrate and schedule assessments globally across all classes and subjects</p>
         </div>
         <div className="flex items-center gap-2">
           <Dialog open={openManagedChapters} onOpenChange={(v) => {
@@ -536,8 +549,9 @@ export default function SuperAdminQuizSchedulerPage() {
             }
           }}>
             <DialogTrigger asChild>
-              <Button variant="outline">
-                Subject Management
+              <Button variant="outline" className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm h-10 px-4 rounded-xl transition-all">
+                <FileText className="h-4 w-4 mr-2 text-indigo-500" />
+                Manage Chapters
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
@@ -648,155 +662,251 @@ export default function SuperAdminQuizSchedulerPage() {
 
           <Dialog open={openCreate} onOpenChange={setOpenCreate}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 h-10 px-4 rounded-xl font-medium transition-all">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Quiz
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Quiz</DialogTitle>
-              <DialogDescription>Set up a new global quiz.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label>Quiz Title</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter quiz title" />
-              </div>
+            <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden border-slate-200/60 dark:border-slate-800/60 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl sm:rounded-2xl">
+              <div className="flex flex-col h-full max-h-[90vh]">
+                <DialogHeader className="p-6 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                  <DialogTitle className="text-xl md:text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                    <GraduationCap className="h-6 w-6 text-indigo-500" /> Assessment Creator
+                  </DialogTitle>
+                  <DialogDescription className="text-slate-500">Configure quiz metadata, schedule settings, and question bank.</DialogDescription>
+                </DialogHeader>
+                <div className="p-6 overflow-y-auto space-y-8 flex-1">
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Class</Label>
-                  <Select value={classID} onValueChange={(value) => { setClassID(value); setSubjectID(""); setChapterName(""); }}>
-                    <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
-                    <SelectContent>
-                      {classOptions.map((c) => <SelectItem key={c.class_id} value={c.class_id}>{c.class_name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Subject</Label>
-                  <Select value={subjectID} onValueChange={(value) => { setSubjectID(value); setChapterName(""); }} disabled={!classID || subjectOptions.length === 0}>
-                    <SelectTrigger><SelectValue placeholder={classID ? "Select subject" : "Select class first"} /></SelectTrigger>
-                    <SelectContent>
-                      {subjectOptions.map((s) => <SelectItem key={s.subject_id} value={s.subject_id}>{s.subject_name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Chapter</Label>
-                <Select
-                  value={chapterName}
-                  onValueChange={setChapterName}
-                  disabled={!classID || !subjectID || createChapterOptionsQuery.isLoading || chapterOptions.length === 0}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        !classID || !subjectID
-                          ? "Select class and subject first"
-                          : createChapterOptionsQuery.isLoading
-                            ? "Loading chapters..."
-                            : chapterOptions.length === 0
-                              ? "No chapters found in Subject Management"
-                              : "Select chapter"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {chapterOptions.map((chapter) => (
-                      <SelectItem key={chapter.id} value={chapter.chapter_name}>
-                        {chapter.chapter_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input id="create-anytime-super" type="checkbox" checked={isAnytime} onChange={(e) => setIsAnytime(e.target.checked)} className="h-4 w-4" />
-                <Label htmlFor="create-anytime-super">AnyTime</Label>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="grid gap-2">
-                  <Label>Date</Label>
-                  <Input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} disabled={isAnytime} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Time</Label>
-                  <Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} disabled={isAnytime} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Duration (mins)</Label>
-                  <Input type="number" min={1} value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Total Marks</Label>
-                  <Input type="number" min={0} value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} />
-                </div>
-              </div>
-
-              <div className="grid gap-3">
-                <div className="flex items-center justify-between">
-                  <Label>Questions</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addQuestion}><Plus className="mr-1 h-3 w-3" />Add Question</Button>
-                </div>
-                {questions.map((q, qIdx) => (
-                  <Card key={`q-${qIdx}`}>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <Input value={q.question_text} onChange={(e) => updateQuestionText(qIdx, e.target.value)} placeholder={`Question ${qIdx + 1}`} />
-                        <Input className="w-24" type="number" min={1} value={q.marks} onChange={(e) => updateQuestionMarks(qIdx, Number(e.target.value || 1))} />
-                        <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeQuestion(qIdx)} disabled={questions.length === 1}><Trash2 className="h-4 w-4" /></Button>
+                  {/* Basic Info Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                      <div className="h-6 w-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-400">1</div>
+                      <h3 className="font-semibold text-slate-800 dark:text-slate-200">Basic Information</h3>
+                    </div>
+                    <div className="grid gap-3">
+                      <Label className="text-slate-700 dark:text-slate-300">Quiz Title</Label>
+                      <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Mid-Term Geometry Exam" className="h-11 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid gap-3">
+                        <Label className="text-slate-700 dark:text-slate-300">Class Level</Label>
+                        <Select value={classID} onValueChange={(value) => { setClassID(value); setSubjectID(""); setChapterName(""); }}>
+                          <SelectTrigger className="h-11 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl"><SelectValue placeholder="Select class" /></SelectTrigger>
+                          <SelectContent>
+                            {classOptions.map((c) => <SelectItem key={c.class_id} value={c.class_id}>{c.class_name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="space-y-2">
-                        {q.options.map((opt, oIdx) => (
-                          <div key={`q-${qIdx}-o-${oIdx}`} className="flex items-center gap-2">
-                            <input type="checkbox" checked={opt.is_correct} onChange={() => setCorrectOption(qIdx, oIdx)} className="h-4 w-4" />
-                            <Input value={opt.option_text} onChange={(e) => updateOptionText(qIdx, oIdx, e.target.value)} placeholder={`Option ${oIdx + 1}`} />
-                            <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(qIdx, oIdx)} disabled={q.options.length <= 2}><Trash2 className="h-4 w-4" /></Button>
+                      <div className="grid gap-3">
+                        <Label className="text-slate-700 dark:text-slate-300">Subject</Label>
+                        <Select value={subjectID} onValueChange={(value) => { setSubjectID(value); setChapterName(""); }} disabled={!classID || subjectOptions.length === 0}>
+                          <SelectTrigger className="h-11 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl"><SelectValue placeholder={classID ? "Select subject" : "Select class first"} /></SelectTrigger>
+                          <SelectContent>
+                            {subjectOptions.map((s) => <SelectItem key={s.subject_id} value={s.subject_id}>{s.subject_name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-3">
+                        <Label className="text-slate-700 dark:text-slate-300">Chapter / Topic</Label>
+                        <Select value={chapterName} onValueChange={setChapterName} disabled={!classID || !subjectID || createChapterOptionsQuery.isLoading || chapterOptions.length === 0}>
+                          <SelectTrigger className="h-11 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl">
+                            <SelectValue placeholder={!classID || !subjectID ? "Select class/subject" : createChapterOptionsQuery.isLoading ? "Loading chapters..." : chapterOptions.length === 0 ? "No chapters match" : "Select chapter"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {chapterOptions.map((chapter) => <SelectItem key={chapter.id} value={chapter.chapter_name}>{chapter.chapter_name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Schedule Settings */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                      <div className="h-6 w-6 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-xs font-bold text-emerald-600 dark:text-emerald-400">2</div>
+                      <h3 className="font-semibold text-slate-800 dark:text-slate-200">Schedule & Limits</h3>
+                    </div>
+                    <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-slate-800 space-y-4">
+                      <div className="flex flex-row items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm cursor-pointer" onClick={() => setIsAnytime(!isAnytime)}>
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-semibold cursor-pointer pointer-events-none">Anytime Assessment</Label>
+                          <p className="text-xs text-slate-500">Allow students to take this quiz at any time (no strict schedule).</p>
+                        </div>
+                        <input type="checkbox" checked={isAnytime} readOnly className="h-5 w-5 accent-indigo-600 rounded-md cursor-pointer pointer-events-none" />
+                      </div>
+                      <div className={`transition-all duration-300 overflow-hidden ${isAnytime ? 'max-h-0 opacity-0 m-0' : 'max-h-40 opacity-100'}`}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                          <div className="grid gap-2">
+                            <Label className="text-xs text-slate-500 font-medium">Scheduled Date</Label>
+                            <Input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} disabled={isAnytime} className="bg-white dark:bg-slate-950" />
                           </div>
-                        ))}
-                        <Button type="button" variant="secondary" size="sm" onClick={() => addOption(qIdx)}><Plus className="mr-1 h-3 w-3" />Add Option</Button>
+                          <div className="grid gap-2">
+                            <Label className="text-xs text-slate-500 font-medium">Time (UTC)</Label>
+                            <Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} disabled={isAnytime} className="bg-white dark:bg-slate-950" />
+                          </div>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div className="grid gap-2">
+                          <Label className="text-xs text-slate-500 font-medium">Duration (Minutes)</Label>
+                          <div className="relative">
+                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <Input type="number" min={1} value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} className="pl-9 bg-white dark:bg-slate-950" />
+                          </div>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-xs text-slate-500 font-medium">Total Marks</Label>
+                          <div className="relative">
+                            <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <Input type="number" min={0} value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className="pl-9 bg-white dark:bg-slate-950" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Questionnaire */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-xs font-bold text-blue-600 dark:text-blue-400">3</div>
+                        <h3 className="font-semibold text-slate-800 dark:text-slate-200">Questionnaire</h3>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={addQuestion} className="h-8 text-xs rounded-full border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                        <Plus className="mr-1 h-3 w-3" /> Add Question
+                      </Button>
+                    </div>
+                    <div className="space-y-4">
+                      {questions.map((q, qIdx) => (
+                        <div key={`q-${qIdx}`} className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-4 md:p-5 shadow-sm relative group/q pt-8">
+                          <div className="absolute top-0 right-0 left-0 bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 flex justify-between items-center rounded-t-xl border-b border-slate-100 dark:border-slate-800">
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Question {qIdx + 1}</span>
+                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors" onClick={() => removeQuestion(qIdx)} disabled={questions.length === 1} title="Remove Question">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                          <div className="flex flex-col md:flex-row gap-4 mb-4">
+                            <div className="flex-1 space-y-2">
+                              <Input value={q.question_text} onChange={(e) => updateQuestionText(qIdx, e.target.value)} placeholder="Type your question here..." className="font-medium bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 h-10" />
+                            </div>
+                            <div className="w-full md:w-28 space-y-2">
+                              <div className="relative">
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium">pts</span>
+                                <Input type="number" min={1} value={q.marks} onChange={(e) => updateQuestionMarks(qIdx, Number(e.target.value || 1))} className="pr-8 h-10 bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 text-center" />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 pl-2 border-l-2 border-indigo-100 dark:border-indigo-900 ml-2">
+                            {q.options.map((opt, oIdx) => (
+                              <div key={`q-${qIdx}-o-${oIdx}`} className={`flex items-center gap-2 p-2 rounded-lg transition-colors border ${opt.is_correct ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/50' : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+                                <div className="flex items-center justify-center shrink-0 w-8 h-8 cursor-pointer" onClick={() => setCorrectOption(qIdx, oIdx)}>
+                                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${opt.is_correct ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900'}`}>
+                                    {opt.is_correct && <div className="w-2 h-2 rounded-full bg-white" />}
+                                  </div>
+                                </div>
+                                <Input value={opt.option_text} onChange={(e) => updateOptionText(qIdx, oIdx, e.target.value)} placeholder={`Option ${oIdx + 1}`} className={`h-9 border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-offset-0 ${opt.is_correct ? 'font-medium text-emerald-900 dark:text-emerald-300 placeholder:text-emerald-700/50 dark:placeholder:text-emerald-500/50' : ''}`} />
+                                <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(qIdx, oIdx)} disabled={q.options.length <= 2} className="h-8 w-8 text-slate-400 hover:text-rose-600 opacity-0 group-hover/q:opacity-100 transition-opacity shrink-0">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                            <Button type="button" variant="ghost" size="sm" onClick={() => addOption(qIdx)} className="ml-8 mt-2 h-8 text-xs text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                              <Plus className="mr-1 h-3 w-3" /> Add Option
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 shrink-0">
+                  <div className="flex justify-end gap-2 w-full">
+                    <Button variant="outline" onClick={() => setOpenCreate(false)} className="rounded-xl border-slate-200 dark:border-slate-800">Cancel</Button>
+                    <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending} className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 rounded-xl">
+                      {createMutation.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : "Publish Assessment"}
+                    </Button>
+                  </div>
+                </DialogFooter>
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setOpenCreate(false)}>Cancel</Button>
-              <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
-                {createMutation.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : "Create Quiz"}
-              </Button>
-            </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-            <div className="relative flex-1 min-w-[280px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" placeholder="Search by title, class or subject" />
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+        <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl hover:shadow-md transition-shadow">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center border border-amber-200 dark:border-amber-800/50">
+              <Calendar className="h-6 w-6 text-amber-600 dark:text-amber-400" />
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 xl:w-auto">
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.upcoming}</p>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Upcoming</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl hover:shadow-md transition-shadow">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center border border-emerald-200 dark:border-emerald-800/50">
+              <Clock className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.active}</p>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Active Now</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl hover:shadow-md transition-shadow">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center border border-blue-200 dark:border-blue-800/50">
+              <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.completed}</p>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Completed</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-gradient-to-br from-indigo-500/5 to-violet-500/5 dark:from-indigo-500/10 dark:to-violet-500/10 backdrop-blur-xl hover:shadow-md transition-shadow">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center border border-indigo-200 dark:border-indigo-800/50">
+              <GraduationCap className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Quizzes</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+        <CardContent className="p-4 md:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative flex-1 w-full lg:max-w-md group">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+              </div>
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-11 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 focus-visible:ring-indigo-500/30 rounded-xl transition-all w-full"
+                placeholder="Search assessments by title, class or subject..."
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
               <Select value={classFilter} onValueChange={(value) => { setClassFilter(value); setSubjectFilter("all"); }}>
-                <SelectTrigger className="w-full sm:w-[220px]"><GraduationCap className="h-4 w-4 mr-2" /><SelectValue placeholder="All Classes" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Classes</SelectItem>
+                <SelectTrigger className="w-full sm:w-[200px] h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus-visible:ring-indigo-500/30"><GraduationCap className="h-4 w-4 mr-2 text-slate-400" /><SelectValue placeholder="All Classes" /></SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="all" className="font-medium text-indigo-600 dark:text-indigo-400">All Classes</SelectItem>
                   {classOptions.map((opt) => <SelectItem key={opt.class_id} value={opt.class_id}>{opt.class_name}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={subjectFilter} onValueChange={setSubjectFilter} disabled={classFilter === "all"}>
-                <SelectTrigger className="w-full sm:w-[220px]"><FileText className="h-4 w-4 mr-2" /><SelectValue placeholder={classFilter === "all" ? "Select class first" : "All Subjects"} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Subjects</SelectItem>
+                <SelectTrigger className="w-full sm:w-[200px] h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus-visible:ring-indigo-500/30"><FileText className="h-4 w-4 mr-2 text-slate-400" /><SelectValue placeholder={classFilter === "all" ? "Select class first" : "All Subjects"} /></SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="all" className="font-medium text-indigo-600 dark:text-indigo-400">All Subjects</SelectItem>
                   {subjectFilterOptions.map((opt) => <SelectItem key={opt.subject_id} value={opt.subject_id}>{opt.subject_name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -805,26 +915,32 @@ export default function SuperAdminQuizSchedulerPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card><CardContent className="p-4 md:p-6 text-center"><p className="text-xl md:text-3xl font-bold text-primary">{stats.upcoming}</p><p className="text-sm text-muted-foreground">Upcoming</p></CardContent></Card>
-        <Card><CardContent className="p-4 md:p-6 text-center"><p className="text-xl md:text-3xl font-bold text-green-500">{stats.active}</p><p className="text-sm text-muted-foreground">Active</p></CardContent></Card>
-        <Card><CardContent className="p-4 md:p-6 text-center"><p className="text-xl md:text-3xl font-bold text-blue-500">{stats.completed}</p><p className="text-sm text-muted-foreground">Completed</p></CardContent></Card>
-        <Card><CardContent className="p-4 md:p-6 text-center"><p className="text-xl md:text-3xl font-bold text-purple-500">{stats.total}</p><p className="text-sm text-muted-foreground">Total Quizzes</p></CardContent></Card>
-      </div>
-
       <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {quizzesQuery.isLoading || classesQuery.isLoading || assignmentsQuery.isLoading || subjectsQuery.isLoading ? (
-          <Card className="md:col-span-2 lg:col-span-3"><CardContent className="p-4 md:p-8 text-center text-muted-foreground">Loading quizzes...</CardContent></Card>
+          <div className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-20 bg-white/30 dark:bg-slate-900/30 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-sm">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-4" />
+            <p className="text-slate-500 font-medium animate-pulse tracking-wide">Loading assessments...</p>
+          </div>
         ) : quizzes.length === 0 ? (
-          <Card className="md:col-span-2 lg:col-span-3"><CardContent className="p-4 md:p-8 text-center text-muted-foreground">No quizzes found.</CardContent></Card>
+          <div className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-24 px-4 text-center bg-white/30 dark:bg-slate-900/30 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-sm">
+            <div className="p-6 rounded-full bg-slate-100 dark:bg-slate-800 mb-6 inline-flex shadow-sm">
+              <FileText className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No Quizzes Found</h3>
+            <p className="text-slate-500 max-w-sm mx-auto">Either no assessments have been scheduled yet, or none match your current filters.</p>
+          </div>
         ) : (
           quizzes.map((quiz) => (
-            <Card key={quiz.id} className="card-hover">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge variant={quiz.status === "upcoming" ? "default" : quiz.status === "active" ? "success" : "secondary"}>{quiz.status}</Badge>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => {
+            <Card key={quiz.id} className="group relative overflow-hidden border-slate-200/60 dark:border-slate-800/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl hover:shadow-xl hover:shadow-indigo-500/5 hover:border-indigo-200 dark:hover:border-indigo-800/60 transition-all duration-300">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-indigo-500/0 to-transparent group-hover:via-indigo-500/50 transition-all duration-500" />
+              <CardHeader className="pb-4 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant="outline" className={`font-semibold tracking-wide uppercase text-[10px] px-2.5 py-0.5 border-0 ${quiz.status === "upcoming" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" :
+                    quiz.status === "active" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400" :
+                      "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                    }`}>{quiz.status}</Badge>
+                  <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400 transition-colors" onClick={() => {
                       setEditQuiz(quiz);
                       setEditTitle(quiz.title);
                       setEditIsAnytime(!!quiz.is_anytime);
@@ -836,22 +952,46 @@ export default function SuperAdminQuizSchedulerPage() {
                       setEditDuration(String(quiz.duration_minutes));
                       setOpenEdit(true);
                     }}><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteQuizId(quiz.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors" onClick={() => setDeleteQuizId(quiz.id)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 </div>
-                <CardTitle className="text-lg">{quiz.title}</CardTitle>
-                <CardDescription>{quiz.subject_name}{quiz.chapter_name ? ` • ${quiz.chapter_name}` : ""}</CardDescription>
+                <CardTitle className="text-lg font-bold text-slate-900 dark:text-white line-clamp-1" title={quiz.title}>{quiz.title}</CardTitle>
+                <CardDescription className="font-medium text-slate-500 mt-1 line-clamp-1" title={`${quiz.subject_name}${quiz.chapter_name ? ` • ${quiz.chapter_name}` : ""}`}>
+                  {quiz.subject_name}{quiz.chapter_name ? ` • ${quiz.chapter_name}` : ""}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><Users className="h-4 w-4" /><span>{quiz.class_name}</span></div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><Calendar className="h-4 w-4" /><span>{quiz.is_anytime ? "Anytime" : new Date(quiz.scheduled_at).toLocaleDateString()}</span></div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><Clock className="h-4 w-4" /><span>{quiz.duration_minutes} minutes</span></div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><FileText className="h-4 w-4" /><span>{quiz.question_count} questions • {quiz.total_marks} marks</span></div>
+              <CardContent className="pt-0">
+                <div className="space-y-3 mb-6 bg-slate-50/50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                  <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                    <Users className="h-4 w-4 text-indigo-400 shrink-0" />
+                    <span className="font-medium truncate" title={quiz.class_name}>{quiz.class_name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                    <Calendar className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <span className="font-medium truncate">{quiz.is_anytime ? "Anytime Assessment" : new Date(quiz.scheduled_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-1 pt-2 border-t border-slate-200/50 dark:border-slate-800/50">
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>{quiz.duration_minutes} mins</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                      <FileText className="h-3.5 w-3.5" />
+                      <span>{quiz.question_count} Qs • {quiz.total_marks} Pts</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 pt-4 border-t">
-                  <Button variant="outline" className="w-full" onClick={() => { if (quiz.status === "upcoming" || quiz.status === "active") { setAddQQuizId(quiz.id); setOpenAddQ(true); } }}>
-                    {quiz.status === "upcoming" || quiz.status === "active" ? "Add Question" : "View Results"}
+                <div className="pt-1">
+                  <Button
+                    variant={quiz.status === "completed" ? "secondary" : "default"}
+                    className={`w-full font-semibold shadow-none transition-all ${quiz.status !== "completed" ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"}`}
+                    onClick={() => { if (quiz.status === "upcoming" || quiz.status === "active") { setAddQQuizId(quiz.id); setOpenAddQ(true); } }}
+                  >
+                    {quiz.status === "upcoming" || quiz.status === "active" ? (
+                      <><Plus className="h-4 w-4 mr-2" /> Manage Questions</>
+                    ) : (
+                      "View Results"
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -860,39 +1000,53 @@ export default function SuperAdminQuizSchedulerPage() {
         )}
       </div>
 
+      {quizzesQuery.isFetchingNextPage && (
+        <div className="flex justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+        </div>
+      )}
+
       <Dialog open={openEdit} onOpenChange={(v) => { setOpenEdit(v); if (!v) setEditQuiz(null); }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Quiz</DialogTitle>
-            <DialogDescription>Update the quiz details below.</DialogDescription>
+        <DialogContent className="max-w-md p-0 overflow-hidden border-slate-200/60 dark:border-slate-800/60 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl sm:rounded-2xl">
+          <DialogHeader className="p-6 pb-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+            <DialogTitle className="text-xl font-bold">Edit Quiz Details</DialogTitle>
+            <DialogDescription>Update the title and scheduling logic for this quiz.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label>Title</Label>
-              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Quiz title" />
+          <div className="p-6 space-y-6">
+            <div className="grid gap-3">
+              <Label className="text-slate-700 dark:text-slate-300">Title</Label>
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Quiz title" className="h-11 bg-slate-50/50 dark:bg-slate-900/50" />
             </div>
-            <div className="flex items-center gap-2">
-              <input id="edit-anytime-super" type="checkbox" checked={editIsAnytime} onChange={(e) => setEditIsAnytime(e.target.checked)} className="h-4 w-4" />
-              <Label htmlFor="edit-anytime-super">AnyTime</Label>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Date</Label>
-                <Input type="date" value={editScheduledDate} onChange={(e) => setEditScheduledDate(e.target.value)} disabled={editIsAnytime} />
+            <div className="flex flex-row items-center justify-between p-3 rounded-lg bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-800/30 cursor-pointer" onClick={() => setEditIsAnytime(!editIsAnytime)}>
+              <div className="space-y-0.5">
+                <Label className="text-sm font-semibold cursor-pointer">Anytime Assessment</Label>
+                <p className="text-xs text-slate-500">Remove time constraints.</p>
               </div>
-              <div className="grid gap-2">
-                <Label>Time</Label>
-                <Input type="time" value={editScheduledTime} onChange={(e) => setEditScheduledTime(e.target.value)} disabled={editIsAnytime} />
+              <input type="checkbox" checked={editIsAnytime} readOnly className="h-5 w-5 accent-amber-600 rounded-md cursor-pointer pointer-events-none" />
+            </div>
+            <div className={`transition-all duration-300 overflow-hidden ${editIsAnytime ? 'h-0 opacity-0 m-0' : 'h-auto opacity-100'}`}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label className="text-xs text-slate-500 font-medium">Scheduled Date</Label>
+                  <Input type="date" value={editScheduledDate} onChange={(e) => setEditScheduledDate(e.target.value)} disabled={editIsAnytime} className="bg-slate-50/50 dark:bg-slate-900/50" />
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-xs text-slate-500 font-medium">Time (UTC)</Label>
+                  <Input type="time" value={editScheduledTime} onChange={(e) => setEditScheduledTime(e.target.value)} disabled={editIsAnytime} className="bg-slate-50/50 dark:bg-slate-900/50" />
+                </div>
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Duration (minutes)</Label>
-              <Input type="number" min={1} value={editDuration} onChange={(e) => setEditDuration(e.target.value)} />
+              <Label className="text-xs text-slate-500 font-medium">Duration (minutes)</Label>
+              <div className="relative w-full sm:w-1/2">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input type="number" min={1} value={editDuration} onChange={(e) => setEditDuration(e.target.value)} className="pl-9 bg-slate-50/50 dark:bg-slate-900/50" />
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancel</Button>
-            <Button disabled={updateQuizMutation.isPending} onClick={() => {
+          <DialogFooter className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20">
+            <Button variant="outline" onClick={() => setOpenEdit(false)} className="rounded-xl border-slate-200 dark:border-slate-800">Cancel</Button>
+            <Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 rounded-xl" disabled={updateQuizMutation.isPending} onClick={() => {
               if (!editQuiz) return;
               updateQuizMutation.mutate({
                 id: editQuiz.id,
@@ -926,40 +1080,50 @@ export default function SuperAdminQuizSchedulerPage() {
       </Dialog>
 
       <Dialog open={openAddQ} onOpenChange={(v) => { setOpenAddQ(v); if (!v) { resetAddQ(); setAddQQuizId(null); } }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add Question</DialogTitle>
-            <DialogDescription>Add a new question with options to this quiz.</DialogDescription>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-slate-200/60 dark:border-slate-800/60 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl sm:rounded-2xl">
+          <DialogHeader className="p-6 pb-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+            <DialogTitle className="text-xl font-bold">Add Question to Quiz</DialogTitle>
+            <DialogDescription>Quickly inject an additional question into your assessment.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label>Question Text</Label>
-              <Input value={addQQuestion} onChange={(e) => setAddQQuestion(e.target.value)} placeholder="Enter question..." />
+          <div className="p-6 space-y-6">
+            <div className="grid gap-3">
+              <Label className="text-slate-700 dark:text-slate-300">Question Text</Label>
+              <Input value={addQQuestion} onChange={(e) => setAddQQuestion(e.target.value)} placeholder="Type your question..." className="h-11 bg-slate-50/50 dark:bg-slate-900/50" />
             </div>
-            <div className="grid gap-2">
-              <Label>Marks</Label>
-              <Input type="number" min={1} value={addQMarks} onChange={(e) => setAddQMarks(Number(e.target.value))} />
+            <div className="grid gap-3">
+              <Label className="text-slate-700 dark:text-slate-300">Marks</Label>
+              <Input type="number" min={1} value={addQMarks} onChange={(e) => setAddQMarks(Number(e.target.value))} className="w-full sm:w-1/3 h-11 bg-slate-50/50 dark:bg-slate-900/50" />
             </div>
-            <div className="grid gap-2">
-              <Label>Options <span className="text-muted-foreground text-xs">(click radio to mark correct)</span></Label>
-              <div className="space-y-2">
+            <div className="grid gap-3 pt-2">
+              <div className="flex justify-between items-center">
+                <Label className="text-slate-700 dark:text-slate-300">Options <span className="text-slate-500 font-normal ml-1">(Click the circle to mark correct)</span></Label>
+              </div>
+              <div className="space-y-2 border-l-2 border-indigo-100 dark:border-indigo-900 pl-3 ml-2">
                 {addQOptions.map((opt, oIdx) => (
-                  <div key={oIdx} className="flex items-center gap-2">
-                    <input type="radio" name="correct-option-super" checked={opt.is_correct} onChange={() => setAddQOptions((prev) => prev.map((o, i) => ({ ...o, is_correct: i === oIdx })))} className="accent-primary" />
-                    <Input value={opt.option_text} onChange={(e) => setAddQOptions((prev) => prev.map((o, i) => i === oIdx ? { ...o, option_text: e.target.value } : o))} placeholder={`Option ${oIdx + 1}`} />
+                  <div key={oIdx} className={`flex items-center gap-2 p-2 rounded-lg transition-colors border ${opt.is_correct ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/50' : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+                    <div className="flex items-center justify-center shrink-0 w-8 h-8 cursor-pointer" onClick={() => setAddQOptions((prev) => prev.map((o, i) => ({ ...o, is_correct: i === oIdx })))}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${opt.is_correct ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900'}`}>
+                        {opt.is_correct && <div className="w-2 h-2 rounded-full bg-white" />}
+                      </div>
+                    </div>
+                    <Input value={opt.option_text} onChange={(e) => setAddQOptions((prev) => prev.map((o, i) => i === oIdx ? { ...o, option_text: e.target.value } : o))} placeholder={`Option ${oIdx + 1}`} className={`h-9 border-0 bg-transparent focus-visible:ring-1 focus-visible:ring-offset-0 ${opt.is_correct ? 'font-medium text-emerald-900 dark:text-emerald-300 placeholder:text-emerald-700/50 dark:placeholder:text-emerald-500/50' : ''}`} />
                     {addQOptions.length > 2 && (
-                      <Button variant="ghost" size="icon" onClick={() => setAddQOptions((prev) => prev.filter((_, i) => i !== oIdx))}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => setAddQOptions((prev) => prev.filter((_, i) => i !== oIdx))} className="h-8 w-8 text-slate-400 hover:text-rose-600 opacity-60 hover:opacity-100 transition-opacity shrink-0">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     )}
                   </div>
                 ))}
+                <Button variant="ghost" size="sm" onClick={() => setAddQOptions((prev) => [...prev, { option_text: "", is_correct: false }])} className="mt-2 h-8 text-xs text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                  <Plus className="mr-1 h-3 w-3" /> Add Option
+                </Button>
               </div>
-              <Button variant="outline" size="sm" className="w-fit" onClick={() => setAddQOptions((prev) => [...prev, { option_text: "", is_correct: false }])}><Plus className="h-4 w-4 mr-1" /> Add Option</Button>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setOpenAddQ(false); resetAddQ(); }}>Cancel</Button>
-            <Button disabled={addQuestionMutation.isPending} onClick={() => addQuestionMutation.mutate()}>
-              {addQuestionMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+          <DialogFooter className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20">
+            <Button variant="outline" onClick={() => { setOpenAddQ(false); resetAddQ(); }} className="rounded-xl border-slate-200 dark:border-slate-800">Cancel</Button>
+            <Button disabled={addQuestionMutation.isPending} onClick={() => addQuestionMutation.mutate()} className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 rounded-xl">
+              {addQuestionMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
               Add Question
             </Button>
           </DialogFooter>

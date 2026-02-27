@@ -47,7 +47,6 @@ export function EditStudentDialog({ open, onOpenChange, student, onSave, schoolI
     const [formData, setFormData] = useState({
         // Academic
         roll_number: '',
-        section: '',
         class_id: '',
         admission_number: '',
         admission_date: '',
@@ -104,7 +103,6 @@ export function EditStudentDialog({ open, onOpenChange, student, onSave, schoolI
         if (student) {
             setFormData({
                 roll_number: student.roll_number || '',
-                section: student.section || '',
                 class_id: student.class_id || '',
                 admission_number: student.admission_number || '',
                 admission_date: student.admission_date ? student.admission_date.split('T')[0] : '',
@@ -137,7 +135,6 @@ export function EditStudentDialog({ open, onOpenChange, student, onSave, schoolI
             admission_number: formData.admission_number,
 
             roll_number: formData.roll_number,
-            section: formData.section,
             class_id: formData.class_id,
             admission_date: formData.admission_date || undefined,
             academic_year: formData.academic_year,
@@ -213,22 +210,6 @@ export function EditStudentDialog({ open, onOpenChange, student, onSave, schoolI
                                     value={formData.roll_number}
                                     onChange={(e) => setFormData({ ...formData, roll_number: e.target.value })}
                                 />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>Section</Label>
-                                <Select
-                                    value={formData.section}
-                                    onValueChange={(val) => setFormData({ ...formData, section: val })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Section" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {['A', 'B', 'C', 'D', 'E'].map(s => (
-                                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">

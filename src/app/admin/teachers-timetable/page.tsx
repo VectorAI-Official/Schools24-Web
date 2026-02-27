@@ -13,7 +13,7 @@ import { Download, Printer, Calendar, Edit, Trash2, Save, User, MapPin, AlertTri
 import { useAuth } from '@/contexts/AuthContext'
 import { useTeachers } from '@/hooks/useAdminTeachers'
 import { useSubjects } from '@/hooks/useSubjects'
-import { sortSchoolClasses } from '@/lib/classOrdering'
+import { formatSchoolClassLabel, sortSchoolClasses } from '@/lib/classOrdering'
 import { useClasses } from '@/hooks/useClasses'
 import {
     useAdminTimetableConfig,
@@ -305,7 +305,7 @@ export default function TeachersTimetablePage() {
                                 <SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger>
                                 <SelectContent>
                                     {classOptions.map((c) => (
-                                        <SelectItem key={c.id} value={c.id}>Class {c.name}{c.section ? `-${c.section}` : ''}</SelectItem>
+                                        <SelectItem key={c.id} value={c.id}>{formatSchoolClassLabel(c)}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

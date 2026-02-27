@@ -34,25 +34,62 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Search, Plus, DollarSign, Download, TrendingUp, AlertCircle, CheckCircle, Send, Receipt, CreditCard } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useFeeDemands, useCreateFeeDemand, useRecordFeePayment, FeeDemand } from '@/hooks/useFees'
+import {
+    useFeeDemands,
+    useCreateFeeDemand,
+    useRecordFeePayment,
+    useFeeDemandPurposes,
+    useCreateFeeDemandPurpose,
+    useUpdateFeeDemandPurpose,
+    useDeleteFeeDemandPurpose,
+    FeeDemand,
+} from '@/hooks/useFees'
 import { useStudents } from '@/hooks/useAdminStudents'
+import { useClasses } from '@/hooks/useClasses'
+import { formatSchoolClassLabel } from '@/lib/classOrdering'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
 
 interface FeeFormData {
+    classId: string
     studentId: string
-    purpose: string
-    customPurpose: string
+    purposeId: string
     amount: number
     dueDate: string
 }
 
 const initialFormData: FeeFormData = {
+    classId: '',
     studentId: '',
-    purpose: 'Tuition Fee',
-    customPurpose: '',
+    purposeId: '',
     amount: 0,
     dueDate: '',
+}
+
+const getCurrentAcademicYear = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+    return month < 4 ? `${year - 1}-${year}` : `${year}-${year + 1}`
+}
+
+const buildAcademicYearOptions = (currentYear: string) => {
+    const [start] = currentYear.split('-').map(Number)
+    if (!start || Number.isNaN(start)) return [currentYear]
+    return Array.from({ length: 11 }, (_, i) => `${start - i}-${start - i + 1}`)
+}
+
+const normalizeAcademicYear = (value?: string) => {
+    if (!value) return ''
+    const trimmed = value.trim()
+    const parts = trimmed.split('-')
+    if (parts.length !== 2) return trimmed
+    const start = Number(parts[0])
+    const endRaw = parts[1]
+    if (Number.isNaN(start)) return trimmed
+    const end = endRaw.length === 2 ? Number(`20${endRaw}`) : Number(endRaw)
+    if (Number.isNaN(end)) return trimmed
+    return `${start}-${end}`
 }
 
 export default function FeesPage() {
@@ -62,9 +99,16 @@ export default function FeesPage() {
     const isSuperAdmin = userRole === 'super_admin'
     const canLoad = !!user && !isLoading && (!isSuperAdmin || !!schoolId)
 
+    const currentAcademicYear = useMemo(() => getCurrentAcademicYear(), [])
     const [searchQuery, setSearchQuery] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [academicYear, setAcademicYear] = useState(currentAcademicYear)
     const [formData, setFormData] = useState<FeeFormData>(initialFormData)
+    const [studentSearchQuery, setStudentSearchQuery] = useState('')
+    const [isPurposeDialogOpen, setIsPurposeDialogOpen] = useState(false)
+    const [isPurposeFormVisible, setIsPurposeFormVisible] = useState(false)
+    const [purposeNameInput, setPurposeNameInput] = useState('')
+    const [editingPurposeId, setEditingPurposeId] = useState<string | null>(null)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
     const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false)
@@ -76,31 +120,59 @@ export default function FeesPage() {
     const { data: feeDemandsData } = useFeeDemands(schoolId, {
         search: searchQuery,
         status: statusFilter,
+        academicYear,
         page: 1,
         pageSize: 50,
         enabled: canLoad,
     })
     const fees = feeDemandsData?.items ?? []
+    const academicYearOptions = useMemo(() => buildAcademicYearOptions(currentAcademicYear), [currentAcademicYear])
 
-    const { data: studentPages } = useStudents('', 100, schoolId, { enabled: canLoad })
+    const { data: classesData } = useClasses()
+    const availableClasses = useMemo(() => classesData?.classes ?? [], [classesData])
+    const { data: purposeData } = useFeeDemandPurposes(schoolId, canLoad)
+    const feePurposes = purposeData?.purposes ?? []
+
+    const { data: studentPages } = useStudents('', 200, schoolId, {
+        enabled: canLoad && !!formData.classId,
+        classId: formData.classId,
+    })
     const students = useMemo(
         () => studentPages?.pages.flatMap(page => page.students) || [],
         [studentPages]
     )
-    const selectedStudent = useMemo(
-        () => students.find(student => student.id === formData.studentId),
-        [students, formData.studentId]
-    )
-
+    const filteredStudents = useMemo(() => {
+        const term = studentSearchQuery.trim().toLowerCase()
+        if (!term) return students
+        return students.filter((student) =>
+            student.full_name.toLowerCase().includes(term) ||
+            student.admission_number.toLowerCase().includes(term) ||
+            student.email.toLowerCase().includes(term)
+        )
+    }, [students, studentSearchQuery])
     const createFeeDemand = useCreateFeeDemand(schoolId)
     const recordPayment = useRecordFeePayment(schoolId)
+    const createFeePurpose = useCreateFeeDemandPurpose(schoolId)
+    const updateFeePurpose = useUpdateFeeDemandPurpose(schoolId)
+    const deleteFeePurpose = useDeleteFeeDemandPurpose(schoolId)
 
     const filteredFees = fees.filter(fee => {
         const matchesSearch = fee.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             fee.admissionNumber.toLowerCase().includes(searchQuery.toLowerCase())
         const matchesStatus = statusFilter === 'all' || fee.status === statusFilter
-        return matchesSearch && matchesStatus
+        const normalizedSelectedYear = normalizeAcademicYear(academicYear)
+        const normalizedFeeYear = normalizeAcademicYear(fee.academicYear)
+        const normalizedCurrentYear = normalizeAcademicYear(currentAcademicYear)
+        const matchesAcademicYear = normalizedSelectedYear === ''
+            ? true
+            : normalizedFeeYear === normalizedSelectedYear ||
+            (normalizedSelectedYear === normalizedCurrentYear && normalizedFeeYear === '')
+        return matchesSearch && matchesStatus && matchesAcademicYear
     })
+    const showAcademicYearEmptyState =
+        filteredFees.length === 0 &&
+        searchQuery.trim() === '' &&
+        (statusFilter === 'all' || statusFilter === '')
 
     const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0)
     const paidFees = fees.reduce((sum, fee) => sum + fee.paidAmount, 0)
@@ -112,27 +184,68 @@ export default function FeesPage() {
         .reduce((sum, fee) => sum + Math.max(fee.amount - fee.paidAmount, 0), 0)
 
     const handleAddFee = async () => {
-        const finalPurpose = formData.purpose === 'Other' ? formData.customPurpose : formData.purpose
-        
-        if (!formData.studentId || !finalPurpose || !formData.amount) {
+        if (!formData.studentId || !formData.purposeId || !formData.amount) {
             toast.error('Please fill in required fields', {
-                description: formData.purpose === 'Other' && !formData.customPurpose 
-                    ? 'Please specify the purpose for "Other"'
-                    : 'Student, purpose, and amount are required.',
+                description: 'Student, purpose, and amount are required.',
             })
             return
         }
         try {
             await createFeeDemand.mutateAsync({
                 studentId: formData.studentId,
-                purpose: finalPurpose,
+                purposeId: formData.purposeId,
                 amount: formData.amount,
                 dueDate: formData.dueDate,
+                academicYear,
             })
             setFormData(initialFormData)
+            setStudentSearchQuery('')
             setIsAddDialogOpen(false)
-        } catch (error) {
+        } catch {
             // Error handled by mutation
+        }
+    }
+
+    const handleSaveFeePurpose = async () => {
+        const trimmedName = purposeNameInput.trim()
+        if (!trimmedName) {
+            toast.error('Purpose name is required')
+            return
+        }
+        try {
+            if (editingPurposeId) {
+                await updateFeePurpose.mutateAsync({ id: editingPurposeId, name: trimmedName })
+            } else {
+                await createFeePurpose.mutateAsync(trimmedName)
+            }
+            setPurposeNameInput('')
+            setEditingPurposeId(null)
+            setIsPurposeFormVisible(false)
+        } catch {
+            // handled by hook
+        }
+    }
+
+    const handleEditFeePurpose = (id: string, name: string) => {
+        setEditingPurposeId(id)
+        setPurposeNameInput(name)
+        setIsPurposeFormVisible(true)
+    }
+
+    const handleCancelFeePurposeEdit = () => {
+        setEditingPurposeId(null)
+        setPurposeNameInput('')
+        setIsPurposeFormVisible(false)
+    }
+
+    const handleDeleteFeePurpose = async (id: string) => {
+        try {
+            await deleteFeePurpose.mutateAsync(id)
+            if (formData.purposeId === id) {
+                setFormData((prev) => ({ ...prev, purposeId: '' }))
+            }
+        } catch {
+            // handled by hook
         }
     }
 
@@ -158,7 +271,7 @@ export default function FeesPage() {
             setPaymentAmount(0)
             setPaymentPurpose('')
             setIsPaymentDialogOpen(false)
-        } catch (error) {
+        } catch {
             // Error handled by mutation
         }
     }
@@ -229,6 +342,76 @@ export default function FeesPage() {
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
+                    <Dialog open={isPurposeDialogOpen} onOpenChange={setIsPurposeDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline">
+                                Demand Management
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Demand Management</DialogTitle>
+                                <DialogDescription>
+                                    Manage fee purposes used in Add Fee Entry.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm text-muted-foreground">Existing purposes</p>
+                                    <Button
+                                        size="icon"
+                                        onClick={() => {
+                                            setEditingPurposeId(null)
+                                            setPurposeNameInput('')
+                                            setIsPurposeFormVisible(true)
+                                        }}
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+
+                                {isPurposeFormVisible ? (
+                                    <div className="flex flex-col sm:flex-row gap-2">
+                                        <Input
+                                            placeholder="e.g., Tuition Fee"
+                                            value={purposeNameInput}
+                                            onChange={(e) => setPurposeNameInput(e.target.value)}
+                                        />
+                                        <div className="flex gap-2">
+                                            <Button onClick={handleSaveFeePurpose}>
+                                                {editingPurposeId ? 'Update' : 'Add'}
+                                            </Button>
+                                            <Button variant="outline" onClick={handleCancelFeePurposeEdit}>
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : null}
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[360px] overflow-y-auto pr-1">
+                                    {feePurposes.map((purpose) => (
+                                        <Card key={purpose.id}>
+                                            <CardContent className="p-3 flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="font-medium truncate">{purpose.name}</p>
+                                                    <p className="text-xs text-muted-foreground truncate">{purpose.id}</p>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    <Button variant="outline" size="sm" onClick={() => handleEditFeePurpose(purpose.id, purpose.name)}>
+                                                        Edit
+                                                    </Button>
+                                                    <Button variant="destructive" size="sm" onClick={() => handleDeleteFeePurpose(purpose.id)}>
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                     <Button variant="outline" onClick={handleSendReminders}>
                         <Send className="mr-2 h-4 w-4" />
                         Send Reminders
@@ -250,67 +433,80 @@ export default function FeesPage() {
                             <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="studentId">Student *</Label>
+                                        <Label htmlFor="classId">Class *</Label>
                                         <Select
-                                            value={formData.studentId}
-                                            onValueChange={(value) => setFormData({ ...formData, studentId: value })}
+                                            value={formData.classId}
+                                            onValueChange={(value) => {
+                                                setFormData({ ...formData, classId: value, studentId: '' })
+                                                setStudentSearchQuery('')
+                                            }}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select student" />
+                                                <SelectValue placeholder="Select class" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {students.map(student => (
-                                                    <SelectItem key={student.id} value={student.id}>
-                                                        {student.full_name} ({student.admission_number})
+                                                {availableClasses.map(schoolClass => (
+                                                    <SelectItem key={schoolClass.id} value={schoolClass.id}>
+                                                        {formatSchoolClassLabel(schoolClass)}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="class">Class</Label>
-                                        <Input
-                                            id="class"
-                                            value={selectedStudent?.class_name || ''}
-                                            placeholder="Select student first"
-                                            readOnly
-                                        />
+                                        <Label htmlFor="studentId">Student *</Label>
+                                        <Select
+                                            value={formData.studentId}
+                                            onValueChange={(value) => setFormData({ ...formData, studentId: value })}
+                                            disabled={!formData.classId}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={formData.classId ? "Select student" : "Select class first"} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <div className="p-2 sticky top-0 bg-popover z-10">
+                                                    <Input
+                                                        id="studentSearchInDropdown"
+                                                        placeholder={formData.classId ? 'Search student...' : 'Select class first'}
+                                                        value={studentSearchQuery}
+                                                        onChange={(e) => setStudentSearchQuery(e.target.value)}
+                                                        onKeyDown={(e) => e.stopPropagation()}
+                                                        disabled={!formData.classId}
+                                                    />
+                                                </div>
+                                                {filteredStudents.map(student => (
+                                                    <SelectItem key={student.id} value={student.id}>
+                                                        {student.full_name} ({student.admission_number})
+                                                    </SelectItem>
+                                                ))}
+                                                {formData.classId && filteredStudents.length === 0 ? (
+                                                    <div className="px-2 py-3 text-sm text-muted-foreground">
+                                                        No students found for this class.
+                                                    </div>
+                                                ) : null}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
                                 <div className="grid gap-4">
                                     <div className="grid gap-2">
                                         <Label htmlFor="feeType">Purpose *</Label>
                                         <Select
-                                            value={formData.purpose}
-                                            onValueChange={(value) => setFormData({ ...formData, purpose: value, customPurpose: '' })}
+                                            value={formData.purposeId}
+                                            onValueChange={(value) => setFormData({ ...formData, purposeId: value })}
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select purpose" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="Tuition Fee">Tuition Fee</SelectItem>
-                                                <SelectItem value="Exam Fee">Exam Fee</SelectItem>
-                                                <SelectItem value="Lab Fee">Lab Fee</SelectItem>
-                                                <SelectItem value="Library Fee">Library Fee</SelectItem>
-                                                <SelectItem value="Transport Fee">Transport Fee</SelectItem>
-                                                <SelectItem value="Sports Fee">Sports Fee</SelectItem>
-                                                <SelectItem value="Activity Fee">Activity Fee</SelectItem>
-                                                <SelectItem value="Uniform Fee">Uniform Fee</SelectItem>
-                                                <SelectItem value="Other">Other (Specify Below)</SelectItem>
+                                                {feePurposes.map((purpose) => (
+                                                    <SelectItem key={purpose.id} value={purpose.id}>
+                                                        {purpose.name}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    {formData.purpose === 'Other' && (
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="customPurpose">Custom Purpose *</Label>
-                                            <Input
-                                                id="customPurpose"
-                                                placeholder="Enter custom fee purpose"
-                                                value={formData.customPurpose}
-                                                onChange={(e) => setFormData({ ...formData, customPurpose: e.target.value })}
-                                            />
-                                        </div>
-                                    )}
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="grid gap-2">
@@ -337,6 +533,7 @@ export default function FeesPage() {
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => {
                                     setFormData(initialFormData)
+                                    setStudentSearchQuery('')
                                     setIsAddDialogOpen(false)
                                 }}>
                                     Cancel
@@ -457,6 +654,18 @@ export default function FeesPage() {
                                 className="pl-10"
                             />
                         </div>
+                        <Select value={academicYear} onValueChange={setAcademicYear}>
+                            <SelectTrigger className="w-[130px]">
+                                <SelectValue placeholder="Academic year" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {academicYearOptions.map((year) => (
+                                    <SelectItem key={year} value={year}>
+                                        {year}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -478,7 +687,9 @@ export default function FeesPage() {
                             {filteredFees.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                        No fee records found
+                                        {showAcademicYearEmptyState
+                                            ? `No data found for academic year ${academicYear}`
+                                            : 'No matching fee records found'}
                                     </TableCell>
                                 </TableRow>
                             ) : (

@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import {
-    Download, FileText, BarChart3, GraduationCap, TrendingUp, Award, ArrowLeft,
+    Download, FileText, BarChart3, GraduationCap, TrendingUp, Award,
     Printer, Share2, CheckCircle, Calendar, Star
 } from 'lucide-react'
 import { mockStudents } from '@/lib/mockData'
+import { api } from '@/lib/api'
 import {
     BarChart,
     Bar,
@@ -27,25 +29,139 @@ const student = mockStudents[0]
 
 const COLORS = ['#f97316', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
-const reports = [
-    { name: 'Mid-Term Report Card', date: '2025-10-15', status: 'available', type: 'report' },
-    { name: 'Progress Report Q1', date: '2025-09-01', status: 'available', type: 'progress' },
-    { name: 'Attendance Certificate', date: '2025-12-20', status: 'available', type: 'certificate' },
-    { name: 'Character Certificate', date: '2025-12-20', status: 'pending', type: 'certificate' },
-]
+interface StudentReportDocument {
+    id: string
+    title: string
+    report_type?: string
+    class_level: string
+    academic_year?: string
+    description?: string
+    file_name: string
+    file_size: number
+    mime_type: string
+    uploaded_at: string
+}
+
+interface StudentReportDocumentsPage {
+    reports: StudentReportDocument[]
+    page: number
+    page_size: number
+    has_more: boolean
+    next_page: number
+    order: 'asc' | 'desc'
+}
+
+interface SubjectPerformanceEntry {
+    subject_id: string
+    subject_name: string
+    avg_percentage: number
+    total_obtained: number
+    total_max: number
+    assessment_count: number
+    grade_letter: string
+}
+
+interface SubjectPerformanceResponse {
+    academic_year: string
+    class_name: string
+    subjects: SubjectPerformanceEntry[]
+}
+
+const STORAGE_KEYS = {
+    TOKEN: 'School24_token',
+    REMEMBER: 'School24_remember',
+} as const
+
+function getToken(): string | null {
+    if (typeof window === 'undefined') return null
+    const remembered = localStorage.getItem(STORAGE_KEYS.REMEMBER) === 'true'
+    const primary = remembered ? localStorage : sessionStorage
+    return (
+        primary.getItem(STORAGE_KEYS.TOKEN) ||
+        localStorage.getItem(STORAGE_KEYS.TOKEN) ||
+        sessionStorage.getItem(STORAGE_KEYS.TOKEN)
+    )
+}
+
+function formatFileSize(bytes: number) {
+    if (!bytes) return '0 Bytes'
+    const units = ['Bytes', 'KB', 'MB', 'GB']
+    let n = bytes
+    let idx = 0
+    while (n >= 1024 && idx < units.length - 1) {
+        n /= 1024
+        idx += 1
+    }
+    return `${n.toFixed(idx === 0 ? 0 : 2)} ${units[idx]}`
+}
 
 export default function StudentReportsPage() {
     const router = useRouter()
     const [mounted, setMounted] = useState(false)
 
+    const reportsQuery = useQuery({
+        queryKey: ['student-report-documents'],
+        queryFn: () =>
+            api.get<StudentReportDocumentsPage>(
+                '/student/report-documents?page=1&page_size=100&order=desc',
+            ),
+    })
+
+    const subjectPerfQuery = useQuery({
+        queryKey: ['student-subject-performance'],
+        queryFn: () =>
+            api.get<SubjectPerformanceResponse>('/student/assessments/subject-performance'),
+    })
+
     useEffect(() => {
         setMounted(true)
     }, [])
 
-    const handleDownloadReport = (reportName: string) => {
-        toast.success(`Downloading ${reportName}...`, {
-            description: 'Your report will be downloaded shortly.',
+    const fetchReportBlob = async (report: StudentReportDocument, action: 'view' | 'download') => {
+        const token = getToken()
+        if (!token) throw new Error('Session expired. Please login again.')
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL
+        const response = await fetch(`${baseUrl}/student/report-documents/${report.id}/${action}`, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` },
         })
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}))
+            throw new Error(err.error || err.message || `Failed (${response.status})`)
+        }
+        return response.blob()
+    }
+
+    const handleViewReport = async (report: StudentReportDocument) => {
+        try {
+            const blob = await fetchReportBlob(report, 'view')
+            const url = URL.createObjectURL(blob)
+            window.open(url, '_blank')
+            setTimeout(() => URL.revokeObjectURL(url), 30000)
+        } catch (error) {
+            toast.error('View failed', {
+                description: error instanceof Error ? error.message : 'Unexpected error',
+            })
+        }
+    }
+
+    const handleDownloadReport = async (report: StudentReportDocument) => {
+        try {
+            const blob = await fetchReportBlob(report, 'download')
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = report.file_name || report.title
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+            URL.revokeObjectURL(url)
+            toast.success(`Downloading ${report.title}...`)
+        } catch (error) {
+            toast.error('Download failed', {
+                description: error instanceof Error ? error.message : 'Unexpected error',
+            })
+        }
     }
 
     const handlePrintReport = () => {
@@ -84,7 +200,14 @@ export default function StudentReportsPage() {
                     </Button>
                     <Button
                         className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 border-0 shadow-lg shadow-blue-500/20"
-                        onClick={() => handleDownloadReport('Full Report Card')}
+                        onClick={() => {
+                            const first = reportsQuery.data?.reports?.[0]
+                            if (!first) {
+                                toast.info('No reports available yet')
+                                return
+                            }
+                            void handleDownloadReport(first)
+                        }}
                     >
                         <Download className="mr-2 h-4 w-4" />
                         Download Report Card
@@ -147,78 +270,104 @@ export default function StudentReportsPage() {
                 </Card>
             </div>
 
-            {/* Subject Performance Chart */}
-            <Card className="border-0 shadow-lg overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                    <div className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5" />
-                        <CardTitle className="text-white">Subject Performance</CardTitle>
-                    </div>
-                    <CardDescription className="text-blue-100">Your scores across all subjects</CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 md:p-6">
-                    {mounted && (
-                        <div className="h-[350px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={student.performance.subjects}>
-                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                    <XAxis dataKey="name" className="text-xs" />
-                                    <YAxis className="text-xs" domain={[0, 100]} />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: 'hsl(var(--card))',
-                                            border: '1px solid hsl(var(--border))',
-                                            borderRadius: '12px',
-                                            boxShadow: '0 10px 40px -15px rgba(0,0,0,0.2)',
-                                        }}
-                                        formatter={(value: number | undefined) => [`${value ?? 0}%`, 'Score']}
-                                        cursor={false}
-                                    />
-                                    <Bar dataKey="score" radius={[8, 8, 0, 0]}>
-                                        {student.performance.subjects.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+            {/* Subject Performance Chart + Subject-wise Breakdown — 2 column layout */}
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                {/* Subject Performance Chart */}
+                <Card className="border-0 shadow-lg overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+                        <div className="flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5" />
+                            <CardTitle className="text-white">Subject Performance</CardTitle>
                         </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Subject Details */}
-            <Card className="border-0 shadow-lg">
-                <CardHeader>
-                    <div className="flex items-center gap-2">
-                        <Star className="h-5 w-5 text-yellow-500" />
-                        <CardTitle>Subject-wise Breakdown</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-5">
-                        {student.performance.subjects.map((subject, index) => (
-                            <div key={subject.name} className={`space-y-2 stagger-${index + 1} animate-slide-up`}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className="h-4 w-4 rounded-full"
-                                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        <CardDescription className="text-blue-100">Your scores across all subjects</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4 md:p-6">
+                        {subjectPerfQuery.isLoading && (
+                            <div className="flex items-center justify-center h-[350px] text-sm text-muted-foreground">Loading performance data...</div>
+                        )}
+                        {subjectPerfQuery.isError && (
+                            <div className="flex items-center justify-center h-[350px] text-sm text-destructive">Failed to load performance data</div>
+                        )}
+                        {!subjectPerfQuery.isLoading && !subjectPerfQuery.isError && (subjectPerfQuery.data?.subjects ?? []).length === 0 && (
+                            <div className="flex items-center justify-center h-[350px] text-sm text-muted-foreground">No assessment marks recorded yet.</div>
+                        )}
+                        {mounted && !subjectPerfQuery.isLoading && (subjectPerfQuery.data?.subjects ?? []).length > 0 && (
+                            <div className="h-[350px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={(subjectPerfQuery.data?.subjects ?? []).map(s => ({ name: s.subject_name, score: s.avg_percentage }))}>
+                                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                        <XAxis dataKey="name" className="text-xs" />
+                                        <YAxis className="text-xs" domain={[0, 100]} />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: 'hsl(var(--card))',
+                                                border: '1px solid hsl(var(--border))',
+                                                borderRadius: '12px',
+                                                boxShadow: '0 10px 40px -15px rgba(0,0,0,0.2)',
+                                            }}
+                                            formatter={(value: number | undefined) => [`${value ?? 0}%`, 'Avg Score']}
+                                            cursor={false}
                                         />
-                                        <span className="font-semibold">{subject.name}</span>
-                                        <Badge variant={subject.grade.startsWith('A') ? 'success' : 'secondary'}>
-                                            {subject.grade}
-                                        </Badge>
-                                    </div>
-                                    <span className="font-bold text-lg">{subject.score}%</span>
-                                </div>
-                                <div className="relative">
-                                    <Progress value={subject.score} className="h-3" />
-                                </div>
+                                        <Bar dataKey="score" radius={[8, 8, 0, 0]}>
+                                            {(subjectPerfQuery.data?.subjects ?? []).map((_, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Subject Details */}
+                <Card className="border-0 shadow-lg">
+                    <CardHeader>
+                        <div className="flex items-center gap-2">
+                            <Star className="h-5 w-5 text-yellow-500" />
+                            <CardTitle>Subject-wise Breakdown</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {subjectPerfQuery.isLoading && (
+                            <div className="text-sm text-muted-foreground py-4 text-center">Loading subjects...</div>
+                        )}
+                        {subjectPerfQuery.isError && (
+                            <div className="text-sm text-destructive py-4 text-center">Failed to load subject data</div>
+                        )}
+                        {!subjectPerfQuery.isLoading && !subjectPerfQuery.isError && (subjectPerfQuery.data?.subjects ?? []).length === 0 && (
+                            <div className="text-sm text-muted-foreground py-4 text-center">No assessment marks recorded yet.</div>
+                        )}
+                        <div className="space-y-5">
+                            {(subjectPerfQuery.data?.subjects ?? []).map((subject, index) => (
+                                <div key={subject.subject_id} className={`space-y-2 stagger-${index + 1} animate-slide-up`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div
+                                                className="h-4 w-4 rounded-full"
+                                                style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                                            />
+                                            <span className="font-semibold">{subject.subject_name}</span>
+                                            <Badge variant={subject.grade_letter.startsWith('A') ? 'success' : 'secondary'}>
+                                                {subject.grade_letter}
+                                            </Badge>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="font-bold text-lg">{subject.avg_percentage}%</span>
+                                            {subject.assessment_count > 0 && (
+                                                <p className="text-xs text-muted-foreground">{subject.assessment_count} assessment{subject.assessment_count !== 1 ? 's' : ''}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="relative">
+                                        <Progress value={subject.avg_percentage} className="h-3" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
             {/* Available Reports */}
             <Card className="border-0 shadow-lg">
@@ -231,44 +380,52 @@ export default function StudentReportsPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-                        {reports.map((report, index) => (
+                        {reportsQuery.isLoading ? (
+                            <div className="text-sm text-muted-foreground">Loading reports...</div>
+                        ) : reportsQuery.isError ? (
+                            <div className="text-sm text-destructive">Failed to load reports</div>
+                        ) : (reportsQuery.data?.reports || []).length === 0 ? (
+                            <div className="text-sm text-muted-foreground">No reports available yet.</div>
+                        ) : (reportsQuery.data?.reports || []).map((report, index) => (
                             <div
-                                key={report.name}
-                                className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg stagger-${index + 1} animate-slide-up ${report.status === 'available'
-                                    ? 'border-green-200 bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 hover:border-green-300'
-                                    : 'border-yellow-200 bg-gradient-to-r from-yellow-50/50 to-amber-50/50 dark:from-yellow-950/20 dark:to-amber-950/20'
-                                    }`}
+                                key={report.id}
+                                className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg stagger-${index + 1} animate-slide-up border-green-200 bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 hover:border-green-300`}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${report.status === 'available'
-                                        ? 'bg-gradient-to-br from-green-500 to-emerald-600'
-                                        : 'bg-gradient-to-br from-yellow-500 to-amber-600'
-                                        } text-white shadow-lg`}>
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg">
                                         <FileText className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <span className="font-semibold block">{report.name}</span>
+                                        <span className="font-semibold block">{report.title}</span>
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                                             <Calendar className="h-3 w-3" />
-                                            <span>{report.date}</span>
+                                            <span>{new Date(report.uploaded_at).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                            {report.report_type || 'report'}{report.academic_year ? ` • ${report.academic_year}` : ''} • {formatFileSize(report.file_size)}
                                         </div>
                                     </div>
                                 </div>
-                                {report.status === 'available' ? (
+                                <div className="flex items-center gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleDownloadReport(report.name)}
+                                        onClick={() => void handleViewReport(report)}
+                                        className="hover:bg-blue-100 hover:text-blue-700 hover:border-blue-300"
+                                    >
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        View
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => void handleDownloadReport(report)}
                                         className="hover:bg-green-100 hover:text-green-700 hover:border-green-300"
                                     >
                                         <Download className="h-4 w-4 mr-2" />
                                         Download
                                     </Button>
-                                ) : (
-                                    <Badge variant="warning" className="px-3 py-1">
-                                        Processing
-                                    </Badge>
-                                )}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -286,7 +443,7 @@ export default function StudentReportsPage() {
                                 <CheckCircle className="h-7 w-7" />
                                 Great Academic Progress!
                             </h3>
-                            <p className="text-blue-100">You're performing above average in {student.performance.subjects.filter(s => s.score >= 80).length} out of {student.performance.subjects.length} subjects</p>
+                            <p className="text-blue-100">You&apos;re performing above average in {(subjectPerfQuery.data?.subjects ?? []).filter(s => s.avg_percentage >= 80).length} out of {(subjectPerfQuery.data?.subjects ?? []).length} subjects</p>
                         </div>
                         <Button
                             size="lg"
@@ -302,3 +459,4 @@ export default function StudentReportsPage() {
         </div>
     )
 }
+

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -91,6 +91,21 @@ export default function EventsPage() {
     })
 
     const events = eventsData?.pages.flatMap(page => page.events) ?? []
+    const upcomingEvents = useMemo(() => {
+        const now = new Date()
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        return [...events]
+            .filter((event) => {
+                const [year, month, day] = event.date.split('-').map(Number)
+                if (!year || !month || !day) return false
+                const eventDate = new Date(year, month - 1, day)
+                return eventDate >= startOfToday
+            })
+            .sort((a, b) => {
+                if (a.date !== b.date) return a.date.localeCompare(b.date)
+                return (a.startTime || '').localeCompare(b.startTime || '')
+            })
+    }, [events])
 
     // Intersection Observer for infinite scrolling
     const loadMoreRef = useRef<HTMLDivElement>(null)
@@ -544,7 +559,7 @@ export default function EventsPage() {
                             </div>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                                 <CalendarDays className="h-4 w-4 text-primary" />
-                                <span className="text-sm font-semibold text-primary">{events.length} Events</span>
+                                <span className="text-sm font-semibold text-primary">{upcomingEvents.length} Events</span>
                             </div>
                         </div>
                     </CardHeader>
@@ -557,7 +572,7 @@ export default function EventsPage() {
                                         Events can only be viewed and managed by the logged-in school admin.
                                     </p>
                                 </div>
-                            ) : events.length === 0 && !isFetchingNextPage ? (
+                            ) : upcomingEvents.length === 0 && !isFetchingNextPage ? (
                                 <div className="text-center py-16">
                                     <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 mb-4">
                                         <CalendarDays className="h-10 w-10 text-muted-foreground" />
@@ -576,7 +591,7 @@ export default function EventsPage() {
                                 </div>
                             ) : (
                                 <>
-                                    {events.map((event) => (
+                                    {upcomingEvents.map((event) => (
                                         <div
                                             key={event.id}
                                             className="group relative flex gap-4 p-4 rounded-xl border bg-card hover:bg-accent/5 hover:shadow-md transition-all duration-300 hover:scale-[1.01]"
@@ -646,7 +661,7 @@ export default function EventsPage() {
                                             <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                         ) : hasNextPage ? (
                                             <div className="h-1" /> // Invisible target
-                                        ) : events.length > 0 ? (
+                                        ) : upcomingEvents.length > 0 ? (
                                             <p className="text-xs text-muted-foreground">No more events</p>
                                         ) : null}
                                     </div>
@@ -750,7 +765,7 @@ export default function EventsPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Event</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{selectedEvent?.title}"? This action cannot be undone.
+                            Are you sure you want to delete this event: {selectedEvent?.title}? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

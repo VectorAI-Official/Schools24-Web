@@ -62,3 +62,32 @@ export const sortSchoolClasses = <T extends { grade?: number | null; section?: s
 export const sortTeacherClassRows = <T extends { class_name?: string | null }>(rows: T[]) =>
     [...rows].sort((a, b) => compareClassLabels(a.class_name, b.class_name))
 
+export const formatSchoolClassLabel = (cls: { name?: string | null; grade?: number | null; section?: string | null }) => {
+    const rawName = (cls.name || "").trim()
+    let baseName = rawName
+
+    if (!baseName) {
+        if (typeof cls.grade === "number") {
+            if (cls.grade === -1) baseName = "LKG"
+            else if (cls.grade === 0) baseName = "UKG"
+            else baseName = `Class ${cls.grade}`
+        } else {
+            baseName = "Class"
+        }
+    }
+
+    const section = (cls.section || "").trim()
+    if (!section) return baseName
+
+    const upperBase = baseName.toUpperCase()
+    const upperSection = section.toUpperCase()
+    if (
+        upperBase.endsWith(`-${upperSection}`) ||
+        upperBase.endsWith(` ${upperSection}`) ||
+        upperBase === upperSection
+    ) {
+        return baseName
+    }
+
+    return `${baseName}-${section}`
+}

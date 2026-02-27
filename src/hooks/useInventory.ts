@@ -64,7 +64,7 @@ export function useInventoryItems(schoolId?: string, pageSize: number = 20, opti
             const res = await api.get<InventoryResponse>(url)
             return {
                 ...res,
-                items: res.items.map(mapInventoryItem),
+                items: (res.items ?? []).map(mapInventoryItem),
             }
         },
         initialPageParam: 1,

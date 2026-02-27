@@ -7,13 +7,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import {
-    Trophy, TrendingUp, Star, Award, Medal, ArrowLeft, Target, Zap,
-    BookOpen, CheckCircle, ArrowRight, Sparkles, Crown, BarChart3,
-    FlaskConical, Calculator, Globe, Languages, ChevronRight
+    Trophy, TrendingUp, Award, ArrowLeft, Target, Minus,
+    BookOpen, BarChart3, FlaskConical, Calculator, Globe,
+    Languages, Atom, BookMarked, Landmark, Music2, Dumbbell, Computer,
 } from 'lucide-react'
-import { mockStudents, leaderboardData } from '@/lib/mockData'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { getInitials } from '@/lib/utils'
 import {
     RadarChart,
     PolarGrid,
@@ -22,46 +19,119 @@ import {
     Radar,
     ResponsiveContainer,
 } from 'recharts'
+import {
+    useStudentSubjectPerformance,
+    useStudentAssessmentLeaderboard,
+} from '@/hooks/useStudentPerformance'
 
-const student = mockStudents[0]
+// ─── Subject display helpers ─────────────────────────────────────────────────
 
-// Subject icon mapping
-const subjectIcons: Record<string, any> = {
-    'Science': FlaskConical,
-    'Maths': Calculator,
-    'Social': Globe,
-    'English': BookOpen,
-    'Hindi': Languages,
+const subjectIconMap: Record<string, React.ElementType> = {
+    science: FlaskConical,
+    chemistry: FlaskConical,
+    physics: Atom,
+    biology: FlaskConical,
+    mathematics: Calculator,
+    maths: Calculator,
+    math: Calculator,
+    social: Globe,
+    'social studies': Globe,
+    geography: Landmark,
+    history: BookMarked,
+    english: BookOpen,
+    hindi: Languages,
+    sanskrit: Languages,
+    music: Music2,
+    'physical education': Dumbbell,
+    pe: Dumbbell,
+    computer: Computer,
+    'computer science': Computer,
+    it: Computer,
 }
 
-const subjectColors: Record<string, { color: string; bgColor: string; accentColor: string }> = {
-    'Science': { color: '#0d9488', bgColor: '#ccfbf1', accentColor: '#14b8a6' },
-    'Maths': { color: '#4f46e5', bgColor: '#e0e7ff', accentColor: '#6366f1' },
-    'Social': { color: '#0284c7', bgColor: '#e0f2fe', accentColor: '#0ea5e9' },
-    'English': { color: '#7c3aed', bgColor: '#f3e8ff', accentColor: '#a855f7' },
-    'Hindi': { color: '#ea580c', bgColor: '#ffedd5', accentColor: '#f97316' },
+const subjectColorPalette = [
+    { color: '#0d9488', bgColor: '#ccfbf1', accentColor: '#14b8a6' },
+    { color: '#4f46e5', bgColor: '#e0e7ff', accentColor: '#6366f1' },
+    { color: '#0284c7', bgColor: '#e0f2fe', accentColor: '#0ea5e9' },
+    { color: '#7c3aed', bgColor: '#f3e8ff', accentColor: '#a855f7' },
+    { color: '#ea580c', bgColor: '#ffedd5', accentColor: '#f97316' },
+    { color: '#059669', bgColor: '#d1fae5', accentColor: '#10b981' },
+    { color: '#b45309', bgColor: '#fef3c7', accentColor: '#f59e0b' },
+    { color: '#be185d', bgColor: '#fce7f3', accentColor: '#ec4899' },
+]
+
+function getSubjectIcon(name: string): React.ElementType {
+    return subjectIconMap[name.toLowerCase()] ?? BookOpen
+}
+
+function getSubjectColor(index: number) {
+    return subjectColorPalette[index % subjectColorPalette.length]
+}
+
+function getGradeStyle(grade: string) {
+    if (grade.startsWith('A')) return { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300' }
+    if (grade.startsWith('B')) return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' }
+    if (grade.startsWith('C')) return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' }
+    if (grade === 'X' || grade === '—') return { bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200' }
+    return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' }
+}
+
+function deriveGrade(avg: number): string {
+    if (avg >= 90) return 'A+'
+    if (avg >= 80) return 'A'
+    if (avg >= 70) return 'B+'
+    if (avg >= 60) return 'B'
+    if (avg >= 50) return 'C'
+    if (avg >= 35) return 'D'
+    return 'F'
 }
 
 export default function StudentPerformancePage() {
     const router = useRouter()
     const [mounted, setMounted] = useState(false)
 
-    useEffect(() => {
-        setMounted(true)
-    }, [])
+    const subjectPerfQuery = useStudentSubjectPerformance()
+    const leaderboardQuery = useStudentAssessmentLeaderboard()
 
-    const radarData = student.performance.subjects.map(s => ({
-        subject: s.name,
-        score: s.score,
-        fullMark: 100,
-    }))
+    useEffect(() => { setMounted(true) }, [])
 
-    const getGradeStyle = (grade: string) => {
-        if (grade.startsWith('A')) return { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300' }
-        if (grade.startsWith('B')) return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' }
-        if (grade.startsWith('C')) return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' }
-        return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' }
-    }
+    const subjects = subjectPerfQuery.data?.subjects ?? []
+    const className = subjectPerfQuery.data?.class_name ?? leaderboardQuery.data?.class_name ?? ''
+    const academicYear = subjectPerfQuery.data?.academic_year ?? ''
+
+    const myEntry = leaderboardQuery.data?.my_entry
+    const totalStudents = leaderboardQuery.data?.total_students ?? 0
+
+    const myAvg = myEntry?.avg_assessment_pct ?? 0
+    const myRank = myEntry?.rank ?? 0
+    const overallGrade = myAvg > 0 ? deriveGrade(myAvg) : '—'
+
+    const classEntries = leaderboardQuery.data?.entries ?? []
+    const classAvg =
+        classEntries.length > 0
+            ? classEntries.reduce((s, e) => s + e.avg_assessment_pct, 0) / classEntries.length
+            : 0
+    const improvement = classAvg > 0 ? myAvg - classAvg : null
+
+    const isLoading = subjectPerfQuery.isLoading || leaderboardQuery.isLoading
+    const hasSubjects = subjects.length > 0
+    const hasRankData = !!myEntry
+
+    const MIN_RADAR_SPOKES = 5
+    const radarData = (() => {
+        const real = subjects.map(s => ({
+            subject: s.subject_name.length > 8 ? s.subject_name.slice(0, 8) + '…' : s.subject_name,
+            score: s.avg_percentage,
+            fullMark: 100,
+        }))
+        const padding = Math.max(0, MIN_RADAR_SPOKES - real.length)
+        const phantoms = Array.from({ length: padding }, (_, i) => ({
+            subject: `_ph${i}`, // hidden via custom tick renderer
+            score: 0,
+            fullMark: 100,
+        }))
+        return [...real, ...phantoms]
+    })()
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 p-4 md:p-6">
@@ -69,15 +139,25 @@ export default function StudentPerformancePage() {
 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-xl hover:bg-white hover:shadow-sm"
+                            onClick={() => router.back()}
+                        >
+                            <ArrowLeft className="h-4 w-4 text-slate-600" />
+                        </Button>
                         <div>
                             <h1 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/25">
-                                    <BarChart3 className="h-4.5 w-4.5 text-white" />
+                                    <BarChart3 className="h-4 w-4 text-white" />
                                 </div>
                                 My Performance
                             </h1>
-                            <p className="text-sm text-slate-500 font-medium mt-0.5 ml-[3.25rem]">Track your academic progress</p>
+                            <p className="text-sm text-slate-500 font-medium mt-0.5 ml-[3.25rem]">
+                                {className ? `${className}${academicYear ? ` · ${academicYear}` : ''}` : 'Track your academic progress'}
+                            </p>
                         </div>
                     </div>
                     <Button
@@ -89,99 +169,148 @@ export default function StudentPerformancePage() {
                     </Button>
                 </div>
 
-                {/* Overall Stats */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                    {/* Rank */}
-                    <Card className="border border-amber-200/80 shadow-sm bg-gradient-to-br from-amber-50 via-yellow-50/80 to-orange-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
-                        <CardContent className="p-5 relative">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-amber-200/20 rounded-full -translate-y-10 translate-x-10" />
-                            <div className="flex items-center gap-4 relative z-10">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25 transition-transform group-hover:scale-110">
-                                    <Trophy className="h-6 w-6 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xl md:text-3xl font-bold text-amber-600">#{student.performance.rank}</p>
-                                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Class Rank</p>
-                                    <p className="text-[10px] text-slate-400 font-medium">of {student.performance.totalStudents} students</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Average Score */}
-                    <Card className="border border-teal-200/80 shadow-sm bg-gradient-to-br from-teal-50 via-emerald-50/80 to-cyan-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
-                        <CardContent className="p-5 relative">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-teal-200/20 rounded-full -translate-y-10 translate-x-10" />
-                            <div className="flex items-center gap-4 relative z-10">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/25 transition-transform group-hover:scale-110">
-                                    <Target className="h-6 w-6 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xl md:text-3xl font-bold text-teal-600">{student.performance.averageScore}%</p>
-                                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Average Score</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Grade */}
-                    <Card className="border border-emerald-200/80 shadow-sm bg-gradient-to-br from-green-50 via-emerald-50/80 to-teal-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
-                        <CardContent className="p-5 relative">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-200/20 rounded-full -translate-y-10 translate-x-10" />
-                            <div className="flex items-center gap-4 relative z-10">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg shadow-emerald-500/25 transition-transform group-hover:scale-110">
-                                    <Award className="h-6 w-6 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xl md:text-3xl font-bold text-emerald-600">{student.grade}</p>
-                                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Overall Grade</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Improvement */}
-                    <Card className="border border-blue-200/80 shadow-sm bg-gradient-to-br from-blue-50 via-cyan-50/80 to-sky-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
-                        <CardContent className="p-5 relative">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200/20 rounded-full -translate-y-10 translate-x-10" />
-                            <div className="flex items-center gap-4 relative z-10">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25 transition-transform group-hover:scale-110">
-                                    <TrendingUp className="h-6 w-6 text-white" />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-1.5">
-                                        <p className="text-xl md:text-3xl font-bold text-blue-600">+5%</p>
-                                        <Zap className="h-4 w-4 text-blue-500" />
+                {/* Stats */}
+                {isLoading ? (
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                        {[...Array(4)].map((_, i) => (
+                            <div key={i} className="h-24 rounded-2xl bg-slate-100 animate-pulse" />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                        {/* Class Rank */}
+                        <Card className="border border-amber-200/80 shadow-sm bg-gradient-to-br from-amber-50 via-yellow-50/80 to-orange-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                            <CardContent className="p-5 relative">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-amber-200/20 rounded-full -translate-y-10 translate-x-10" />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25 transition-transform group-hover:scale-110">
+                                        <Trophy className="h-6 w-6 text-white" />
                                     </div>
-                                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Improvement</p>
+                                    <div>
+                                        <p className="text-xl md:text-3xl font-bold text-amber-600">
+                                            {hasRankData && myRank > 0 ? `#${myRank}` : '—'}
+                                        </p>
+                                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Class Rank</p>
+                                        {hasRankData && totalStudents > 0 && (
+                                            <p className="text-[10px] text-slate-400 font-medium">of {totalStudents} students</p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                            </CardContent>
+                        </Card>
 
-                {/* Performance Radar & Subject Details */}
+                        {/* Average Score */}
+                        <Card className="border border-teal-200/80 shadow-sm bg-gradient-to-br from-teal-50 via-emerald-50/80 to-cyan-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                            <CardContent className="p-5 relative">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-teal-200/20 rounded-full -translate-y-10 translate-x-10" />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/25 transition-transform group-hover:scale-110">
+                                        <Target className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xl md:text-3xl font-bold text-teal-600">
+                                            {hasRankData && myAvg > 0 ? `${myAvg.toFixed(1)}%` : '—'}
+                                        </p>
+                                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Average Score</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Overall Grade */}
+                        <Card className="border border-emerald-200/80 shadow-sm bg-gradient-to-br from-green-50 via-emerald-50/80 to-teal-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                            <CardContent className="p-5 relative">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-200/20 rounded-full -translate-y-10 translate-x-10" />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg shadow-emerald-500/25 transition-transform group-hover:scale-110">
+                                        <Award className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xl md:text-3xl font-bold text-emerald-600">{overallGrade}</p>
+                                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Overall Grade</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* vs Class Average */}
+                        <Card className="border border-blue-200/80 shadow-sm bg-gradient-to-br from-blue-50 via-cyan-50/80 to-sky-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                            <CardContent className="p-5 relative">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200/20 rounded-full -translate-y-10 translate-x-10" />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25 transition-transform group-hover:scale-110">
+                                        {improvement !== null && improvement >= 0
+                                            ? <TrendingUp className="h-6 w-6 text-white" />
+                                            : improvement !== null
+                                                ? <TrendingUp className="h-6 w-6 text-white rotate-180" />
+                                                : <Minus className="h-6 w-6 text-white" />}
+                                    </div>
+                                    <div>
+                                        <p className={`text-xl md:text-3xl font-bold ${improvement === null ? 'text-slate-400' : improvement >= 0 ? 'text-blue-600' : 'text-red-500'}`}>
+                                            {improvement === null
+                                                ? '—'
+                                                : improvement >= 0
+                                                    ? `+${improvement.toFixed(1)}%`
+                                                    : `${improvement.toFixed(1)}%`}
+                                        </p>
+                                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">vs Class Avg</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Performance Overview & Subject-wise Performance */}
                 <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
                     {/* Radar Chart */}
                     <Card className="border-0 shadow-sm bg-white overflow-hidden">
                         <CardContent className="p-4 md:p-6">
                             <div className="flex items-center gap-2.5 mb-5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                                    <Target className="h-4.5 w-4.5 text-white" />
+                                    <Target className="h-4 w-4 text-white" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-slate-800 text-sm tracking-wide">Performance Overview</h3>
                                     <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Strength areas across subjects</p>
                                 </div>
                             </div>
-                            {mounted && (
+                            {subjectPerfQuery.isLoading && (
+                                <div className="h-[320px] flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full border-4 border-indigo-200 border-t-indigo-500 animate-spin" />
+                                </div>
+                            )}
+                            {!subjectPerfQuery.isLoading && !hasSubjects && (
+                                <div className="h-[320px] flex items-center justify-center text-sm text-slate-400">
+                                    No assessment data yet.
+                                </div>
+                            )}
+                            {mounted && hasSubjects && (
                                 <div className="h-[320px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <RadarChart data={radarData}>
                                             <PolarGrid stroke="#e2e8f0" />
                                             <PolarAngleAxis
                                                 dataKey="subject"
-                                                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }}
+                                                tick={(props) => {
+                                                    const { x, y, payload } = props
+                                                    if (typeof payload?.value === 'string' && payload.value.startsWith('_ph')) {
+                                                        return <g />
+                                                    }
+                                                    return (
+                                                        <text
+                                                            x={x}
+                                                            y={y}
+                                                            textAnchor="middle"
+                                                            dominantBaseline="central"
+                                                            fill="#64748b"
+                                                            fontSize={12}
+                                                            fontWeight={600}
+                                                        >
+                                                            {payload?.value}
+                                                        </text>
+                                                    )
+                                                }}
                                             />
                                             <PolarRadiusAxis
                                                 angle={30}
@@ -203,200 +332,79 @@ export default function StudentPerformancePage() {
                         </CardContent>
                     </Card>
 
-                    {/* Subject Performance */}
+                    {/* Subject-wise list */}
                     <Card className="border-0 shadow-sm bg-white overflow-hidden">
                         <CardContent className="p-4 md:p-6">
                             <div className="flex items-center gap-2.5 mb-5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/25">
-                                    <BookOpen className="h-4.5 w-4.5 text-white" />
+                                    <BookOpen className="h-4 w-4 text-white" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-slate-800 text-sm tracking-wide">Subject-wise Performance</h3>
                                     <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Scores across all subjects</p>
                                 </div>
                             </div>
-                            <div className="space-y-4">
-                                {student.performance.subjects.map((subject, index) => {
-                                    const gradeStyle = getGradeStyle(subject.grade)
-                                    const colors = subjectColors[subject.name] || { color: '#64748b', bgColor: '#f1f5f9', accentColor: '#94a3b8' }
-                                    const IconComponent = subjectIcons[subject.name] || BookOpen
+                            {subjectPerfQuery.isLoading && (
+                                <div className="space-y-4">
+                                    {[...Array(4)].map((_, i) => (
+                                        <div key={i} className="h-14 rounded-xl bg-slate-100 animate-pulse" />
+                                    ))}
+                                </div>
+                            )}
+                            {!subjectPerfQuery.isLoading && !hasSubjects && (
+                                <div className="h-48 flex items-center justify-center text-sm text-slate-400">
+                                    No assessment marks recorded yet.
+                                </div>
+                            )}
+                            {hasSubjects && (
+                                <div className="space-y-4">
+                                    {subjects.map((subject, index) => {
+                                        const gradeStyle = getGradeStyle(subject.grade_letter)
+                                        const colors = getSubjectColor(index)
+                                        const IconComponent = getSubjectIcon(subject.subject_name)
 
-                                    return (
-                                        <div key={subject.name} className="group p-3 rounded-xl bg-slate-50/50 border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all duration-300" style={{ borderLeft: `3px solid ${colors.accentColor}` }}>
-                                            <div className="flex items-center justify-between mb-2.5">
-                                                <div className="flex items-center gap-3">
-                                                    <div
-                                                        className="w-9 h-9 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
-                                                        style={{ backgroundColor: colors.bgColor }}
-                                                    >
-                                                        <IconComponent className="w-4.5 h-4.5" style={{ color: colors.color }} />
+                                        return (
+                                            <div
+                                                key={subject.subject_id}
+                                                className="group p-3 rounded-xl bg-slate-50/50 border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all duration-300"
+                                                style={{ borderLeft: `3px solid ${colors.accentColor}` }}
+                                            >
+                                                <div className="flex items-center justify-between mb-2.5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div
+                                                            className="w-9 h-9 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
+                                                            style={{ backgroundColor: colors.bgColor }}
+                                                        >
+                                                            <IconComponent className="w-4 h-4" style={{ color: colors.color }} />
+                                                        </div>
+                                                        <span className="font-semibold text-sm text-slate-800">{subject.subject_name}</span>
+                                                        {subject.grade_letter && subject.grade_letter !== 'X' && (
+                                                            <Badge className={`${gradeStyle.bg} ${gradeStyle.text} border ${gradeStyle.border} text-[10px] font-bold uppercase tracking-wider`}>
+                                                                {subject.grade_letter}
+                                                            </Badge>
+                                                        )}
                                                     </div>
-                                                    <span className="font-semibold text-sm text-slate-800">{subject.name}</span>
-                                                    <Badge className={`${gradeStyle.bg} ${gradeStyle.text} border ${gradeStyle.border} text-[10px] font-bold uppercase tracking-wider`}>
-                                                        {subject.grade}
-                                                    </Badge>
+                                                    <div className="text-right">
+                                                        <span className="font-bold text-base" style={{ color: colors.color }}>
+                                                            {subject.avg_percentage.toFixed(1)}%
+                                                        </span>
+                                                        {subject.assessment_count > 0 && (
+                                                            <p className="text-[10px] text-slate-400">
+                                                                {subject.assessment_count} assessment{subject.assessment_count !== 1 ? 's' : ''}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <span className="font-bold text-base" style={{ color: colors.color }}>{subject.score}%</span>
+                                                <Progress value={subject.avg_percentage} className="h-2 bg-slate-100 rounded-full" />
                                             </div>
-                                            <Progress value={subject.score} className="h-2 bg-slate-100 rounded-full" />
-                                        </div>
-                                    )
-                                })}
-                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Class Leaderboard Preview */}
-                <Card className="border-0 shadow-sm bg-white overflow-hidden">
-                    <CardContent className="p-4 md:p-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
-                                    <Trophy className="h-4.5 w-4.5 text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-800 text-sm tracking-wide">Class Leaderboard</h3>
-                                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Top performers</p>
-                                </div>
-                            </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-xs font-semibold text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-lg transition-all"
-                                onClick={() => router.push('/student/leaderboard')}
-                            >
-                                View Full
-                                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                            </Button>
-                        </div>
-                        <div className="space-y-2">
-                            {leaderboardData.students.slice(0, 5).map((s, index) => {
-                                const isCurrentUser = s.name === student.name
-                                const podiumGradients = ['from-amber-400 via-yellow-400 to-amber-500', 'from-slate-300 via-slate-400 to-slate-500', 'from-orange-400 via-amber-500 to-orange-500']
-
-                                return (
-                                    <div
-                                        key={s.rank}
-                                        className={`flex items-center gap-3.5 p-3 rounded-xl transition-all duration-300 hover:shadow-sm cursor-pointer group ${isCurrentUser
-                                            ? 'bg-gradient-to-r from-teal-50 via-emerald-50/60 to-cyan-50/40 border border-teal-200'
-                                            : 'bg-slate-50/50 border border-transparent hover:bg-white hover:border-slate-200'
-                                            }`}
-                                    >
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm ${index < 3
-                                            ? `bg-gradient-to-br ${podiumGradients[index]} text-white`
-                                            : 'bg-slate-200 text-slate-600'
-                                            }`}>
-                                            {index < 3 ? (
-                                                index === 0 ? <Crown className="h-4 w-4" /> : index === 1 ? <Medal className="h-4 w-4" /> : <Star className="h-4 w-4" />
-                                            ) : s.rank}
-                                        </div>
-                                        <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                                            <AvatarFallback className={`text-xs font-bold ${isCurrentUser
-                                                ? 'bg-gradient-to-br from-teal-400 to-emerald-500 text-white'
-                                                : 'bg-slate-100 text-slate-600'
-                                                }`}>
-                                                {getInitials(s.name)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-semibold text-sm text-slate-800 truncate">{s.name}</p>
-                                                {isCurrentUser && (
-                                                    <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100 border border-teal-300 text-[9px] font-bold uppercase tracking-wider">You</Badge>
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-slate-400 font-medium">Class {s.class}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Badge
-                                                className={`text-[10px] font-bold uppercase tracking-wider ${s.trend === 'up'
-                                                    ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
-                                                    : s.trend === 'down'
-                                                        ? 'bg-red-100 text-red-600 border-red-300'
-                                                        : 'bg-slate-100 text-slate-600 border-slate-300'
-                                                    } border`}
-                                            >
-                                                {s.trend === 'up' ? '↑ Rising' : s.trend === 'down' ? '↓ Declining' : '→ Stable'}
-                                            </Badge>
-                                            <p className={`text-base font-bold min-w-[2.5rem] text-right ${isCurrentUser ? 'text-teal-600' : 'text-slate-700'}`}>
-                                                {s.score}%
-                                            </p>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Achievements */}
-                <Card className="border-0 shadow-sm bg-white overflow-hidden">
-                    <CardContent className="p-4 md:p-6">
-                        <div className="flex items-center gap-2.5 mb-6">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
-                                <Sparkles className="h-4.5 w-4.5 text-white" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-slate-800 text-sm tracking-wide">Achievements</h3>
-                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Your academic milestones</p>
-                            </div>
-                        </div>
-                        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                            {[
-                                {
-                                    icon: Trophy,
-                                    title: 'Top 5',
-                                    subtitle: 'Class Rank',
-                                    gradient: 'from-amber-400 to-orange-500',
-                                    shadow: 'shadow-amber-500/25',
-                                    bg: 'from-amber-50 via-yellow-50/80 to-orange-50/60',
-                                    border: 'border-amber-200/80',
-                                },
-                                {
-                                    icon: CheckCircle,
-                                    title: 'Perfect Attendance',
-                                    subtitle: 'December 2025',
-                                    gradient: 'from-emerald-400 to-green-500',
-                                    shadow: 'shadow-emerald-500/25',
-                                    bg: 'from-green-50 via-emerald-50/80 to-teal-50/60',
-                                    border: 'border-emerald-200/80',
-                                },
-                                {
-                                    icon: Award,
-                                    title: 'Math Champion',
-                                    subtitle: '95% in Unit Test',
-                                    gradient: 'from-blue-400 to-cyan-500',
-                                    shadow: 'shadow-blue-500/25',
-                                    bg: 'from-blue-50 via-cyan-50/80 to-sky-50/60',
-                                    border: 'border-blue-200/80',
-                                },
-                                {
-                                    icon: TrendingUp,
-                                    title: 'Most Improved',
-                                    subtitle: '+15% in Science',
-                                    gradient: 'from-violet-400 to-purple-500',
-                                    shadow: 'shadow-violet-500/25',
-                                    bg: 'from-violet-50 via-purple-50/80 to-fuchsia-50/60',
-                                    border: 'border-violet-200/80',
-                                },
-                            ].map((achievement) => (
-                                <div
-                                    key={achievement.title}
-                                    className={`p-5 rounded-xl bg-gradient-to-br ${achievement.bg} border ${achievement.border} transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer group`}
-                                >
-                                    <div className="flex flex-col items-center text-center">
-                                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${achievement.gradient} flex items-center justify-center ${achievement.shadow} shadow-lg mb-3 transition-transform group-hover:scale-110`}>
-                                            <achievement.icon className="h-6 w-6 text-white" />
-                                        </div>
-                                        <p className="font-bold text-sm text-slate-800 mb-0.5">{achievement.title}</p>
-                                        <p className="text-[11px] text-slate-500 font-medium">{achievement.subtitle}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </div>
     )

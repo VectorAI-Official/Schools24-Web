@@ -127,6 +127,58 @@ export function useEvents(
     })
 }
 
+type ApiErrorLike = { message?: string }
+
+export function useStudentEvents(
+    params: { type?: string; startDate?: string; endDate?: string; page?: number; pageSize?: number; enabled?: boolean } = {}
+) {
+    const { type = '', startDate = '', endDate = '', page = 1, pageSize = 200, enabled = true } = params
+
+    return useQuery({
+        queryKey: ['student-events', type, startDate, endDate, page, pageSize],
+        queryFn: async () => {
+            const qs = new URLSearchParams()
+            if (type) qs.append('type', type)
+            if (startDate) qs.append('start_date', startDate)
+            if (endDate) qs.append('end_date', endDate)
+            qs.append('page', page.toString())
+            qs.append('page_size', pageSize.toString())
+
+            const res = await api.get<EventsResponse>(`/student/events?${qs.toString()}`)
+            return {
+                ...res,
+                events: res.events.map(mapEvent),
+            }
+        },
+        enabled,
+    })
+}
+
+export function useTeacherEvents(
+    params: { type?: string; startDate?: string; endDate?: string; page?: number; pageSize?: number; enabled?: boolean } = {}
+) {
+    const { type = '', startDate = '', endDate = '', page = 1, pageSize = 500, enabled = true } = params
+
+    return useQuery({
+        queryKey: ['teacher-events', type, startDate, endDate, page, pageSize],
+        queryFn: async () => {
+            const qs = new URLSearchParams()
+            if (type) qs.append('type', type)
+            if (startDate) qs.append('start_date', startDate)
+            if (endDate) qs.append('end_date', endDate)
+            qs.append('page', page.toString())
+            qs.append('page_size', pageSize.toString())
+
+            const res = await api.get<EventsResponse>(`/teacher/events?${qs.toString()}`)
+            return {
+                ...res,
+                events: res.events.map(mapEvent),
+            }
+        },
+        enabled,
+    })
+}
+
 export function useInfiniteEvents(
     schoolId: string | undefined,
     params: { type?: string; startDate?: string; endDate?: string; pageSize?: number; enabled?: boolean } = {}
@@ -184,9 +236,10 @@ export function useCreateEvent(schoolId?: string) {
             queryClient.invalidateQueries({ queryKey: ['infinite-events', schoolId] })
             toast.success('Event created')
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+            const err = error as ApiErrorLike
             toast.error('Failed to create event', {
-                description: error.message || 'An error occurred',
+                description: err.message || 'An error occurred',
             })
         },
     })
@@ -215,9 +268,10 @@ export function useUpdateEvent(schoolId?: string) {
             queryClient.invalidateQueries({ queryKey: ['infinite-events', schoolId] })
             toast.success('Event updated')
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+            const err = error as ApiErrorLike
             toast.error('Failed to update event', {
-                description: error.message || 'An error occurred',
+                description: err.message || 'An error occurred',
             })
         },
     })
@@ -238,9 +292,10 @@ export function useDeleteEvent(schoolId?: string) {
             queryClient.invalidateQueries({ queryKey: ['infinite-events', schoolId] })
             toast.success('Event deleted')
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+            const err = error as ApiErrorLike
             toast.error('Failed to delete event', {
-                description: error.message || 'An error occurred',
+                description: err.message || 'An error occurred',
             })
         },
     })
