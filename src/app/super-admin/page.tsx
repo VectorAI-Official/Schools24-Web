@@ -35,7 +35,7 @@ import { SuperAdminSettingsPanel } from "@/app/super-admin/settings/page"
 import { SuperAdminTrashPanel } from "@/app/super-admin/trash/page"
 import { useAuth } from "@/contexts/AuthContext"
 import { useDebounce } from "@/hooks/useDebounce"
-import { useInfiniteSchools, useCreateSchool, useDeleteSchool, CreateSchoolParams } from "@/hooks/useSchools"
+import { useInfiniteSchools, useCreateSchool, useDeleteSchool, useUpdateSchool, CreateSchoolParams, UpdateSchoolParams } from "@/hooks/useSchools"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit, Layers3, BookOpenCheck, Check, X, Shield, Sparkles, CheckCircle2, Save, ArrowRight } from "lucide-react"
@@ -69,6 +69,35 @@ function SchoolsSection() {
     const { data: schoolsData, isLoading: isSchoolsLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteSchools(canLoad)
     const createSchool = useCreateSchool()
     const deleteSchool = useDeleteSchool()
+    const updateSchool = useUpdateSchool()
+
+    // ── Edit School state ─────────────────────────────────────────────────────
+    const [editSchool, setEditSchool] = useState<{ id: string; name: string; address: string; contact_email: string } | null>(null)
+    const [editForm, setEditForm] = useState({ name: "", address: "", contact_email: "" })
+
+    const handleEditClick = (e: React.MouseEvent, school: { id: string; name: string; address?: string; contact_email?: string }) => {
+        e.stopPropagation()
+        setEditForm({
+            name: school.name,
+            address: school.address || "",
+            contact_email: school.contact_email || "",
+        })
+        setEditSchool({ id: school.id, name: school.name, address: school.address || "", contact_email: school.contact_email || "" })
+    }
+
+    const handleEditSave = async () => {
+        if (!editSchool) return
+        if (!editForm.name.trim()) {
+            toast.error("School name is required")
+            return
+        }
+        try {
+            await updateSchool.mutateAsync({ id: editSchool.id, name: editForm.name, address: editForm.address, contact_email: editForm.contact_email })
+            setEditSchool(null)
+        } catch (_) {
+            // error already shown by the hook
+        }
+    }
 
     const allSchools = useMemo(() => schoolsData?.pages.flatMap((p) => p.schools) ?? [], [schoolsData])
 
@@ -201,7 +230,7 @@ function SchoolsSection() {
                                 </DialogDescription>
                             </DialogHeader>
                         </div>
-                        
+
                         <div className="px-6 py-4 max-h-[60vh] overflow-y-auto space-y-8 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                             {/* School Information Section */}
                             <div className="space-y-4">
@@ -370,7 +399,7 @@ function SchoolsSection() {
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 opacity-70 group-hover:opacity-100 transition-opacity" />
-                            
+
                             <CardHeader className="relative pb-2 pt-6 px-6">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 border border-indigo-100/50 dark:border-indigo-800/50 shadow-sm transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
@@ -383,7 +412,10 @@ function SchoolsSection() {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="rounded-xl border-slate-200 dark:border-slate-800 shadow-xl" onClick={(e) => e.stopPropagation()}>
-                                            <DropdownMenuItem className="cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-900/30">
+                                            <DropdownMenuItem
+                                                className="cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-900/30"
+                                                onClick={(e) => handleEditClick(e, school)}
+                                            >
                                                 <Edit className="h-4 w-4 mr-2 text-indigo-500" /> Edit Details
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
@@ -413,7 +445,7 @@ function SchoolsSection() {
                                     <Mail className="h-4 w-4 mr-2.5 shrink-0 text-indigo-400" />
                                     <span className="truncate font-medium">{school.contact_email || "No contact email"}</span>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-3 gap-3">
                                     <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-100/50 dark:border-indigo-500/20 transition-all duration-300 group-hover:bg-indigo-100/50 dark:group-hover:bg-indigo-500/20">
                                         <p className="text-[10px] uppercase font-bold tracking-wider text-indigo-600/70 dark:text-indigo-400/70 mb-1">Admins</p>
@@ -429,7 +461,7 @@ function SchoolsSection() {
                                     </div>
                                 </div>
                             </CardContent>
-                            
+
                             <CardFooter className="relative bg-slate-50/50 dark:bg-slate-900/30 px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center group-hover:bg-indigo-50/30 dark:group-hover:bg-indigo-900/20 transition-colors">
                                 <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                                     Open Dashboard <ArrowRight className="h-3 w-3" />
@@ -456,6 +488,73 @@ function SchoolsSection() {
                     <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
                 </div>
             )}
+
+            {/* ── Edit School Dialog ──────────────────────────────────────────── */}
+            <Dialog open={!!editSchool} onOpenChange={(open) => { if (!open) setEditSchool(null) }}>
+                <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                    <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500" />
+                    <div className="px-6 pt-5 pb-2">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                <Edit className="h-5 w-5 text-indigo-500" /> Edit School
+                            </DialogTitle>
+                            <DialogDescription>
+                                Update details for <span className="font-semibold">{editSchool?.name}</span>.
+                            </DialogDescription>
+                        </DialogHeader>
+                    </div>
+                    <div className="px-6 py-4 space-y-5">
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit_name" className="text-slate-700 dark:text-slate-300 font-medium">
+                                School Name <span className="text-rose-500">*</span>
+                            </Label>
+                            <Input
+                                id="edit_name"
+                                value={editForm.name}
+                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                placeholder="e.g. Springfield High School"
+                                className="h-10 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit_contact_email" className="text-slate-700 dark:text-slate-300 font-medium">Contact Email</Label>
+                                <Input
+                                    id="edit_contact_email"
+                                    type="email"
+                                    value={editForm.contact_email}
+                                    onChange={(e) => setEditForm({ ...editForm, contact_email: e.target.value })}
+                                    placeholder="admin@school.edu"
+                                    className="h-10 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit_address" className="text-slate-700 dark:text-slate-300 font-medium">Address</Label>
+                                <Input
+                                    id="edit_address"
+                                    value={editForm.address}
+                                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                    placeholder="123 Education Lane"
+                                    className="h-10 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="px-6 pb-5 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+                        <Button variant="outline" onClick={() => setEditSchool(null)} className="border-slate-200 dark:border-slate-700">
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleEditSave}
+                            disabled={updateSchool.isPending}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 min-w-[120px]"
+                        >
+                            {updateSchool.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                            {updateSchool.isPending ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <PasswordPromptDialog
                 open={!!deleteConfirmation}

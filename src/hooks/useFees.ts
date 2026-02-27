@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
@@ -100,19 +100,19 @@ const getErrorMessage = (error: unknown) => {
 
 export function useFeeDemands(
     schoolId: string | undefined,
-    params: { search?: string; status?: string; academicYear?: string; page?: number; pageSize?: number; enabled?: boolean } = {}
+    params: { search?: string; status?: string; academicYear?: string; pageSize?: number; enabled?: boolean } = {}
 ) {
-    const { search = '', status = 'all', academicYear = '', page = 1, pageSize = 20, enabled = true } = params
+    const { search = '', status = 'all', academicYear = '', pageSize = 20, enabled = true } = params
 
-    return useQuery({
-        queryKey: ['fee-demands', schoolId, search, status, academicYear, page, pageSize],
-        queryFn: async () => {
+    return useInfiniteQuery({
+        queryKey: ['fee-demands', schoolId, search, status, academicYear, pageSize],
+        queryFn: async ({ pageParam = 1 }) => {
             const qs = new URLSearchParams()
             if (schoolId) qs.append('school_id', schoolId)
             if (search) qs.append('search', search)
             if (status) qs.append('status', status)
             if (academicYear) qs.append('academic_year', academicYear)
-            qs.append('page', page.toString())
+            qs.append('page', pageParam.toString())
             qs.append('page_size', pageSize.toString())
             const url = `/admin/fees/demands?${qs.toString()}`
             const res = await api.get<FeeDemandResponse>(url)
@@ -120,6 +120,11 @@ export function useFeeDemands(
                 ...res,
                 items: res.items.map(mapFeeDemand),
             }
+        },
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => {
+            const totalPages = Math.ceil(lastPage.total / lastPage.page_size)
+            return lastPage.page < totalPages ? lastPage.page + 1 : undefined
         },
         enabled,
         staleTime: 30_000,

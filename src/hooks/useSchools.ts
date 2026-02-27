@@ -231,6 +231,30 @@ export function useDeleteUser() {
     });
 }
 
+export interface UpdateSchoolParams {
+    id: string;
+    name: string;
+    address?: string;
+    contact_email?: string;
+}
+
+export function useUpdateSchool() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, ...data }: UpdateSchoolParams) =>
+            api.put<School>(`/super-admin/schools/${id}`, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['schools'] });
+            queryClient.invalidateQueries({ queryKey: ['schools-infinite'] });
+            toast.success('School updated successfully');
+        },
+        onError: (error: any) => {
+            const message = error.message || 'Failed to update school';
+            toast.error('Failed to update school', { description: message });
+        },
+    });
+}
+
 export function useCreateSchool() {
     const queryClient = useQueryClient();
     return useMutation({
@@ -250,7 +274,7 @@ export function useCreateSchool() {
 export function useDeleteSchool() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ schoolId, password }: { schoolId: string; password: string }) => 
+        mutationFn: ({ schoolId, password }: { schoolId: string; password: string }) =>
             api.delete(`/super-admin/schools/${schoolId}`, { body: JSON.stringify({ password }) }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['schools'] });
@@ -283,7 +307,7 @@ export function useDeletedSchools(enabled: boolean = true) {
 export function useRestoreSchool() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ schoolId, password }: { schoolId: string; password: string }) => 
+        mutationFn: ({ schoolId, password }: { schoolId: string; password: string }) =>
             api.post(`/super-admin/schools/${schoolId}/restore`, { password }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['schools'] });

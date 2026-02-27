@@ -1,14 +1,16 @@
 "use client"
 
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Trophy, Star } from 'lucide-react'
+import { Trophy, Star, Loader2 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTeachersLeaderboard } from '@/hooks/useAdminLeaderboards'
 import { LeaderboardPodium } from '@/components/admin/leaderboard/LeaderboardPodium'
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 
 export default function TeachersLeaderboardPage() {
     const searchParams = useSearchParams()
@@ -24,6 +26,23 @@ export default function TeachersLeaderboardPage() {
 
     const topThree = data?.top_3 || []
     const fullItems = data?.items || []
+
+    const BATCH_SIZE = 20
+    const [displayedCount, setDisplayedCount] = useState(BATCH_SIZE)
+    const visibleItems = fullItems.slice(0, displayedCount)
+    const hasMore = displayedCount < fullItems.length
+
+    const { ref: sentinelRef, inView } = useIntersectionObserver({ threshold: 0.1 })
+    useEffect(() => {
+        if (inView && hasMore) {
+            setDisplayedCount(c => Math.min(c + BATCH_SIZE, fullItems.length))
+        }
+    }, [inView, hasMore, fullItems.length])
+
+    // Reset when data arrives or changes
+    useEffect(() => {
+        setDisplayedCount(BATCH_SIZE)
+    }, [data])
 
     return (
         <div className="space-y-6">
@@ -68,7 +87,7 @@ export default function TeachersLeaderboardPage() {
                         {isError && (
                             <div className="text-sm text-destructive">Failed to load teacher leaderboard.</div>
                         )}
-                        {!isLeaderboardLoading && !isError && fullItems.map((teacher, index) => (
+                        {!isLeaderboardLoading && !isError && visibleItems.map((teacher, index) => (
                             <div key={teacher.teacher_id} className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted transition-colors">
                                 <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold ${index === 0 ? 'bg-yellow-500 text-white' :
                                     index === 1 ? 'bg-gray-400 text-white' :
@@ -113,6 +132,11 @@ export default function TeachersLeaderboardPage() {
                                 </Badge>
                             </div>
                         ))}
+                        {hasMore && (
+                            <div ref={sentinelRef} className="flex justify-center py-3">
+                                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card >

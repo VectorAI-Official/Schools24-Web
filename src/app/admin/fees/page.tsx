@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -32,7 +32,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Search, Plus, DollarSign, Download, TrendingUp, AlertCircle, CheckCircle, Send, Receipt, CreditCard } from 'lucide-react'
+import { Search, Plus, DollarSign, Download, TrendingUp, AlertCircle, CheckCircle, Send, Receipt, CreditCard, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import {
     useFeeDemands,
@@ -48,6 +48,7 @@ import { useStudents } from '@/hooks/useAdminStudents'
 import { useClasses } from '@/hooks/useClasses'
 import { formatSchoolClassLabel } from '@/lib/classOrdering'
 import { formatCurrency } from '@/lib/utils'
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { toast } from 'sonner'
 
 interface FeeFormData {
@@ -117,15 +118,25 @@ export default function FeesPage() {
     const [paymentMethod, setPaymentMethod] = useState('cash')
     const [paymentPurpose, setPaymentPurpose] = useState('')
 
-    const { data: feeDemandsData } = useFeeDemands(schoolId, {
+    const {
+        data: feeDemandsData,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useFeeDemands(schoolId, {
         search: searchQuery,
         status: statusFilter,
         academicYear,
-        page: 1,
-        pageSize: 50,
+        pageSize: 20,
         enabled: canLoad,
     })
-    const fees = feeDemandsData?.items ?? []
+    const fees = feeDemandsData?.pages.flatMap(page => page.items) ?? []
+
+    // Infinite scroll
+    const { ref: feeScrollRef, inView: feeInView } = useIntersectionObserver({ threshold: 0.1 })
+    useEffect(() => {
+        if (feeInView && hasNextPage && !isFetchingNextPage) fetchNextPage()
+    }, [feeInView, hasNextPage, isFetchingNextPage, fetchNextPage])
     const academicYearOptions = useMemo(() => buildAcademicYearOptions(currentAcademicYear), [currentAcademicYear])
 
     const { data: classesData } = useClasses()
@@ -155,6 +166,8 @@ export default function FeesPage() {
     const createFeePurpose = useCreateFeeDemandPurpose(schoolId)
     const updateFeePurpose = useUpdateFeeDemandPurpose(schoolId)
     const deleteFeePurpose = useDeleteFeeDemandPurpose(schoolId)
+
+    const fetchTriggerIndex = fees.length > 0 ? Math.max(0, Math.floor(fees.length * 0.8) - 1) : -1
 
     const filteredFees = fees.filter(fee => {
         const matchesSearch = fee.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -693,8 +706,8 @@ export default function FeesPage() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                filteredFees.map((fee) => (
-                                    <TableRow key={fee.id}>
+                                filteredFees.map((fee, index) => (
+                                    <TableRow key={fee.id} ref={index === fetchTriggerIndex ? feeScrollRef : undefined}>
                                         <TableCell>
                                             <div>
                                                 <p className="font-medium">{fee.studentName}</p>
@@ -741,6 +754,11 @@ export default function FeesPage() {
                             )}
                         </TableBody>
                     </Table>
+                    {isFetchingNextPage && (
+                        <div className="flex justify-center py-3">
+                            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                        </div>
+                    )}
                     </div>
                 </CardContent>
             </Card>
