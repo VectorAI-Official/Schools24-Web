@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Plus, Search, Edit2, Trash2, MoreVertical, Mail, Phone as PhoneIcon, Eye, EyeOff } from 'lucide-react'
 import { useInfiniteSchoolUsers, useCreateUser, useUpdateUser, useDeleteUser, User } from '@/hooks/useSchools'
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -45,17 +44,7 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage
-    } = useInfiniteSchoolUsers(schoolId, role, 100)
-
-    const { ref: observerRef, inView } = useIntersectionObserver({
-        threshold: 0,
-    })
-
-    useEffect(() => {
-        if (inView && hasNextPage && !isFetchingNextPage) {
-            fetchNextPage()
-        }
-    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+    } = useInfiniteSchoolUsers(schoolId, role, 50)
 
     const createUserMutation = useCreateUser()
     const updateUserMutation = useUpdateUser()
@@ -156,7 +145,8 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
         }
     }
 
-    const allUsers = usersData?.pages.flatMap(page => page.users) || []
+    const allUsers = (usersData?.pages.flatMap(page => page.users) || [])
+        .sort((a, b) => a.full_name.localeCompare(b.full_name, undefined, { sensitivity: 'base' }))
     const flatUsers = allUsers.filter(user =>
         user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -181,8 +171,8 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
             </div>
 
             <div className="rounded-md border bg-white dark:bg-slate-900 max-h-[600px] overflow-y-auto" onScroll={(e) => {
-                const bottom = e.currentTarget.scrollHeight - e.currentTarget.scrollTop === e.currentTarget.clientHeight;
-                if (bottom && hasNextPage && !isFetchingNextPage) {
+                const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+                if (scrollTop / (scrollHeight - clientHeight) >= 0.8 && hasNextPage && !isFetchingNextPage) {
                     fetchNextPage();
                 }
             }}>
@@ -267,7 +257,6 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                <TableRow ref={observerRef} />
                             </>
                         )}
                     </TableBody>

@@ -108,7 +108,7 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
         isFetchingNextPage,
         isLoading,
         error
-    } = useStaff(searchQuery, 20, schoolId, undefined, { enabled })
+    } = useStaff(searchQuery, 50, schoolId, undefined, { enabled })
 
     // Flatten pages into a single list (filter out nulls defensively)
     const staffList = (data?.pages.flatMap(page => page.staff) || []).filter(

@@ -95,7 +95,7 @@ export function useSchoolUsers(schoolId: string, role?: string, enabled: boolean
     });
 }
 
-export function useInfiniteSchoolUsers(schoolId: string, role?: string, pageSize: number = 100, enabled: boolean = true) {
+export function useInfiniteSchoolUsers(schoolId: string, role?: string, pageSize: number = 50, enabled: boolean = true) {
     return useInfiniteQuery({
         queryKey: ['school-users-infinite', schoolId, role, pageSize],
         queryFn: async ({ pageParam = 1 }) => {
@@ -108,8 +108,8 @@ export function useInfiniteSchoolUsers(schoolId: string, role?: string, pageSize
             return api.get<UsersResponse>(`/admin/users?${params.toString()}`);
         },
         getNextPageParam: (lastPage) => {
-            if (lastPage.users.length < lastPage.page_size) return undefined;
-            return lastPage.page + 1;
+            const totalPages = Math.ceil(lastPage.total / lastPage.page_size);
+            return lastPage.page < totalPages ? lastPage.page + 1 : undefined;
         },
         initialPageParam: 1,
         enabled: !!schoolId && enabled,
