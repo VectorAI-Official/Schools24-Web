@@ -1142,8 +1142,12 @@ export default function UsersPage() {
                                 <Label htmlFor="edit-phone">Phone Number</Label>
                                 <Input
                                     id="edit-phone"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    placeholder="10-digit mobile number"
                                     value={selectedUser.phone || ''}
-                                    onChange={(e) => setSelectedUser({ ...selectedUser, phone: e.target.value })}
+                                    onChange={(e) => setSelectedUser({ ...selectedUser, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -1264,9 +1268,12 @@ export default function UsersPage() {
                             <Label htmlFor="add-phone">Phone Number</Label>
                             <Input
                                 id="add-phone"
+                                type="tel"
+                                inputMode="numeric"
+                                maxLength={10}
+                                placeholder="10-digit mobile number"
                                 value={newUser.phone}
-                                onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
-                                placeholder="+1 234 567 890"
+                                onChange={(e) => setNewUser({ ...newUser, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                             />
                         </div>
                         <div className="grid gap-2">

@@ -657,8 +657,12 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                                 <Label htmlFor="edit-phone">Phone</Label>
                                 <Input
                                     id="edit-phone"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    placeholder="10-digit mobile number"
                                     value={newStaff.phone}
-                                    onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value })}
+                                    onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                                 />
                             </div>
                         </div>

@@ -196,9 +196,12 @@ export function AddStudentDialog({ open, onOpenChange, onAdd }: AddStudentDialog
                                 <Label htmlFor="phone">Phone Number</Label>
                                 <Input
                                     id="phone"
-                                    placeholder="Enter phone"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    placeholder="10-digit mobile number"
                                     value={newStudent.phone}
-                                    onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                                    onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -238,9 +241,12 @@ export function AddStudentDialog({ open, onOpenChange, onAdd }: AddStudentDialog
                                 <Label htmlFor="parentPhone">Parent Phone *</Label>
                                 <Input
                                     id="parentPhone"
-                                    placeholder="Enter parent phone"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    placeholder="10-digit mobile number"
                                     value={newStudent.parent_phone}
-                                    onChange={(e) => setNewStudent({ ...newStudent, parent_phone: e.target.value })}
+                                    onChange={(e) => setNewStudent({ ...newStudent, parent_phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                                 />
                             </div>
                             <div className="grid gap-2">

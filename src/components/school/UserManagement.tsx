@@ -320,8 +320,12 @@ export function UserManagement({ role, schoolId }: UserManagementProps) {
                             <Label htmlFor="phone">Phone (Optional)</Label>
                             <Input
                                 id="phone"
+                                type="tel"
+                                inputMode="numeric"
+                                maxLength={10}
+                                placeholder="10-digit mobile number"
                                 value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                             />
                         </div>
                     </div>

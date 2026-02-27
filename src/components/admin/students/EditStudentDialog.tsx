@@ -317,8 +317,12 @@ export function EditStudentDialog({ open, onOpenChange, student, onSave, schoolI
                             <div className="grid gap-2">
                                 <Label>Parent Phone</Label>
                                 <Input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    placeholder="10-digit mobile number"
                                     value={formData.parent_phone}
-                                    onChange={(e) => setFormData({ ...formData, parent_phone: e.target.value })}
+                                    onChange={(e) => setFormData({ ...formData, parent_phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -332,9 +336,12 @@ export function EditStudentDialog({ open, onOpenChange, student, onSave, schoolI
                         <div className="grid gap-2">
                             <Label>Emergency Contact</Label>
                             <Input
+                                type="tel"
+                                inputMode="numeric"
+                                maxLength={10}
+                                placeholder="10-digit mobile number"
                                 value={formData.emergency_contact}
-                                placeholder="Alternative phone number"
-                                onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                             />
                         </div>
                     </TabsContent>

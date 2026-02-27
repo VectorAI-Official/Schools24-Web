@@ -357,9 +357,12 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSave }: EditT
                             <div className="grid gap-2">
                                 <Label>Phone</Label>
                                 <Input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    placeholder="10-digit mobile number"
                                     value={formData.phone}
-                                    placeholder="+91 98765 43210"
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                                 />
                             </div>
                             <div className="grid gap-2">

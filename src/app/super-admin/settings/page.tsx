@@ -280,9 +280,11 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                       <Input
                         id="phone"
                         type="tel"
-                        placeholder="+1 (555) 000-0000"
+                        inputMode="numeric"
+                        maxLength={10}
+                        placeholder="10-digit mobile number"
                         value={profileData.phone}
-                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                         className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
                       />
                     </div>
@@ -493,8 +495,11 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                         <Input
                           id="sa_phone"
                           type="tel"
+                          inputMode="numeric"
+                          maxLength={10}
+                          placeholder="10-digit mobile number"
                           value={newSuperAdmin.phone}
-                          onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, phone: e.target.value })}
+                          onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                           className="h-11 bg-white dark:bg-slate-950/50 rounded-xl"
                         />
                       </div>
