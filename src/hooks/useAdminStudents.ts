@@ -88,6 +88,8 @@ export function useStudents(
             return lastPage.page < totalPages ? lastPage.page + 1 : undefined;
         },
         enabled: options.enabled ?? canLoad,
+        staleTime: 30_000,
+        refetchInterval: 30_000,
     });
 }
 

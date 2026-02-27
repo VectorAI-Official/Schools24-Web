@@ -27,7 +27,9 @@ export function useStaff(search: string = '', pageSize: number = 20, schoolId?: 
             const totalPages = Math.ceil(lastPage.total / lastPage.page_size);
             return lastPage.page < totalPages ? lastPage.page + 1 : undefined;
         },
-        enabled: options.enabled
+        enabled: options.enabled,
+        staleTime: 30_000,
+        refetchInterval: 30_000,
     });
 }
 

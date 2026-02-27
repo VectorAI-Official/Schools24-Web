@@ -141,7 +141,7 @@ export default function TeachersDetailsPage() {
 
     const fetchTriggerIndex = filteredTeachers.length > 0 ? Math.max(0, Math.floor(filteredTeachers.length * 0.8) - 1) : -1
 
-    const departments = [...new Set(teachers.map(t => t.department))].sort()
+    const departments = [...new Set(teachers.map(t => t.department).filter((d): d is string => !!d))].sort()
 
     const stats = {
         total: data?.pages[0]?.total || teachers.length,

@@ -90,7 +90,8 @@ export function useBusRoutes(search: string = '', schoolId?: string, options: { 
       const totalPages = Math.ceil(lastPage.total / lastPage.page_size);
       return lastPage.page < totalPages ? lastPage.page + 1 : undefined;
     },
-    staleTime: 30 * 1000,
+    staleTime: 2 * 60_000,
+    refetchInterval: 60_000,
     enabled: options.enabled,
   });
 }

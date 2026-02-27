@@ -15,6 +15,7 @@ export function useAdminCatalogSubjects(options: { enabled?: boolean } = {}) {
         queryFn: () => api.get<{ subjects: AdminCatalogSubject[] }>('/admin/catalog/subjects'),
         enabled,
         staleTime: 60_000,
+        refetchOnWindowFocus: false,
     })
 }
 

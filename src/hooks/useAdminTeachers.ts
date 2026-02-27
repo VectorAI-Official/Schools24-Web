@@ -89,6 +89,8 @@ export function useTeachers(
             return lastPage.page < totalPages ? lastPage.page + 1 : undefined
         },
         enabled: options.enabled,
+        staleTime: 30_000,
+        refetchInterval: 30_000,
     })
 }
 
@@ -103,6 +105,7 @@ export function useCreateTeacher() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['teachers'] })
+            queryClient.invalidateQueries({ queryKey: ['school'] })
             toast.success('Teacher added successfully')
         },
         onError: (error: unknown) => {
@@ -122,6 +125,7 @@ export function useUpdateTeacher() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['teachers'] })
+            queryClient.invalidateQueries({ queryKey: ['school'] })
             toast.success('Teacher updated successfully')
         },
         onError: (error: unknown) => {
@@ -141,6 +145,7 @@ export function useDeleteTeacher() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['teachers'] })
+            queryClient.invalidateQueries({ queryKey: ['school'] })
             toast.success('Teacher deleted successfully')
         },
         onError: (error: unknown) => {

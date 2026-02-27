@@ -46,6 +46,7 @@ export function useClasses(academicYear?: string) {
       return api.get<ClassesResponse>(`/classes${query ? `?${query}` : ''}`);
     },
     staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }
 

@@ -20,6 +20,8 @@ export function useStudentsLeaderboard(params: {
             refresh: true,
         }),
         enabled: params.enabled,
+        staleTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
     })
 }
 
@@ -40,5 +42,7 @@ export function useTeachersLeaderboard(params: {
             refresh: false,
         }),
         enabled: params.enabled,
+        staleTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
     })
 }

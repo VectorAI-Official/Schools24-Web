@@ -32,6 +32,8 @@ export function useClassSubjects(classId: string | null, options: { enabled?: bo
             return api.get<{ subjects: ClassSubject[] }>(`/admin/classes/${classId}/subjects`)
         },
         enabled: enabled && !!classId,
+        staleTime: 2 * 60_000,
+        refetchOnWindowFocus: false,
     })
 }
 

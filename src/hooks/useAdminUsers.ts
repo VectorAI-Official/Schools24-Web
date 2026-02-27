@@ -63,14 +63,18 @@ export function useUsers(role: string = 'all', search: string = '', pageSize: nu
             const totalPages = Math.ceil(lastPage.total / lastPage.page_size);
             const nextPage = allPages.length + 1;
             return nextPage <= totalPages ? nextPage : undefined;
-        }
+        },
+        staleTime: 30_000,
+        refetchInterval: 30_000,
     });
 }
 
 export function useUserStats() {
     return useQuery({
         queryKey: ['user-stats'],
-        queryFn: () => api.get<UserStats>('/admin/stats/users')
+        queryFn: () => api.get<UserStats>('/admin/stats/users'),
+        staleTime: 30_000,
+        refetchInterval: 30_000,
     });
 }
 

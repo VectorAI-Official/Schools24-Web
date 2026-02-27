@@ -64,6 +64,8 @@ export function useAdminTimetableConfig(schoolId?: string, options: { enabled?: 
             return api.get<TimetableConfigResponse>(`/admin/timetable/config${params.toString() ? `?${params.toString()}` : ''}`)
         },
         enabled: options.enabled,
+        staleTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
     })
 }
 
@@ -98,6 +100,8 @@ export function useClassTimetable(classId: string, academicYear: string, schoolI
             return api.get<{ timetable: TimetableEntry[] }>(`/admin/timetable/classes/${classId}${params.toString() ? `?${params.toString()}` : ''}`)
         },
         enabled: options.enabled,
+        staleTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
     })
 }
 
@@ -111,6 +115,8 @@ export function useTeacherTimetable(teacherId: string, academicYear: string, sch
             return api.get<{ timetable: TimetableEntry[]; conflicts: TimetableConflict[] }>(`/admin/timetable/teachers/${teacherId}${params.toString() ? `?${params.toString()}` : ''}`)
         },
         enabled: options.enabled,
+        staleTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
     })
 }
 

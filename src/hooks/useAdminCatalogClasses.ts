@@ -17,6 +17,7 @@ export function useAdminCatalogClasses(enabled = true) {
     enabled,
     queryFn: () => api.get<AdminCatalogClassesResponse>('/admin/catalog/classes'),
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   })
 }
 

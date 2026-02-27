@@ -73,6 +73,8 @@ export function useInventoryItems(schoolId?: string, pageSize: number = 20, opti
             return lastPage.page < totalPages ? lastPage.page + 1 : undefined
         },
         enabled,
+        staleTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
     })
 }
 

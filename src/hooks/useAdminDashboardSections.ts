@@ -36,6 +36,7 @@ export function useAdminWeeklyAttendance(schoolId?: string) {
             )
         },
         staleTime: 5 * 60 * 1000, // 5 min
+        refetchInterval: 2 * 60_000,
     })
 }
 
@@ -73,6 +74,7 @@ export function useAdminAssessmentLeaderboard(params?: {
             )
         },
         staleTime: 5 * 60 * 1000,
+        refetchInterval: 2 * 60_000,
     })
 }
 
@@ -84,6 +86,7 @@ export function useAdminRevenueChart(period: 'week' | 'month' | 'quarter' | 'yea
         queryFn: () =>
             api.get<FinanceChartResponse>(`/admin/finance/chart?period=${period}`),
         staleTime: 2 * 60 * 1000, // 2 min
+        refetchInterval: 2 * 60_000,
     })
 }
 
@@ -95,6 +98,7 @@ export function useAdminRecentPayments(limit = 5) {
         queryFn: () =>
             api.get<{ payments: RecentPayment[] }>(`/admin/payments?limit=${limit}`),
         staleTime: 1 * 60 * 1000, // 1 min
+        refetchInterval: 30_000,
     })
 }
 
@@ -116,5 +120,6 @@ export function useAdminClassDistribution() {
         queryFn: () =>
             api.get<ClassDistributionResponse>('/admin/reports/class-distribution'),
         staleTime: 5 * 60 * 1000,
+        refetchInterval: 5 * 60_000,
     })
 }
