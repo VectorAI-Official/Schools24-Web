@@ -5,11 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Trash2, 
-  RotateCcw, 
-  Search, 
-  AlertCircle, 
+import {
+  Trash2,
+  RotateCcw,
+  Search,
+  AlertCircle,
   Clock,
   ArrowLeft,
   School as SchoolIcon,
@@ -33,10 +33,10 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
   const debouncedSearch = useDebounce(searchQuery, 300)
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false)
   const [selectedSchool, setSelectedSchool] = useState<{ id: string; name: string } | null>(null)
-  
+
   const isSuperAdmin = user?.role === 'super_admin'
   const canLoad = isSuperAdmin && !authLoading
-  
+
   const { data: deletedSchools = [], isLoading: isLoadingDeleted } = useDeletedSchools(canLoad)
   const restoreSchool = useRestoreSchool()
 
@@ -79,7 +79,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
   const handleRestoreConfirm = async (password: string) => {
     if (!selectedSchool) return
-    
+
     try {
       await restoreSchool.mutateAsync({
         schoolId: selectedSchool.id,
@@ -152,33 +152,33 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
             </Button>
           )}
 
-          <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-900">
-            <CardContent className="pt-6">
-              <div className="flex gap-3">
-                <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5 shrink-0" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-orange-900 dark:text-orange-100">
-                    Recovery Window Information
-                  </p>
-                  <p className="text-sm text-orange-800 dark:text-orange-200">
-                    Deleted schools can be restored within 24 hours. After this period, 
-                    they will be permanently deleted along with all associated data including 
-                    tenant schemas. This action cannot be undone.
-                  </p>
-                </div>
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border border-orange-200/50 dark:border-orange-800/50 rounded-2xl p-6 shadow-sm">
+            <div className="flex gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
+                <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="space-y-1.5">
+                <p className="text-base font-bold text-orange-900 dark:text-orange-100">
+                  Recovery Window Information
+                </p>
+                <p className="text-sm text-orange-800 dark:text-orange-200 leading-relaxed max-w-3xl">
+                  Deleted schools can be restored within a strict <span className="font-bold">24-hour</span> window. After this period,
+                  they will be permanently eradicated from the system, including all associated data and
+                  tenant schemas. <span className="font-semibold text-red-600 dark:text-red-400">This automated purge cannot be undone.</span>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Search Bar */}
         {(deletedSchools?.length || 0) > 0 && (
-          <div className="flex justify-between items-center gap-4">
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-4 shadow-sm flex items-center">
             <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                placeholder="Search deleted schools..."
-                className="pl-10 bg-white"
+                placeholder="Search deleted schools by name, email, or admin..."
+                className="pl-9 h-11 bg-white/80 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 rounded-xl focus-visible:ring-indigo-500 transition-shadow"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -195,137 +195,145 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
         {/* Empty State */}
         {!isLoadingDeleted && (deletedSchools?.length || 0) === 0 && (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="rounded-full bg-slate-100 dark:bg-slate-800 p-4 md:p-6 mb-4">
-                <Trash2 className="h-12 w-12 text-slate-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                Trash bin is empty
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 text-center max-w-sm">
-                No deleted schools found. Deleted schools will appear here and can be restored within 24 hours.
-              </p>
-              {!embedded && (
-                <Button
-                  variant="outline"
-                  onClick={() => router.push('/super-admin')}
-                  className="mt-6"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Dashboard
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center py-20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-sm text-center">
+            <div className="h-20 w-20 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-6 shadow-inner">
+              <SchoolIcon className="h-10 w-10 text-emerald-500" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Trash Bin is Empty
+            </h3>
+            <p className="text-slate-500 max-w-md">
+              No recently deleted schools found. Schools deleted within the last 24 hours will appear here for recovery.
+            </p>
+            {!embedded && (
+              <Button
+                onClick={() => router.push('/super-admin')}
+                className="mt-8 bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl shadow-md h-11 px-6 transition-all"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+              </Button>
+            )}
+          </div>
         )}
 
         {/* Deleted Schools Grid */}
         {!isLoadingDeleted && filteredSchools.length > 0 && (
-          <div className="grid grid-cols-1 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredSchools.map((school) => {
               const hoursRemaining = getHoursRemaining(school.deleted_at!)
               const urgency = getUrgencyLevel(hoursRemaining)
               const urgencyColors = {
                 critical: {
-                  border: 'border-red-300 dark:border-red-800',
-                  bg: 'bg-red-50 dark:bg-red-950/20',
-                  badge: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-                  icon: 'text-red-600 dark:text-red-400'
+                  border: 'border-red-300 dark:border-red-800/60 shadow-red-500/10',
+                  bg: 'bg-gradient-to-b from-red-50 to-white dark:from-red-950/30 dark:to-slate-900/60',
+                  badge: 'bg-red-100/80 text-red-700 dark:bg-red-900/40 dark:text-red-400 border border-red-200 dark:border-red-800/50',
+                  icon: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40',
+                  button: 'bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20 cursor-pointer'
                 },
                 warning: {
-                  border: 'border-orange-300 dark:border-orange-800',
-                  bg: 'bg-orange-50 dark:bg-orange-950/20',
-                  badge: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-                  icon: 'text-orange-600 dark:text-orange-400'
+                  border: 'border-orange-300 dark:border-orange-800/60 shadow-orange-500/10',
+                  bg: 'bg-gradient-to-b from-orange-50 to-white dark:from-orange-950/30 dark:to-slate-900/60',
+                  badge: 'bg-orange-100/80 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50',
+                  icon: 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/40',
+                  button: 'bg-orange-600 hover:bg-orange-700 text-white shadow-md shadow-orange-500/20 cursor-pointer'
                 },
                 normal: {
-                  border: 'border-slate-200 dark:border-slate-700',
-                  bg: 'bg-white dark:bg-slate-800',
-                  badge: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
-                  icon: 'text-slate-600 dark:text-slate-400'
+                  border: 'border-blue-200 dark:border-blue-800/50 shadow-blue-500/5',
+                  bg: 'bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/30 dark:to-slate-900/60',
+                  badge: 'bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50',
+                  icon: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40',
+                  button: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer transition-all'
                 }
               }
 
               return (
-                <Card 
-                  key={school.id} 
-                  className={`${urgencyColors[urgency].border} ${urgencyColors[urgency].bg} hover:shadow-lg transition-shadow`}
+                <div
+                  key={school.id}
+                  className={`group rounded-3xl border backdrop-blur-xl overflow-hidden hover:shadow-xl transition-all duration-300 ${urgencyColors[urgency].border} ${urgencyColors[urgency].bg}`}
                 >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${urgency === 'critical' ? 'bg-red-100 dark:bg-red-900' : urgency === 'warning' ? 'bg-orange-100 dark:bg-orange-900' : 'bg-slate-100 dark:bg-slate-700'}`}>
-                          <SchoolIcon className={`h-5 w-5 ${urgencyColors[urgency].icon}`} />
+                  <div className="p-6">
+                    <div className="flex items-start justify-between gap-3 mb-5">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className={`h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-inner ${urgencyColors[urgency].icon}`}>
+                          <SchoolIcon className="h-6 w-6" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg truncate">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate" title={school.name}>
                             {school.name}
-                          </CardTitle>
-                          <CardDescription className="text-xs mt-1">
+                          </h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-0.5">
                             ID: {school.id.slice(0, 8)}
-                          </CardDescription>
+                          </p>
                         </div>
                       </div>
                     </div>
-                  </CardHeader>
 
-                  <CardContent className="space-y-4">
-                    {/* School Details */}
-                    <div className="space-y-2 text-sm">
-                      {school.address && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{school.address}</span>
+                    <div className="space-y-4 mb-6">
+                      <div className="space-y-2.5">
+                        {school.address && (
+                          <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                            <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
+                            <span className="truncate font-medium">{school.address}</span>
+                          </div>
+                        )}
+                        {school.contact_email && (
+                          <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                            <Mail className="h-4 w-4 shrink-0 text-slate-400" />
+                            <span className="truncate font-medium">{school.contact_email}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent my-4"></div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <User className="h-4 w-4" />
+                            <span>Deleted by:</span>
+                          </div>
+                          <span className="font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[120px]" title={school.deleted_by_name || 'Unknown'}>{school.deleted_by_name || 'Unknown'}</span>
                         </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <Clock className="h-4 w-4" />
+                            <span>Time left:</span>
+                          </div>
+                          <span className="font-semibold text-slate-700 dark:text-slate-200 text-right">
+                            {formatDistanceToNow(parseISO(school.deleted_at!), { addSuffix: true })}
+                          </span>
+                        </div>
+
+                        <div className="pt-2">
+                          <div className={`w-full flex justify-between items-center py-2 px-3 rounded-xl ${urgencyColors[urgency].badge}`}>
+                            <span className="text-xs font-bold uppercase tracking-wide">Recovery Window</span>
+                            <span className="text-sm font-black font-mono">
+                              {Math.floor(hoursRemaining)}h {Math.floor((hoursRemaining % 1) * 60)}m
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Button
+                        onClick={() => handleRestoreClick(school.id, school.name)}
+                        disabled={restoreSchool.isPending}
+                        className={`w-full h-11 rounded-xl text-sm font-bold ${urgencyColors[urgency].button}`}
+                      >
+                        <RotateCcw className={`mr-2 h-4 w-4 ${urgency === 'normal' ? 'text-blue-500' : ''}`} />
+                        Restore School
+                      </Button>
+
+                      {urgency === 'critical' && (
+                        <p className="text-xs text-red-600 dark:text-red-400 text-center font-bold animate-pulse">
+                          ⚠️ Critical: Less than 2 hours remaining!
+                        </p>
                       )}
-                      {school.contact_email && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{school.contact_email}</span>
-                        </div>
-                      )}
                     </div>
-
-                    {/* Deletion Info */}
-                    <div className="pt-3 border-t space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Deleted by:</span>
-                        <span className="font-medium">{school.deleted_by_name || 'Unknown'}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {formatDistanceToNow(parseISO(school.deleted_at!), { addSuffix: true })}
-                        </span>
-                      </div>
-
-                      {/* Time Remaining Badge */}
-                      <Badge className={`${urgencyColors[urgency].badge} font-mono text-xs`}>
-                        {hoursRemaining}h {Math.floor((hoursRemaining % 1) * 60)}m remaining
-                      </Badge>
-                    </div>
-
-                    {/* Restore Button */}
-                    <Button
-                      onClick={() => handleRestoreClick(school.id, school.name)}
-                      disabled={restoreSchool.isPending}
-                      className="w-full"
-                      variant={urgency === 'critical' ? 'default' : 'outline'}
-                    >
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      Restore School
-                    </Button>
-
-                    {urgency === 'critical' && (
-                      <p className="text-xs text-red-600 dark:text-red-400 text-center font-medium">
-                        ⚠️ Critical: Less than 2 hours remaining!
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )
             })}
           </div>
@@ -333,17 +341,17 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
         {/* No Search Results */}
         {!isLoadingDeleted && (deletedSchools?.length || 0) > 0 && filteredSchools.length === 0 && (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Search className="h-12 w-12 text-slate-400 mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                No schools found
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Try adjusting your search query
-              </p>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center py-16 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 shadow-sm text-center">
+            <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 shadow-inner">
+              <Search className="h-8 w-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+              No schools match your search
+            </h3>
+            <p className="text-slate-500 max-w-sm">
+              We couldn't find any deleted schools matching "{searchQuery}". Try a different search term.
+            </p>
+          </div>
         )}
       </main>
 

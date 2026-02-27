@@ -554,17 +554,21 @@ export default function SuperAdminQuizSchedulerPage() {
                 Manage Chapters
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Subject Management</DialogTitle>
-                <DialogDescription>Manage platform chapters by class and subject.</DialogDescription>
+            <DialogContent className="max-w-3xl p-0 overflow-hidden border-slate-200/60 dark:border-slate-800/60 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl sm:rounded-2xl">
+              <DialogHeader className="p-6 pb-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-indigo-500" /> Curriculum Manager
+                </DialogTitle>
+                <DialogDescription>Add, update, or remove subjects and chapters available for quizzes.</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto w-full">
+
+                {/* Selectors */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800">
                   <div className="grid gap-2">
-                    <Label>Class</Label>
+                    <Label className="text-slate-700 dark:text-slate-300 text-xs font-semibold uppercase tracking-wide">Select Class Level</Label>
                     <Select value={managedChapterClassID} onValueChange={(value) => { setManagedChapterClassID(value); setManagedChapterSubjectID(""); resetManagedChapterForm(); }}>
-                      <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
+                      <SelectTrigger className="h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg shadow-sm"><SelectValue placeholder="Choose a class..." /></SelectTrigger>
                       <SelectContent>
                         {classOptions.map((c) => (
                           <SelectItem key={c.class_id} value={c.class_id}>{c.class_name}</SelectItem>
@@ -573,13 +577,13 @@ export default function SuperAdminQuizSchedulerPage() {
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label>Subject</Label>
+                    <Label className="text-slate-700 dark:text-slate-300 text-xs font-semibold uppercase tracking-wide">Select Subject</Label>
                     <Select
                       value={managedChapterSubjectID}
                       onValueChange={(value) => { setManagedChapterSubjectID(value); resetManagedChapterForm(); }}
                       disabled={!managedChapterClassID || managedSubjectOptions.length === 0}
                     >
-                      <SelectTrigger><SelectValue placeholder={managedChapterClassID ? "Select subject" : "Select class first"} /></SelectTrigger>
+                      <SelectTrigger className="h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg shadow-sm"><SelectValue placeholder={managedChapterClassID ? "Choose a subject..." : "Select class first"} /></SelectTrigger>
                       <SelectContent>
                         {managedSubjectOptions.map((s) => (
                           <SelectItem key={s.subject_id} value={s.subject_id}>{s.subject_name}</SelectItem>
@@ -589,72 +593,97 @@ export default function SuperAdminQuizSchedulerPage() {
                   </div>
                 </div>
 
-                <div className="flex items-end gap-2">
-                  <div className="grid gap-2 flex-1">
-                    <Label>Chapter Name</Label>
+                <div className="flex flex-col sm:flex-row items-end gap-3">
+                  <div className="grid gap-2 flex-1 w-full">
+                    <Label className="text-slate-700 dark:text-slate-300 font-medium">Chapter Title</Label>
                     <Input
                       value={managedChapterName}
                       onChange={(e) => setManagedChapterName(e.target.value)}
-                      placeholder="Enter chapter name"
+                      placeholder="e.g. Introduction to Calculus"
                       disabled={!managedChapterClassID || !managedChapterSubjectID}
+                      className="h-11 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl"
                     />
                   </div>
-                  {managedEditChapterID ? (
-                    <Button disabled={updateManagedChapterMutation.isPending} onClick={() => updateManagedChapterMutation.mutate()}>
-                      {updateManagedChapterMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update"}
-                    </Button>
-                  ) : (
-                    <Button disabled={createManagedChapterMutation.isPending} onClick={() => createManagedChapterMutation.mutate()}>
-                      {createManagedChapterMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
-                    </Button>
-                  )}
-                  {managedEditChapterID ? (
-                    <Button
-                      variant="outline"
-                      onClick={resetManagedChapterForm}
-                      disabled={createManagedChapterMutation.isPending || updateManagedChapterMutation.isPending}
-                    >
-                      Cancel
-                    </Button>
-                  ) : null}
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    {managedEditChapterID ? (
+                      <Button className="h-11 px-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-xl shadow-md w-full sm:w-auto" disabled={updateManagedChapterMutation.isPending} onClick={() => updateManagedChapterMutation.mutate()}>
+                        {updateManagedChapterMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Target"}
+                      </Button>
+                    ) : (
+                      <Button className="h-11 px-6 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 rounded-xl shadow-md w-full sm:w-auto" disabled={createManagedChapterMutation.isPending || !managedChapterClassID || !managedChapterSubjectID || !managedChapterName} onClick={() => createManagedChapterMutation.mutate()}>
+                        {createManagedChapterMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Entry"}
+                      </Button>
+                    )}
+                    {managedEditChapterID ? (
+                      <Button
+                        variant="outline"
+                        className="h-11 rounded-xl w-full sm:w-auto border-slate-200 dark:border-slate-800"
+                        onClick={resetManagedChapterForm}
+                        disabled={createManagedChapterMutation.isPending || updateManagedChapterMutation.isPending}
+                      >
+                        Cancel
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
 
-                <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-3">
-                  {!managedChapterClassID || !managedChapterSubjectID ? (
-                    <p className="text-sm text-muted-foreground">Select class and subject to manage chapters.</p>
-                  ) : managedChapterQuery.isLoading ? (
-                    <p className="text-sm text-muted-foreground">Loading chapters...</p>
-                  ) : managedChapters.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No chapters found.</p>
-                  ) : (
-                    managedChapters.map((chapter) => (
-                      <div key={chapter.id} className="flex items-center justify-between gap-2 rounded border px-3 py-2">
-                        <span className="text-sm">{chapter.chapter_name}</span>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setManagedEditChapterID(chapter.id);
-                              setManagedChapterName(chapter.chapter_name);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => deleteManagedChapterMutation.mutate(chapter.id)}
-                            disabled={deleteManagedChapterMutation.isPending}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                <div className="space-y-3 pt-2">
+                  <Label className="text-slate-700 dark:text-slate-300 font-medium flex items-center justify-between">
+                    <span>Configured Chapters</span>
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                      {managedChapters.length} Total
+                    </Badge>
+                  </Label>
+                  <div className="min-h-[200px] max-h-[300px] overflow-y-auto border border-slate-200/60 dark:border-slate-800/60 rounded-xl bg-slate-50/30 dark:bg-slate-900/20 p-2">
+                    {!managedChapterClassID || !managedChapterSubjectID ? (
+                      <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                        <FileText className="h-8 w-8 text-slate-300 dark:text-slate-700 mb-3" />
+                        <p className="text-sm text-slate-500 font-medium">Select a class and subject above to view chapters.</p>
                       </div>
-                    ))
-                  )}
+                    ) : managedChapterQuery.isLoading ? (
+                      <div className="flex flex-col items-center justify-center h-full py-12">
+                        <Loader2 className="h-6 w-6 text-indigo-500 animate-spin mb-3" />
+                        <p className="text-sm text-slate-500 font-medium animate-pulse">Loading curriculum data...</p>
+                      </div>
+                    ) : managedChapters.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                        <GraduationCap className="h-8 w-8 text-slate-300 dark:text-slate-700 mb-3" />
+                        <p className="text-sm text-slate-500 font-medium">No chapters configured for this subject yet.</p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-2">
+                        {managedChapters.map((chapter) => (
+                          <div key={chapter.id} className="group flex items-center justify-between gap-3 rounded-lg border border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 px-4 py-3 hover:shadow-sm hover:border-indigo-200 dark:hover:border-indigo-800/50 transition-all">
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{chapter.chapter_name}</span>
+                            <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                                onClick={() => {
+                                  setManagedEditChapterID(chapter.id);
+                                  setManagedChapterName(chapter.chapter_name);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30"
+                                onClick={() => deleteManagedChapterMutation.mutate(chapter.id)}
+                                disabled={deleteManagedChapterMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </DialogContent>
@@ -1064,16 +1093,23 @@ export default function SuperAdminQuizSchedulerPage() {
       </Dialog>
 
       <Dialog open={!!deleteQuizId} onOpenChange={(v) => { if (!v) setDeleteQuizId(null); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Quiz?</DialogTitle>
-            <DialogDescription>This will permanently delete the quiz and all its questions. This action cannot be undone.</DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setDeleteQuizId(null)}>Cancel</Button>
-            <Button variant="destructive" disabled={deleteQuizMutation.isPending} onClick={() => { if (deleteQuizId) deleteQuizMutation.mutate(deleteQuizId); }}>
+        <DialogContent className="max-w-sm p-0 overflow-hidden border-slate-200/60 dark:border-slate-800/60 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl sm:rounded-2xl">
+          <div className="p-6 flex flex-col items-center text-center space-y-4">
+            <div className="h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+              <Trash2 className="h-6 w-6 text-rose-600 dark:text-rose-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white mb-2">Delete Assessment?</DialogTitle>
+              <DialogDescription className="text-slate-500">
+                This will permanently delete the selected quiz, including all its scheduled settings and internal question bank. This action cannot be undone.
+              </DialogDescription>
+            </div>
+          </div>
+          <DialogFooter className="px-6 py-4 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-between gap-3 w-full">
+            <Button variant="outline" onClick={() => setDeleteQuizId(null)} className="flex-1 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800">Cancel</Button>
+            <Button variant="destructive" className="flex-1 rounded-xl shadow-md shadow-rose-500/20" disabled={deleteQuizMutation.isPending} onClick={() => { if (deleteQuizId) deleteQuizMutation.mutate(deleteQuizId); }}>
               {deleteQuizMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Delete
+              Confirm Delete
             </Button>
           </DialogFooter>
         </DialogContent>

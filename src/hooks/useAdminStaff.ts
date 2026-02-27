@@ -37,6 +37,7 @@ export function useCreateStaff() {
         mutationFn: (data: any) => api.post('/admin/staff', data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['staff'] });
+            queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('Staff member added successfully');
         },
         onError: (error: any) => {
@@ -56,6 +57,7 @@ export function useUpdateStaff() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['staff'] });
+            queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('Staff member updated successfully');
         },
         onError: (error: any) => {
@@ -75,6 +77,7 @@ export function useDeleteStaff() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['staff'] });
+            queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('Staff member deleted successfully');
         },
         onError: (error: any) => {

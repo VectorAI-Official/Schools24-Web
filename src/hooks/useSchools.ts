@@ -87,7 +87,8 @@ export function useSchool(idOrSlug: string, enabled: boolean = true) {
             return api.get<School>(`/super-admin/schools/${idOrSlug}`);
         },
         enabled: !!idOrSlug && enabled,
-        staleTime: 2 * 60_000,
+        staleTime: 20_000,
+        refetchInterval: 30_000,
     });
 }
 
@@ -166,6 +167,7 @@ export function useCreateUser() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
+            queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('User created successfully');
         },
         onError: (error: any) => {
@@ -195,6 +197,7 @@ export function useUpdateUser() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
+            queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('User updated successfully');
         },
         onError: (error: any) => {
@@ -214,11 +217,13 @@ export function useDeleteUser() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
+            queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('User deleted successfully');
         },
         onError: (error: any) => {
             if (error.message === 'user_not_found') {
                 queryClient.invalidateQueries({ queryKey: ['school-users'] });
+                queryClient.invalidateQueries({ queryKey: ['school'] });
                 return;
             }
             toast.error('Failed to delete user', { description: error.message });
@@ -232,6 +237,7 @@ export function useCreateSchool() {
         mutationFn: (data: CreateSchoolParams) => api.post('/super-admin/schools', data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['schools'] });
+            queryClient.invalidateQueries({ queryKey: ['schools-infinite'] });
             toast.success('School created successfully');
         },
         onError: (error: any) => {
@@ -248,6 +254,7 @@ export function useDeleteSchool() {
             api.delete(`/super-admin/schools/${schoolId}`, { body: JSON.stringify({ password }) }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['schools'] });
+            queryClient.invalidateQueries({ queryKey: ['schools-infinite'] });
             queryClient.invalidateQueries({ queryKey: ['deleted-schools'] });
             toast.success('School moved to trash', {
                 description: 'Can be restored within 24 hours'

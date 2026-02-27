@@ -80,7 +80,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Only send changed fields
     const updates: { full_name?: string; phone?: string } = {}
     if (profileData.full_name !== user?.full_name) updates.full_name = profileData.full_name
@@ -153,11 +153,11 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
         phone: newSuperAdmin.phone || undefined,
         current_password: currentPassword
       })
-      
+
       toast.success('Super Admin Created', {
         description: `${newSuperAdmin.full_name} has been added as a super admin.`
       })
-      
+
       setNewSuperAdmin({
         full_name: '',
         email: '',
@@ -178,17 +178,17 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
 
   const confirmDeleteSuperAdmin = async (password: string) => {
     if (!deleteConfirmation) return
-    
+
     try {
       await deleteSuperAdmin.mutateAsync({
         id: deleteConfirmation.id,
         password
       })
-      
+
       toast.success('Super Admin Deleted', {
         description: `${deleteConfirmation.name} has been removed from super admins.`
       })
-      
+
       setDeleteConfirmation(null)
     } catch (error) {
       // Error handled by hook and PasswordPromptDialog
@@ -210,7 +210,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
   )
 
   // Check if email already exists in super admins list
-  const emailAlreadyExists = newSuperAdmin.email.trim() !== '' && 
+  const emailAlreadyExists = newSuperAdmin.email.trim() !== '' &&
     superAdmins.some(sa => sa.email.toLowerCase() === newSuperAdmin.email.toLowerCase())
 
   return (
@@ -236,75 +236,81 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
         )}
 
         {/* Settings Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full max-w-xl grid-cols-1 md:grid-cols-3">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="super-admins">Super Admins</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="flex w-full md:w-auto p-1 bg-slate-100/80 dark:bg-slate-800/50 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm self-start max-w-xl mx-auto md:mx-0">
+            <TabsTrigger value="profile" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Profile</TabsTrigger>
+            <TabsTrigger value="security" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Security</TabsTrigger>
+            <TabsTrigger value="super-admins" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Super Admins</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Update your personal information and avatar</CardDescription>
-              </CardHeader>
+          <TabsContent value="profile" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden shadow-sm">
+              <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                  Profile Information
+                </h2>
+                <p className="text-slate-500 mt-1">Update your personal information and contact details.</p>
+              </div>
               <form onSubmit={handleProfileUpdate}>
-                <CardContent className="space-y-6">
+                <div className="p-6 md:p-8 space-y-6">
                   {/* Full Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="full_name">Full Name *</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="full_name" className="text-slate-700 dark:text-slate-300 font-medium">Full Name <span className="text-rose-500">*</span></Label>
                     <Input
                       id="full_name"
                       type="text"
                       required
                       value={profileData.full_name}
                       onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+                      className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
                     />
                   </div>
 
-                  {/* Email (Read-only) */}
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" value={user.email} disabled />
-                    <p className="text-xs text-muted-foreground">Email cannot be changed</p>
-                  </div>
+                  {/* Email & Phone */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="email" className="text-slate-700 dark:text-slate-300 font-medium">Email Address</Label>
+                      <Input id="email" type="email" value={user.email} disabled className="h-11 bg-slate-100/50 dark:bg-slate-900/50 text-slate-500 rounded-xl border-dashed" />
+                      <p className="text-xs text-slate-500">Email cannot be changed directly.</p>
+                    </div>
 
-                  {/* Phone */}
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+1 (555) 000-0000"
-                      value={profileData.phone}
-                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                    />
+                    <div className="grid gap-2">
+                      <Label htmlFor="phone" className="text-slate-700 dark:text-slate-300 font-medium">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+1 (555) 000-0000"
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                        className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
+                      />
+                    </div>
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" disabled={updateProfile.isPending}>
-                    {updateProfile.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Changes
+                </div>
+                <div className="p-6 md:px-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex justify-end">
+                  <Button type="submit" disabled={updateProfile.isPending || (profileData.full_name === user.full_name && profileData.phone === user.phone)} className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 rounded-xl px-8 h-11 transition-all">
+                    {updateProfile.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Changes"}
                   </Button>
-                </CardFooter>
+                </div>
               </form>
-            </Card>
+            </div>
           </TabsContent>
 
           {/* Security Tab */}
-          <TabsContent value="security" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>Update your password to keep your account secure</CardDescription>
-              </CardHeader>
+          <TabsContent value="security" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden shadow-sm">
+              <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                  Change Password
+                </h2>
+                <p className="text-slate-500 mt-1">Update your password to keep your account secure.</p>
+              </div>
               <form onSubmit={handlePasswordChange}>
-                <CardContent className="space-y-4">
+                <div className="p-6 md:p-8 space-y-6">
                   {/* Current Password */}
-                  <div className="space-y-2">
-                    <Label htmlFor="current_password">Current Password *</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="current_password" className="text-slate-700 dark:text-slate-300 font-medium">Current Password <span className="text-rose-500">*</span></Label>
                     <div className="relative">
                       <Input
                         id="current_password"
@@ -315,83 +321,89 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                         onChange={(e) =>
                           setPasswordData({ ...passwordData, current_password: e.target.value })
                         }
+                        className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowPasswords({ ...showPasswords, current: !showPasswords.current })
                         }
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
                         aria-label={showPasswords.current ? "Hide password" : "Show password"}
                       >
-                        {showPasswords.current ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        {showPasswords.current ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
                       </button>
                     </div>
                   </div>
 
-                  {/* New Password */}
-                  <div className="space-y-2">
-                    <Label htmlFor="new_password">New Password *</Label>
-                    <div className="relative">
-                      <Input
-                        id="new_password"
-                        type={showPasswords.new ? 'text' : 'password'}
-                        required
-                        minLength={8}
-                        value={passwordData.new_password}
-                        onChange={(e) =>
-                          setPasswordData({ ...passwordData, new_password: e.target.value })
-                        }
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
-                        aria-label={showPasswords.new ? "Hide password" : "Show password"}
-                      >
-                        {showPasswords.new ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-                      </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* New Password */}
+                    <div className="grid gap-2">
+                      <Label htmlFor="new_password" className="text-slate-700 dark:text-slate-300 font-medium">New Password <span className="text-rose-500">*</span></Label>
+                      <div className="relative">
+                        <Input
+                          id="new_password"
+                          type={showPasswords.new ? 'text' : 'password'}
+                          required
+                          minLength={8}
+                          value={passwordData.new_password}
+                          onChange={(e) =>
+                            setPasswordData({ ...passwordData, new_password: e.target.value })
+                          }
+                          className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                          aria-label={showPasswords.new ? "Hide password" : "Show password"}
+                        >
+                          {showPasswords.new ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
+                        </button>
+                      </div>
+                      {passwordData.new_password && !isPasswordStrong && (
+                        <p className="text-xs text-rose-500 mt-1 font-medium">
+                          Password must be 8+ chars with uppercase, lowercase, number & special char
+                        </p>
+                      )}
                     </div>
-                    {passwordData.new_password && !isPasswordStrong && (
-                      <p className="text-xs text-red-600 dark:text-red-400">
-                        Password must be 8+ chars with uppercase, lowercase, number & special char
-                      </p>
-                    )}
-                  </div>
 
-                  {/* Confirm Password */}
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm_password">Confirm New Password *</Label>
-                    <div className="relative">
-                      <Input
-                        id="confirm_password"
-                        type={showPasswords.confirm ? 'text' : 'password'}
-                        required
-                        minLength={8}
-                        value={passwordData.confirm_password}
-                        onChange={(e) =>
-                          setPasswordData({ ...passwordData, confirm_password: e.target.value })
-                        }
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
-                        }
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
-                        aria-label={showPasswords.confirm ? "Hide password" : "Show password"}
-                      >
-                        {showPasswords.confirm ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-                      </button>
+                    {/* Confirm Password */}
+                    <div className="grid gap-2">
+                      <Label htmlFor="confirm_password" className="text-slate-700 dark:text-slate-300 font-medium">Confirm New Password <span className="text-rose-500">*</span></Label>
+                      <div className="relative">
+                        <Input
+                          id="confirm_password"
+                          type={showPasswords.confirm ? 'text' : 'password'}
+                          required
+                          minLength={8}
+                          value={passwordData.confirm_password}
+                          onChange={(e) =>
+                            setPasswordData({ ...passwordData, confirm_password: e.target.value })
+                          }
+                          className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
+                          }
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                          aria-label={showPasswords.confirm ? "Hide password" : "Show password"}
+                        >
+                          {showPasswords.confirm ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
+                        </button>
+                      </div>
+                      {passwordData.confirm_password && !passwordsMatch && (
+                        <p className="text-xs text-rose-500 mt-1 font-medium">Passwords do not match</p>
+                      )}
                     </div>
-                    {passwordData.confirm_password && !passwordsMatch && (
-                      <p className="text-xs text-red-600 dark:text-red-400">Passwords do not match</p>
-                    )}
                   </div>
-                </CardContent>
-                <CardFooter>
+                </div>
+                <div className="p-6 md:px-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex justify-end">
                   <Button
                     type="submit"
+                    className="bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl px-8 h-11 transition-all"
                     disabled={
                       changePassword.isPending ||
                       !passwordsMatch ||
@@ -400,123 +412,158 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                     }
                   >
                     {changePassword.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Change Password
+                    Update Password
                   </Button>
-                </CardFooter>
+                </div>
               </form>
-            </Card>
+            </div>
           </TabsContent>
 
           {/* Super Admins Tab */}
-          <TabsContent value="super-admins" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Super Admin Management</CardTitle>
-                <CardDescription>Create and remove global super admins</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <form onSubmit={handleCreateSuperAdmin} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="sa_full_name">Full Name *</Label>
-                      <Input
-                        id="sa_full_name"
-                        type="text"
-                        required
-                        value={newSuperAdmin.full_name}
-                        onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, full_name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="sa_email">Email *</Label>
-                      <Input
-                        id="sa_email"
-                        type="email"
-                        required
-                        value={newSuperAdmin.email}
-                        onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, email: e.target.value })}
-                        className={emailAlreadyExists ? 'border-red-500 focus-visible:ring-red-500' : ''}
-                      />
-                      {emailAlreadyExists && (
-                        <p className="text-xs text-red-600 dark:text-red-400 font-medium">
-                          ⚠️ This email is already registered as a super admin
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="sa_password">Password *</Label>
-                      <div className="relative">
+          <TabsContent value="super-admins" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden shadow-sm">
+              <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                    Super Admin Management
+                  </h2>
+                  <p className="text-slate-500 mt-1">Create and remove global super administrators.</p>
+                </div>
+              </div>
+
+              <div className="p-6 md:p-8 space-y-8">
+                {/* Create Form */}
+                <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <Plus className="h-5 w-5 text-indigo-500" /> Add New Super Admin
+                  </h3>
+                  <form onSubmit={handleCreateSuperAdmin} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="grid gap-2">
+                        <Label htmlFor="sa_full_name" className="text-slate-700 dark:text-slate-300 font-medium">Full Name <span className="text-rose-500">*</span></Label>
                         <Input
-                          id="sa_password"
-                          type={showNewAdminPassword ? 'text' : 'password'}
+                          id="sa_full_name"
+                          type="text"
                           required
-                          minLength={8}
-                          value={newSuperAdmin.password}
-                          onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, password: e.target.value })}
+                          value={newSuperAdmin.full_name}
+                          onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, full_name: e.target.value })}
+                          className="h-11 bg-white dark:bg-slate-950/50 rounded-xl"
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewAdminPassword(!showNewAdminPassword)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
-                          aria-label={showNewAdminPassword ? "Hide password" : "Show password"}
-                        >
-                          {showNewAdminPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-                        </button>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="sa_email" className="text-slate-700 dark:text-slate-300 font-medium">Email <span className="text-rose-500">*</span></Label>
+                        <Input
+                          id="sa_email"
+                          type="email"
+                          required
+                          value={newSuperAdmin.email}
+                          onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, email: e.target.value })}
+                          className={`h-11 bg-white dark:bg-slate-950/50 rounded-xl ${emailAlreadyExists ? 'border-rose-500 focus-visible:ring-rose-500' : ''}`}
+                        />
+                        {emailAlreadyExists && (
+                          <p className="text-xs text-rose-500 font-medium mt-1">
+                            ⚠️ This email is already registered as a super admin
+                          </p>
+                        )}
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="sa_password" className="text-slate-700 dark:text-slate-300 font-medium">Password <span className="text-rose-500">*</span></Label>
+                        <div className="relative">
+                          <Input
+                            id="sa_password"
+                            type={showNewAdminPassword ? 'text' : 'password'}
+                            required
+                            minLength={8}
+                            value={newSuperAdmin.password}
+                            onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, password: e.target.value })}
+                            className="h-11 bg-white dark:bg-slate-950/50 rounded-xl"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewAdminPassword(!showNewAdminPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                            aria-label={showNewAdminPassword ? "Hide password" : "Show password"}
+                          >
+                            {showNewAdminPassword ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="sa_phone" className="text-slate-700 dark:text-slate-300 font-medium">Phone</Label>
+                        <Input
+                          id="sa_phone"
+                          type="tel"
+                          value={newSuperAdmin.phone}
+                          onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, phone: e.target.value })}
+                          className="h-11 bg-white dark:bg-slate-950/50 rounded-xl"
+                        />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="sa_phone">Phone</Label>
-                      <Input
-                        id="sa_phone"
-                        type="tel"
-                        value={newSuperAdmin.phone}
-                        onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, phone: e.target.value })}
-                      />
+                    <div className="flex justify-end">
+                      <Button
+                        type="submit"
+                        disabled={createSuperAdmin.isPending || emailAlreadyExists}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 rounded-xl px-6 h-11 transition-all"
+                      >
+                        {createSuperAdmin.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Plus className="mr-2 h-4 w-4" />
+                        )}
+                        Invite Super Admin
+                      </Button>
                     </div>
-                  </div>
-                  <Button 
-                    type="submit" 
-                    disabled={createSuperAdmin.isPending || emailAlreadyExists}
-                  >
-                    {createSuperAdmin.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Plus className="mr-2 h-4 w-4" />
-                    )}
-                    Add Super Admin
-                  </Button>
-                </form>
+                  </form>
+                </div>
 
-                <div className="border-t pt-6 space-y-3">
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Existing Super Admins</h3>
+                {/* Existing Super Admins */}
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
+                        <span className="font-bold text-sm">{superAdmins.length}</span>
+                      </div>
+                      Active Administrators
+                    </h3>
+                  </div>
+
                   {isSuperAdminsLoading ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Loading super admins...
+                    <div className="flex items-center justify-center py-12 text-slate-500 font-medium gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+                      Loading administrators...
                     </div>
                   ) : superAdmins.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No super admins found.</p>
+                    <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                      <p className="text-slate-500 font-medium">No other super admins found.</p>
+                    </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="grid gap-3 pt-2">
                       {superAdmins.map((sa) => (
-                        <div key={sa.id} className="flex items-center justify-between p-3 rounded-lg border">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9">
+                        <div key={sa.id} className="group flex items-center justify-between p-4 bg-white hover:bg-slate-50 dark:bg-slate-900/50 dark:hover:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 transition-all shadow-sm hover:shadow-md">
+                          <div className="flex items-center gap-4 min-w-0">
+                            <Avatar className="h-12 w-12 border-2 border-white dark:border-slate-800 shadow-sm shrink-0">
                               <AvatarImage src={sa.profile_picture_url || undefined} alt={sa.full_name} />
-                              <AvatarFallback className="bg-indigo-700 text-white text-sm">
+                              <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-medium text-sm">
                                 {getInitials(sa.full_name)}
                               </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <p className="text-sm font-medium text-slate-900 dark:text-white">{sa.full_name}</p>
-                              <p className="text-xs text-muted-foreground">{sa.email}</p>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-2">
+                                <span className="truncate">{sa.full_name}</span>
+                                {sa.id === user.id && (
+                                  <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider shrink-0">You</span>
+                                )}
+                              </p>
+                              <p className="text-xs text-slate-500 mt-0.5 truncate">{sa.email}</p>
                             </div>
                           </div>
                           <Button
-                            variant="destructive"
-                            size="sm"
+                            variant="ghost"
+                            size="icon"
                             disabled={sa.id === user.id || deleteSuperAdmin.isPending}
                             onClick={() => handleDeleteSuperAdmin(sa.id, sa.full_name)}
+                            className="h-9 w-9 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/40 opacity-40 group-hover:opacity-100 transition-all disabled:opacity-30 disabled:hover:bg-transparent shrink-0 ml-2"
+                            title={sa.id === user.id ? "Cannot delete yourself" : "Delete Admin"}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -525,8 +572,8 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
