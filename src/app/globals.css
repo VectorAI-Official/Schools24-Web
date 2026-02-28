@@ -12,41 +12,42 @@ html {
 
 @layer base {
   :root {
-    /* Primary Brand Colors - Easy to swap */
+    /* Primary Brand Colors */
     --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary Colors */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Background & Foreground
+       Page bg is a soft cool-gray so white cards visually pop */
+    --background: 220 14% 96%;
+    --foreground: 220 9% 13%;
 
-    /* Background & Foreground */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    /* Card */
+    /* Card — pure white so it lifts off the gray page */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 9% 13%;
 
-    /* Popover */
+    /* Popover — same white as card */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 9% 13%;
 
-    /* Muted */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Secondary — sits between background and card */
+    --secondary: 220 14% 91%;
+    --secondary-foreground: 220 9% 13%;
 
-    /* Accent */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Muted — deeper than card for inset panels, disabled areas */
+    --muted: 220 14% 91%;
+    --muted-foreground: 220 5% 44%;
+
+    /* Accent — same depth as muted, used for hover states */
+    --accent: 220 14% 91%;
+    --accent-foreground: 220 9% 13%;
 
     /* Destructive */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Border & Input & Ring */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    /* Border & Input — clearly visible but not harsh */
+    --border: 220 13% 86%;
+    --input: 220 13% 86%;
     --ring: 221 83% 53%;
 
     /* Chart Colors */
@@ -56,77 +57,93 @@ html {
     --chart-4: 262 83% 58%;
     --chart-5: 340 75% 55%;
 
-    /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Sidebar — slightly lighter than bg to feel like its own panel */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 9% 26%;
     --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
+    --sidebar-accent: 220 14% 93%;
+    --sidebar-accent-foreground: 220 9% 13%;
+    --sidebar-border: 220 13% 88%;
     --sidebar-ring: 221 83% 53%;
 
-    /* Custom Status Colors */
+    /* Status Colors */
     --success: 142 76% 36%;
     --success-foreground: 355.7 100% 97.3%;
     --warning: 47 96% 53%;
     --warning-foreground: 26 83.3% 14.1%;
     --info: 199 89% 48%;
-    --info-foreground: 210 40% 98%;
+    --info-foreground: 0 0% 100%;
 
     --radius: 0.625rem;
   }
 
   .dark {
-    --primary: 217 91% 60%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Primary — slightly brighter in dark for contrast */
+    --primary: 217 91% 62%;
+    --primary-foreground: 220 9% 9%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Background — the darkest surface (page canvas)
+       Pure neutral gray — no blue tint */
+    --background: 220 7% 9%;
+    --foreground: 220 9% 93%;
 
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Card — one step lighter than background so cards are distinct */
+    --card: 220 7% 13%;
+    --card-foreground: 220 9% 93%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Popover — between bg and card */
+    --popover: 220 7% 11%;
+    --popover-foreground: 220 9% 93%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Secondary — for secondary button backgrounds */
+    --secondary: 220 7% 18%;
+    --secondary-foreground: 220 9% 93%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Muted — inset panels, code blocks, disabled areas
+       Noticeably lighter than card for visual hierarchy */
+    --muted: 220 7% 18%;
+    --muted-foreground: 220 5% 56%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent — hover highlight */
+    --accent: 220 7% 20%;
+    --accent-foreground: 220 9% 93%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive */
+    --destructive: 0 62.8% 45%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    /* Border — clearly distinct from card surface */
+    --border: 220 7% 23%;
+    /* Input bg = muted so it reads as a recessed field */
+    --input: 220 7% 18%;
+    --ring: 217 91% 62%;
 
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Chart Colors */
+    --chart-1: 220 75% 62%;
+    --chart-2: 160 60% 48%;
+    --chart-3: 38 90% 58%;
+    --chart-4: 280 65% 65%;
+    --chart-5: 340 75% 58%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 217 91% 60%;
+    /* Sidebar — even darker than page background so it reads
+       as a distinct structural layer */
+    --sidebar-background: 220 7% 7%;
+    --sidebar-foreground: 220 9% 88%;
+    --sidebar-primary: 217 91% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 220 7% 15%;
+    --sidebar-accent-foreground: 220 9% 88%;
+    --sidebar-border: 220 7% 17%;
+    --sidebar-ring: 217 91% 62%;
 
-    --success: 142 71% 45%;
+    /* Status Colors */
+    --success: 142 71% 48%;
     --success-foreground: 144.9 80.4% 10%;
     --warning: 47 96% 53%;
     --warning-foreground: 26 83.3% 14.1%;
-    --info: 199 89% 48%;
-    --info-foreground: 210 40% 98%;
+    --info: 199 89% 52%;
+    --info-foreground: 0 0% 100%;
   }
 }
 
