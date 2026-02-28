@@ -131,9 +131,9 @@ const getPodiumGradient = (rank: number) => {
 
 const getPodiumBg = (rank: number) => {
     switch (rank) {
-        case 1: return 'bg-gradient-to-br from-amber-50 via-yellow-50/80 to-orange-50/60'
-        case 2: return 'bg-gradient-to-br from-slate-50 via-gray-50/80 to-slate-100/60'
-        case 3: return 'bg-gradient-to-br from-orange-50 via-amber-50/80 to-yellow-50/60'
+        case 1: return 'bg-amber-50/80 dark:bg-amber-500/10'
+        case 2: return 'bg-muted/40'
+        case 3: return 'bg-orange-50/80 dark:bg-orange-500/10'
         default: return 'bg-card'
     }
 }
@@ -201,7 +201,7 @@ export default function StudentLeaderboardPage() {
     const modeLabel = mode === 'quiz' ? 'Quiz' : mode === 'assessments' ? 'My Class' : 'Whole School'
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 p-4 md:p-6">
+        <div className="min-h-screen bg-background p-4 md:p-6">
             <div className="max-w-[1200px] mx-auto space-y-6">
 
                 {/* Header */}

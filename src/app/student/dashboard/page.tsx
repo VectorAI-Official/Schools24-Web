@@ -206,7 +206,7 @@ export default function StudentDashboard() {
     const hasDataError = dashboardQuery.isError || timetableQuery.isError || quizzesQuery.isError || leaderboardQuery.isError || stagesQuery.isError
 
     return (
-        <div className="bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 rounded-xl p-3 sm:p-4 md:p-6">
+        <div className="rounded-xl p-3 sm:p-4 md:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 max-w-[1600px] mx-auto">
                 {hasDataError && (
                     <div className="order-0 lg:col-span-12">
@@ -344,7 +344,7 @@ export default function StudentDashboard() {
                 <div className="order-4 lg:order-none lg:col-span-3 lg:row-span-4 lg:row-start-1 lg:col-start-10">
                     <Card className="border-0 shadow-sm bg-card overflow-hidden">
                         <CardContent className="p-5">
-                            {/* Leaderboard Header */
+                            {/* Leaderboard Header */}
                             <div className="flex items-center justify-between mb-5">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">

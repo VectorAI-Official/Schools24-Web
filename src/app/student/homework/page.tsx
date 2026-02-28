@@ -391,7 +391,7 @@ export default function StudentHomeworkPage() {
             <Card className="border-0 shadow-lg">
                 <CardContent className="p-4 md:p-6">
                     <div className="flex flex-wrap items-center gap-4">
-                        <div className="relative flex-1 min-w-[240px]">
+                        <div className="relative flex-1 min-w-0 w-full sm:w-auto">
                             <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search homework..."
@@ -400,17 +400,17 @@ export default function StudentHomeworkPage() {
                                 className="pl-12 h-12 rounded-xl border-2 focus:border-orange-500"
                             />
                         </div>
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 w-full sm:w-auto">
                             <Button
                                 variant="outline"
                                 onClick={() => setIsSubjectDialogOpen(true)}
-                                className="h-12 rounded-xl border-2"
+                                className="h-12 rounded-xl border-2 w-full sm:w-auto"
                             >
                                 <BookOpen className="h-4 w-4 mr-2" />
                                 {selectedSubjectLabel}
                             </Button>
                         </div>
-                        <div className="flex gap-2 flex-wrap sm:ml-auto">
+                        <div className="flex gap-2 flex-wrap w-full sm:w-auto sm:ml-auto">
                             {(['all', 'pending', 'completed', 'overdue'] as const).map(st => {
                                 const isActive = selectedStatus === st
                                 const icons: Record<string, React.ReactNode> = {

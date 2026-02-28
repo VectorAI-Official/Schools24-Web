@@ -197,16 +197,16 @@ export default function StudentEventsPage() {
                                             </Badge>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
-                                            <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-full border">
+                                            <div className="flex items-center gap-2 bg-card px-3 py-1.5 rounded-full border">
                                                 <Calendar className="h-4 w-4 text-blue-500" />
                                                 <span>{event.date}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-full border">
+                                            <div className="flex items-center gap-2 bg-card px-3 py-1.5 rounded-full border">
                                                 <Clock className="h-4 w-4 text-violet-500" />
                                                 <span>{event.time}</span>
                                             </div>
                                             {event.location && (
-                                                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-full border">
+                                                <div className="flex items-center gap-2 bg-card px-3 py-1.5 rounded-full border">
                                                     <MapPin className="h-4 w-4 text-green-500" />
                                                     <span>{event.location}</span>
                                                 </div>

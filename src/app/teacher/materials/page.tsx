@@ -416,7 +416,7 @@ export default function TeacherMaterialsPage() {
       <Card>
         <CardContent>
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center mb-4">
-            <div className="relative flex-1 min-w-[280px]">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={searchQuery}
@@ -426,7 +426,7 @@ export default function TeacherMaterialsPage() {
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 xl:w-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xl:w-auto">
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />

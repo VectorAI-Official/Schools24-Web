@@ -273,7 +273,7 @@ export default function StudentFeedbackPage() {
                                             </div>
                                             <p className="text-sm text-muted-foreground mb-2">{feedback.message}</p>
                                             {feedback.response_text ? (
-                                                <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border">
+                                                <div className="p-3 rounded-xl bg-card border">
                                                     <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">Response:</p>
                                                     <p className="text-sm text-muted-foreground">{feedback.response_text}</p>
                                                 </div>

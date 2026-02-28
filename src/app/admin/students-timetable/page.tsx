@@ -423,20 +423,20 @@ export default function StudentsTimetablePage() {
         : ''
 
     return (
-        <div className="h-[calc(100vh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
+        <div className="min-h-[calc(100vh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 flex-shrink-0">
                 <div>
                     <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Students Timetable</h1>
                     <p className="text-xs text-muted-foreground hidden sm:block">View and manage class timetables</p>
                 </div>
-                <div className="flex items-center gap-1 flex-wrap">
+                <div className="flex items-center gap-1 flex-wrap w-full sm:w-auto">
                     <Button variant="outline" size="sm" onClick={() => setIsSubjectsDialogOpen(true)} disabled={!effectiveSelectedClassId}>
                         <BookOpen className="mr-1.5 h-3.5 w-3.5" />
                         <span className="hidden sm:inline">Subjects</span>
                     </Button>
                     <Select value={effectiveSelectedClassId} onValueChange={setSelectedClassId}>
-                        <SelectTrigger className="w-[90px] sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs">
+                        <SelectTrigger className="w-full sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs">
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent>

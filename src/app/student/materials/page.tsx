@@ -343,7 +343,7 @@ export default function StudentMaterialsPage() {
       <Card className="border-0 shadow-lg">
         <CardContent className="p-4 md:p-6">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1 min-w-[220px]">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search materials..."
@@ -352,7 +352,7 @@ export default function StudentMaterialsPage() {
                 className="pl-12 h-12 rounded-xl border-2 focus:border-blue-500"
               />
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 whitespace-nowrap">
               {subjects.map((subject) => {
                 const value = subject === 'All' ? 'all' : subject
                 const active = selectedSubject === value

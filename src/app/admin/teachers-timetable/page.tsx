@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -70,12 +70,7 @@ export default function TeachersTimetablePage() {
     const { data: teachersData } = useTeachers('', 200, schoolId, undefined, undefined, { enabled: canLoad })
     const teachers = useMemo(() => teachersData?.pages.flatMap(page => page.teachers) || [], [teachersData])
     const [selectedTeacherId, setSelectedTeacherId] = useState('')
-
-    useEffect(() => {
-        if (!selectedTeacherId && teachers.length > 0) {
-            setSelectedTeacherId(teachers[0].id)
-        }
-    }, [teachers, selectedTeacherId])
+    const effectiveSelectedTeacherId = selectedTeacherId || teachers[0]?.id || ''
 
     const { data: configData } = useAdminTimetableConfig(schoolId, { enabled: canLoad })
     const dayConfigs = useMemo(() => {
@@ -85,7 +80,7 @@ export default function TeachersTimetablePage() {
     }, [configData])
     const periodsConfig = useMemo(() => (configData?.config?.periods || []).sort((a, b) => a.period_number - b.period_number), [configData])
 
-    const { data: timetableData } = useTeacherTimetable(selectedTeacherId, academicYear, schoolId, { enabled: canLoad && !!selectedTeacherId })
+    const { data: timetableData } = useTeacherTimetable(effectiveSelectedTeacherId, academicYear, schoolId, { enabled: canLoad && !!effectiveSelectedTeacherId })
     const timetableEntries = timetableData?.timetable || []
     const conflicts = timetableData?.conflicts || []
 
@@ -133,7 +128,7 @@ export default function TeachersTimetablePage() {
     }
 
     const handleSaveSlot = () => {
-        if (!selectedSlot || !selectedTeacherId) return
+        if (!selectedSlot || !effectiveSelectedTeacherId) return
         const period = periodsConfig.find(p => p.period_number === selectedSlot.periodNumber)
         if (!period) return
 
@@ -148,7 +143,7 @@ export default function TeachersTimetablePage() {
                 day_of_week: selectedSlot.dayOfWeek,
                 period_number: selectedSlot.periodNumber,
                 subject_id: formData.subjectId,
-                teacher_id: selectedTeacherId,
+                teacher_id: effectiveSelectedTeacherId,
                 start_time: period.start_time,
                 end_time: period.end_time,
                 room_number: formData.room || undefined,
@@ -174,15 +169,15 @@ export default function TeachersTimetablePage() {
     }
 
     return (
-        <div className="h-[calc(100vh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
+        <div className="min-h-[calc(100vh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 flex-shrink-0">
                 <div>
                     <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Teachers Timetable</h1>
                     <p className="text-xs text-muted-foreground hidden sm:block">View and manage teacher schedules</p>
                 </div>
-                <div className="flex items-center gap-1 flex-wrap">
-                    <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-                        <SelectTrigger className="w-[90px] sm:w-[100px] md:w-[140px] h-7 sm:h-8 text-xs">
+                <div className="flex items-center gap-1 flex-wrap w-full sm:w-auto">
+                    <Select value={effectiveSelectedTeacherId} onValueChange={setSelectedTeacherId}>
+                        <SelectTrigger className="w-full sm:w-[100px] md:w-[140px] h-7 sm:h-8 text-xs">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
