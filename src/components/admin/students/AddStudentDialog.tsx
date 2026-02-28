@@ -22,13 +22,22 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from 'sonner'
 
+export interface ClassOption {
+    id: string
+    name: string
+    grade: number
+    section?: string | null
+}
+
 interface AddStudentDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     onAdd: (data: any) => void
+    classes?: ClassOption[]
+    isLoading?: boolean
 }
 
-export function AddStudentDialog({ open, onOpenChange, onAdd }: AddStudentDialogProps) {
+export function AddStudentDialog({ open, onOpenChange, onAdd, classes = [], isLoading = false }: AddStudentDialogProps) {
     const [newStudent, setNewStudent] = useState({
         full_name: '',
         email: '',
@@ -101,11 +110,16 @@ export function AddStudentDialog({ open, onOpenChange, onAdd }: AddStudentDialog
                                     onValueChange={(value) => setNewStudent({ ...newStudent, class_id: value })}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Class" />
+                                        <SelectValue placeholder={isLoading ? 'Loading classes...' : 'Select Class'} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {['6', '7', '8', '9', '10', '11', '12'].map(c => (
-                                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                                        {classes.length === 0 && !isLoading && (
+                                            <SelectItem value="__none" disabled>No classes found — add classes first</SelectItem>
+                                        )}
+                                        {classes.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>
+                                                {c.name}{c.section ? ` - ${c.section}` : ''}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>

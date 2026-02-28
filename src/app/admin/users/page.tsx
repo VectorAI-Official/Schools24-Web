@@ -347,6 +347,18 @@ export default function UsersPage() {
             return
         }
 
+        if (newUser.role === 'student') {
+            toast.error('Use Students Details page to add students', {
+                description: 'Students require class assignment and parent info. Go to Students Details → Add Student.',
+                action: {
+                    label: 'Go there',
+                    onClick: () => window.location.href = '/admin/students-details',
+                },
+                duration: 8000,
+            })
+            return
+        }
+
         createUser.mutate({
             full_name: newUser.name,
             email: newUser.email,

@@ -31,7 +31,8 @@ import {
     RefreshCw,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useStudents, useStudentMutations } from '@/hooks/useAdminStudents'
+import { useStudents, useStudentMutations, useCreateStudent } from '@/hooks/useAdminStudents'
+import { useClasses } from '@/hooks/useClasses'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { sortClassLabels } from '@/lib/classOrdering'
@@ -63,6 +64,8 @@ export default function StudentsDetailsPage() {
     } = useStudents(searchQuery, 20, schoolId)
 
     const { updateStudent, deleteStudent, isDeleting } = useStudentMutations()
+    const createStudent = useCreateStudent()
+    const { data: classesData, isLoading: classesLoading } = useClasses()
 
     const students = data?.pages.flatMap(page => page.students) || []
 
@@ -123,11 +126,18 @@ export default function StudentsDetailsPage() {
         )
     ])
 
+    const schoolClasses = (classesData?.classes || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        grade: c.grade,
+        section: c.section,
+    }))
+
     // Handlers
     const handleAddStudent = (newStudentData: any) => {
-        // This should be a mutation, but for now just close dialog
-        setIsAddDialogOpen(false)
-        toast.success('Student added successfully (Refresh to see)')
+        createStudent.mutate(newStudentData, {
+            onSuccess: () => setIsAddDialogOpen(false)
+        })
     }
 
     const handleEditStudent = async (id: string, data: any) => {
@@ -223,16 +233,13 @@ export default function StudentsDetailsPage() {
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
-                    {/* Only super admins can add students directly; normal admins use User Management */}
-                    {isSuperAdmin && (
-                        <Button
-                            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90"
-                            onClick={() => setIsAddDialogOpen(true)}
-                        >
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Add Student
-                        </Button>
-                    )}
+                    <Button
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90"
+                        onClick={() => setIsAddDialogOpen(true)}
+                    >
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Student
+                    </Button>
                 </div>
             </div>
 
@@ -314,6 +321,8 @@ export default function StudentsDetailsPage() {
                 open={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}
                 onAdd={handleAddStudent}
+                classes={schoolClasses}
+                isLoading={classesLoading}
             />
 
             <ViewStudentDialog

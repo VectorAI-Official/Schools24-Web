@@ -131,3 +131,33 @@ export function useStudentMutations() {
         isDeleting: deleteStudentMutation.isPending
     };
 }
+
+export interface CreateStudentPayload {
+    full_name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    class_id: string;
+    roll_number: string;
+    date_of_birth?: string;
+    parent_name?: string;
+    parent_phone?: string;
+    address?: string;
+    gender?: string;
+    section?: string;
+    school_id?: string;
+}
+
+export function useCreateStudent() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreateStudentPayload) => api.post('/admin/students', data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['students'] });
+            toast.success('Student added successfully');
+        },
+        onError: (error: unknown) => {
+            toast.error('Failed to add student', { description: getErrorMessage(error) });
+        }
+    });
+}
