@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Compact desktop scale: 14px base (87.5% of 16px).
+   All Tailwind rem units scale down uniformly — mirrors one Ctrl+- step. */
+html {
+  font-size: 87.5%;
+}
+
 @layer base {
   :root {
     /* Primary Brand Colors - Easy to swap */
