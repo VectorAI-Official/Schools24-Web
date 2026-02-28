@@ -4,10 +4,6 @@
 
 @layer base {
   :root {
-    /* Compact desktop scale — matches one Ctrl+- zoom step.
-       All Tailwind rem-based spacing/text scale down uniformly. */
-    font-size: 87.5%; /* 14px base instead of 16px */
-
     /* Primary Brand Colors - Easy to swap */
     --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
@@ -139,8 +135,8 @@
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
