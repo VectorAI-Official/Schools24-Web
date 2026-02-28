@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Compact desktop scale: 14px base (87.5% of 16px browser default).
+   All Tailwind rem units scale down uniformly — equivalent to one Ctrl+- step.
+   This intentionally affects font sizes, spacing, icon sizes, and component sizes
+   proportionally, giving the dashboard a denser, more app-like feel on desktop. */
+html {
+  font-size: 87.5%;
+}
+
 @layer base {
   :root {
     /* Primary Brand Colors - Easy to swap */
