@@ -361,7 +361,7 @@ export default function AdamChatbot() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4 bg-[#f8f9fc] custom-scrollbar">
+                <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4 bg-background custom-scrollbar">
                     {messages.map((msg) => (
                         <div
                             key={msg.id}
@@ -386,8 +386,8 @@ export default function AdamChatbot() {
                                 {msg.attachment && (
                                     <div className={`flex items-center gap-2 mb-2 px-2 py-1.5 rounded-lg text-[11px] font-medium ${msg.sender === 'user' ? 'bg-white/15' : 'bg-muted border border-border'}`}>
                                         <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${msg.sender === 'user' ? 'text-white/80' : theme.msgFileIcon}`} />
-                                        <span className={`truncate max-w-[160px] ${msg.sender === 'user' ? 'text-white/90' : 'text-slate-600'}`}>{msg.attachment.name}</span>
-                                        <span className={`flex-shrink-0 ${msg.sender === 'user' ? 'text-white/50' : 'text-slate-400'}`}>{(msg.attachment.size / 1024).toFixed(1)} KB</span>
+                                        <span className={`truncate max-w-[160px] ${msg.sender === 'user' ? 'text-white/90' : 'text-foreground/80'}`}>{msg.attachment.name}</span>
+                                        <span className={`flex-shrink-0 ${msg.sender === 'user' ? 'text-white/50' : 'text-muted-foreground'}`}>{(msg.attachment.size / 1024).toFixed(1)} KB</span>
                                     </div>
                                 )}
                                 {msg.text && (
@@ -460,7 +460,7 @@ export default function AdamChatbot() {
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             title="Attach document"
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 transition-colors flex-shrink-0 ${theme.clip}`}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground transition-colors flex-shrink-0 ${theme.clip}`}
                         >
                             <Paperclip className="w-4 h-4" />
                         </button>
@@ -471,7 +471,7 @@ export default function AdamChatbot() {
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={pendingAttachment ? 'Add a message or just send the doc…' : 'Message Adam…'}
-                            className="flex-1 bg-transparent text-[13px] text-slate-700 placeholder:text-slate-400 outline-none"
+                            className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
                         />
                         <button
                             onClick={handleSend}
@@ -480,14 +480,14 @@ export default function AdamChatbot() {
                                 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 flex-shrink-0
                                 ${canSend
                                     ? `${theme.sendActive} text-white shadow hover:scale-105`
-                                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                    : 'bg-muted text-muted-foreground cursor-not-allowed'
                                 }
                             `}
                         >
                             <Send className="w-3.5 h-3.5" />
                         </button>
                     </div>
-                    <p className="text-center text-[11px] text-slate-400 mt-1.5 select-none leading-tight">
+                    <p className="text-center text-[11px] text-muted-foreground mt-1.5 select-none leading-tight">
                         Adam can make mistakes. Check important info.
                     </p>
                 </div>
@@ -516,8 +516,8 @@ export default function AdamChatbot() {
                 }
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #dde1e9; border-radius: 8px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #c5cad6; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 8px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }
             ` }} />
         </>
     )
