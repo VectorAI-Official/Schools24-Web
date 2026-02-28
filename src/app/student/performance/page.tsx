@@ -72,7 +72,7 @@ function getGradeStyle(grade: string) {
     if (grade.startsWith('A')) return { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300' }
     if (grade.startsWith('B')) return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' }
     if (grade.startsWith('C')) return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' }
-    if (grade === 'X' || grade === '—') return { bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200' }
+    if (grade === 'X' || grade === '—') return { bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' }
     return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' }
 }
 
@@ -134,7 +134,7 @@ export default function StudentPerformancePage() {
     })()
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 p-4 md:p-6">
+        <div className="min-h-screen bg-background p-4 md:p-6">
             <div className="max-w-[1200px] mx-auto space-y-6">
 
                 {/* Header */}
@@ -143,7 +143,7 @@ export default function StudentPerformancePage() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-xl hover:bg-white hover:shadow-sm"
+                            className="rounded-xl hover:bg-card hover:shadow-sm"
                             onClick={() => router.back()}
                         >
                             <ArrowLeft className="h-4 w-4 text-slate-600" />
@@ -173,7 +173,7 @@ export default function StudentPerformancePage() {
                 {isLoading ? (
                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="h-24 rounded-2xl bg-slate-100 animate-pulse" />
+                            <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />
                         ))}
                     </div>
                 ) : (
@@ -264,7 +264,7 @@ export default function StudentPerformancePage() {
                 {/* Performance Overview & Subject-wise Performance */}
                 <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
                     {/* Radar Chart */}
-                    <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                    <Card className="border-0 shadow-sm bg-card overflow-hidden">
                         <CardContent className="p-4 md:p-6">
                             <div className="flex items-center gap-2.5 mb-5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
@@ -333,7 +333,7 @@ export default function StudentPerformancePage() {
                     </Card>
 
                     {/* Subject-wise list */}
-                    <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                    <Card className="border-0 shadow-sm bg-card overflow-hidden">
                         <CardContent className="p-4 md:p-6">
                             <div className="flex items-center gap-2.5 mb-5">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/25">
@@ -347,7 +347,7 @@ export default function StudentPerformancePage() {
                             {subjectPerfQuery.isLoading && (
                                 <div className="space-y-4">
                                     {[...Array(4)].map((_, i) => (
-                                        <div key={i} className="h-14 rounded-xl bg-slate-100 animate-pulse" />
+                                        <div key={i} className="h-14 rounded-xl bg-muted animate-pulse" />
                                     ))}
                                 </div>
                             )}
@@ -366,7 +366,7 @@ export default function StudentPerformancePage() {
                                         return (
                                             <div
                                                 key={subject.subject_id}
-                                                className="group p-3 rounded-xl bg-slate-50/50 border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all duration-300"
+                                                className="group p-3 rounded-xl bg-muted/50 border border-transparent hover:bg-card hover:border-border hover:shadow-sm transition-all duration-300"
                                                 style={{ borderLeft: `3px solid ${colors.accentColor}` }}
                                             >
                                                 <div className="flex items-center justify-between mb-2.5">
@@ -395,7 +395,7 @@ export default function StudentPerformancePage() {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <Progress value={subject.avg_percentage} className="h-2 bg-slate-100 rounded-full" />
+                                                <Progress value={subject.avg_percentage} className="h-2 bg-muted rounded-full" />
                                             </div>
                                         )
                                     })}

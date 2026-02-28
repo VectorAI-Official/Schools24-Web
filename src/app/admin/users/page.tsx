@@ -581,16 +581,16 @@ export default function UsersPage() {
                     </div>
                     <p className="text-muted-foreground">Manage all users in the system</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleImport}>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full md:w-auto">
+                    <Button variant="outline" onClick={handleImport} className="w-full">
                         <Upload className="mr-2 h-4 w-4" />
                         Import
                     </Button>
-                    <Button variant="outline" onClick={exportUsers}>
+                    <Button variant="outline" onClick={exportUsers} className="w-full">
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
-                    <Button onClick={() => setIsAddDialogOpen(true)} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0">
+                    <Button onClick={() => setIsAddDialogOpen(true)} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0">
                         <Plus className="mr-2 h-4 w-4" />
                         Add User
                     </Button>
@@ -598,7 +598,7 @@ export default function UsersPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
@@ -657,7 +657,7 @@ export default function UsersPage() {
             <Card>
                 <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="relative flex-1 max-w-sm">
+                        <div className="relative flex-1 min-w-0 md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search users..."
@@ -666,9 +666,9 @@ export default function UsersPage() {
                                 className="pl-10"
                             />
                         </div>
-                        <div className="flex gap-3">
+                        <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
                             <Select value={roleFilter} onValueChange={setRoleFilter}>
-                                <SelectTrigger className="w-[140px]">
+                                <SelectTrigger className="w-full md:w-[160px]">
                                     <Filter className="mr-2 h-4 w-4" />
                                     <SelectValue placeholder="Role" />
                                 </SelectTrigger>
@@ -682,6 +682,7 @@ export default function UsersPage() {
                             <Button
                                 variant="outline"
                                 size="icon"
+                                className="w-full md:w-10"
                                 onClick={() => {
                                     setSearchQuery('')
                                     setRoleFilter('all')
@@ -709,13 +710,13 @@ export default function UsersPage() {
                             <TableBody>
                                 {isLoading ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center">
+                                        <TableCell colSpan={6} className="h-24 text-center">
                                             <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                                         </TableCell>
                                     </TableRow>
                                 ) : filteredUsers.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                                             No users found
                                         </TableCell>
                                     </TableRow>

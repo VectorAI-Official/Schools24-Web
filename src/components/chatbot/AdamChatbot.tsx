@@ -162,7 +162,7 @@ export default function AdamChatbot() {
             iconBg:       'bg-orange-400/40',
             userBubble:   'bg-orange-500',
             chipColors:   'border-orange-100 bg-orange-50 text-orange-600 hover:bg-orange-100',
-            focusRing:    'focus-within:border-orange-300 focus-within:ring-2 focus-within:ring-orange-100',
+            focusRing:    'focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/30',
             sendActive:   'bg-orange-500 hover:bg-orange-600',
             typingDot:    'bg-orange-400',
             clip:         'hover:text-orange-600 hover:bg-orange-50',
@@ -184,7 +184,7 @@ export default function AdamChatbot() {
             iconBg:       'bg-emerald-500/40',
             userBubble:   'bg-emerald-600',
             chipColors:   'border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
-            focusRing:    'focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-100',
+            focusRing:    'focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/30',
             sendActive:   'bg-emerald-600 hover:bg-emerald-700',
             typingDot:    'bg-emerald-400',
             clip:         'hover:text-emerald-600 hover:bg-emerald-50',
@@ -205,7 +205,7 @@ export default function AdamChatbot() {
             iconBg:       'bg-indigo-500/40',
             userBubble:   'bg-indigo-600',
             chipColors:   'border-indigo-100 bg-indigo-50 text-indigo-600 hover:bg-indigo-100',
-            focusRing:    'focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100',
+            focusRing:    'focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/30',
             sendActive:   'bg-indigo-600 hover:bg-indigo-700',
             typingDot:    'bg-indigo-400',
             clip:         'hover:text-indigo-600 hover:bg-indigo-50',
@@ -471,7 +471,7 @@ export default function AdamChatbot() {
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={pendingAttachment ? 'Add a message or just send the doc…' : 'Message Adam…'}
-                            className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
+                            className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
                         <button
                             onClick={handleSend}

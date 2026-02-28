@@ -134,7 +134,7 @@ const getPodiumBg = (rank: number) => {
         case 1: return 'bg-gradient-to-br from-amber-50 via-yellow-50/80 to-orange-50/60'
         case 2: return 'bg-gradient-to-br from-slate-50 via-gray-50/80 to-slate-100/60'
         case 3: return 'bg-gradient-to-br from-orange-50 via-amber-50/80 to-yellow-50/60'
-        default: return 'bg-white'
+        default: return 'bg-card'
     }
 }
 
@@ -293,7 +293,7 @@ export default function StudentLeaderboardPage() {
                         )}
 
                         {isAssessmentsError && (
-                            <Card className="border-0 shadow-sm bg-white">
+                            <Card className="border-0 shadow-sm bg-card">
                                 <CardContent className="p-12 flex flex-col items-center justify-center">
                                     <AlertCircle className="w-12 h-12 text-red-300 mb-3" />
                                     <p className="text-red-600 font-semibold">Failed to load leaderboard</p>
@@ -303,7 +303,7 @@ export default function StudentLeaderboardPage() {
                         )}
 
                         {!isAssessmentsLoading && !isAssessmentsError && assessmentsData && assessmentsData.total_assessments === 0 && (
-                            <Card className="border-0 shadow-sm bg-white">
+                            <Card className="border-0 shadow-sm bg-card">
                                 <CardContent className="p-12 flex flex-col items-center justify-center">
                                     <GraduationCap className="w-14 h-14 text-slate-300 mb-4" />
                                     <h3 className="text-lg font-bold text-slate-700 mb-1">No assessments yet</h3>
@@ -350,7 +350,7 @@ export default function StudentLeaderboardPage() {
                                     </Card>
                                 )}
 
-                                <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                                <Card className="border-0 shadow-sm bg-card overflow-hidden">
                                     <CardContent className="p-4 md:p-6">
                                         <div className="space-y-2">
                                             {assessmentsData.entries.map((entry) => (
@@ -360,10 +360,10 @@ export default function StudentLeaderboardPage() {
                                                         'flex items-center gap-4 p-3.5 rounded-xl border transition-all',
                                                         entry.is_current_student
                                                             ? 'bg-teal-50 border-teal-200'
-                                                            : 'bg-slate-50/50 border-transparent hover:bg-white hover:border-slate-200'
+                                                            : 'bg-muted/50 border-transparent hover:bg-card hover:border-border'
                                                     )}
                                                 >
-                                                    <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm">
+                                                    <div className="w-9 h-9 rounded-full bg-muted text-foreground flex items-center justify-center font-bold text-sm">
                                                         {entry.rank}
                                                     </div>
                                                     <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
@@ -411,7 +411,7 @@ export default function StudentLeaderboardPage() {
                         )}
 
                         {isSchoolError && (
-                            <Card className="border-0 shadow-sm bg-white">
+                            <Card className="border-0 shadow-sm bg-card">
                                 <CardContent className="p-12 flex flex-col items-center justify-center">
                                     <AlertCircle className="w-12 h-12 text-red-300 mb-3" />
                                     <p className="text-red-600 font-semibold">Failed to load leaderboard</p>
@@ -421,7 +421,7 @@ export default function StudentLeaderboardPage() {
                         )}
 
                         {!isSchoolLoading && !isSchoolError && schoolData && schoolData.total_students === 0 && (
-                            <Card className="border-0 shadow-sm bg-white">
+                            <Card className="border-0 shadow-sm bg-card">
                                 <CardContent className="p-12 flex flex-col items-center justify-center">
                                     <GraduationCap className="w-14 h-14 text-slate-300 mb-4" />
                                     <h3 className="text-lg font-bold text-slate-700 mb-1">No results yet</h3>
@@ -471,7 +471,7 @@ export default function StudentLeaderboardPage() {
                                 )}
 
                                 {/* Full rankings list */}
-                                <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                                <Card className="border-0 shadow-sm bg-card overflow-hidden">
                                     <CardContent className="p-4 md:p-6">
                                         <div className="space-y-2">
                                             {schoolData.entries.map((entry) => (
@@ -481,14 +481,14 @@ export default function StudentLeaderboardPage() {
                                                         'flex items-center gap-4 p-3.5 rounded-xl border transition-all',
                                                         entry.is_current_student
                                                             ? 'bg-teal-50 border-teal-200'
-                                                            : 'bg-slate-50/50 border-transparent hover:bg-white hover:border-slate-200'
+                                                            : 'bg-muted/50 border-transparent hover:bg-card hover:border-border'
                                                     )}
                                                 >
                                                     <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${
                                                         entry.rank === 1 ? 'bg-amber-100 text-amber-700' :
-                                                        entry.rank === 2 ? 'bg-slate-200 text-slate-700' :
+                                                        entry.rank === 2 ? 'bg-muted text-foreground' :
                                                         entry.rank === 3 ? 'bg-orange-100 text-orange-700' :
-                                                        'bg-slate-100 text-slate-600'
+                                                        'bg-muted text-muted-foreground'
                                                     }`}>
                                                         {entry.rank === 1 ? <Crown className="w-4 h-4 text-amber-500" /> :
                                                          entry.rank === 2 ? <Medal className="w-4 h-4 text-slate-500" /> :
@@ -496,7 +496,7 @@ export default function StudentLeaderboardPage() {
                                                          <span>{entry.rank}</span>}
                                                     </div>
                                                     <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                                                        <AvatarFallback className="text-sm font-bold bg-slate-100 text-slate-600">
+                                                        <AvatarFallback className="text-sm font-bold bg-muted text-muted-foreground">
                                                             {getInitials(entry.student_name)}
                                                         </AvatarFallback>
                                                     </Avatar>
@@ -541,7 +541,7 @@ export default function StudentLeaderboardPage() {
 
                         {/* Error */}
                         {isError && (
-                            <Card className="border-0 shadow-sm bg-white">
+                            <Card className="border-0 shadow-sm bg-card">
                                 <CardContent className="p-12 flex flex-col items-center justify-center">
                                     <AlertCircle className="w-12 h-12 text-red-300 mb-3" />
                                     <p className="text-red-600 font-semibold">Failed to load leaderboard</p>
@@ -552,7 +552,7 @@ export default function StudentLeaderboardPage() {
 
                         {/* Empty state: data loaded but no quizzes at all */}
                         {!isLoading && !isError && data && data.total_quizzes === 0 && (
-                            <Card className="border-0 shadow-sm bg-white">
+                            <Card className="border-0 shadow-sm bg-card">
                                 <CardContent className="p-12 flex flex-col items-center justify-center">
                                     <GraduationCap className="w-14 h-14 text-slate-300 mb-4" />
                                     <h3 className="text-lg font-bold text-slate-700 mb-1">No quizzes yet</h3>
@@ -666,7 +666,7 @@ export default function StudentLeaderboardPage() {
                                 )}
 
                                 {/* Full Rankings */}
-                                <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                                <Card className="border-0 shadow-sm bg-card overflow-hidden">
                                     <CardContent className="p-4 md:p-6">
                                         <div className="flex items-center justify-between mb-6">
                                             <div className="flex items-center gap-2.5">
@@ -697,7 +697,7 @@ export default function StudentLeaderboardPage() {
                                                                 ? 'bg-gradient-to-r from-teal-50 via-emerald-50/60 to-cyan-50/40 border border-teal-200 shadow-sm'
                                                                 : isTop3
                                                                     ? `${getPodiumBg(entry.rank)} border ${getPodiumBorder(entry.rank)}`
-                                                                    : 'bg-slate-50/50 border border-transparent hover:bg-white hover:border-slate-200'
+                                                                    : 'bg-muted/50 border border-transparent hover:bg-card hover:border-border'
                                                         )}
                                                     >
                                                         {/* Rank Badge */}
@@ -705,7 +705,7 @@ export default function StudentLeaderboardPage() {
                                                             'w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-transform group-hover:scale-110 flex-shrink-0',
                                                             isTop3
                                                                 ? `bg-gradient-to-br ${getPodiumGradient(entry.rank)} text-white`
-                                                                : 'bg-slate-200 text-slate-600'
+                                                                : 'bg-muted text-muted-foreground'
                                                         )}>
                                                             {isTop3 ? getRankIcon(entry.rank) : entry.rank}
                                                         </div>
@@ -718,7 +718,7 @@ export default function StudentLeaderboardPage() {
                                                                     ? 'bg-gradient-to-br from-teal-400 to-emerald-500 text-white'
                                                                     : isTop3
                                                                         ? `bg-gradient-to-br ${getPodiumGradient(entry.rank)} text-white`
-                                                                        : 'bg-slate-100 text-slate-600'
+                                                                        : 'bg-muted text-muted-foreground'
                                                             )}>
                                                                 {getInitials(entry.student_name)}
                                                             </AvatarFallback>

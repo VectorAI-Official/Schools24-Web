@@ -206,7 +206,7 @@ export default function StudentDashboard() {
     const hasDataError = dashboardQuery.isError || timetableQuery.isError || quizzesQuery.isError || leaderboardQuery.isError || stagesQuery.isError
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 p-4 md:p-6">
+        <div className="bg-gradient-to-br from-slate-50 via-gray-50 to-stone-100 rounded-xl p-3 sm:p-4 md:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 max-w-[1600px] mx-auto">
                 {hasDataError && (
                     <div className="order-0 lg:col-span-12">
@@ -255,10 +255,10 @@ export default function StudentDashboard() {
 
                 {/* ── MOBILE ORDER 2: Quick Actions ────────────────────── */}
                 <div className="order-2 lg:order-none lg:col-span-6 lg:col-start-4 lg:row-start-2">
-                    <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                    <Card className="border-0 shadow-sm bg-card overflow-hidden">
                         <CardContent className="p-4 md:p-6">
                             <div className="flex items-center justify-between mb-5">
-                                <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm tracking-wide uppercase">
+                                <h3 className="font-bold text-foreground flex items-center gap-2 text-sm tracking-wide uppercase">
                                     <Zap className="w-4 h-4 text-amber-500" />
                                     Quick Actions
                                 </h3>
@@ -266,11 +266,11 @@ export default function StudentDashboard() {
                                     6 shortcuts
                                 </Badge>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {quickActions.map((action) => (
                                     <button
                                         key={action.label}
-                                        className="flex flex-col items-center gap-2.5 p-4 rounded-xl bg-slate-50/50 hover:bg-white hover:shadow-md transition-all duration-300 hover:-translate-y-1 group border border-slate-100 hover:border-slate-200"
+                                        className="flex flex-col items-center gap-2.5 p-4 rounded-xl bg-muted/50 hover:bg-card hover:shadow-md transition-all duration-300 hover:-translate-y-1 group border border-border hover:border-border"
                                         onClick={() => handleQuickAction(action.href)}
                                     >
                                         <div
@@ -299,7 +299,7 @@ export default function StudentDashboard() {
                         return (
                             <Card
                                 key={subject.name}
-                                className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 bg-white group overflow-hidden"
+                                className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 bg-card group overflow-hidden"
                                 style={{ borderLeft: `3px solid ${subject.accentColor}` }}
                                 onClick={() => router.push('/student/performance')}
                             >
@@ -327,7 +327,7 @@ export default function StudentDashboard() {
                                     <div className="relative">
                                         <Progress
                                             value={subject.progress}
-                                            className="h-2.5 bg-slate-100 rounded-full"
+                                            className="h-2.5 bg-muted rounded-full"
                                         />
                                     </div>
                                     <div className="flex items-center justify-between mt-2.5">
@@ -342,9 +342,9 @@ export default function StudentDashboard() {
 
                 {/* ── MOBILE ORDER 4: Leaderboard ──────────────────────── */}
                 <div className="order-4 lg:order-none lg:col-span-3 lg:row-span-4 lg:row-start-1 lg:col-start-10">
-                    <Card className="border-0 shadow-sm bg-white overflow-hidden">
+                    <Card className="border-0 shadow-sm bg-card overflow-hidden">
                         <CardContent className="p-5">
-                            {/* Leaderboard Header */}
+                            {/* Leaderboard Header */
                             <div className="flex items-center justify-between mb-5">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
@@ -387,9 +387,9 @@ export default function StudentDashboard() {
                                             ? item.rank === 1
                                                 ? 'bg-amber-50/80 border border-amber-200/60'
                                                 : item.rank === 2
-                                                    ? 'bg-slate-50 border border-slate-200/60'
+                                                    ? 'bg-muted border border-border/60'
                                                     : 'bg-orange-50/60 border border-orange-200/60'
-                                            : 'bg-slate-50/50 hover:bg-slate-100 border border-transparent'
+                                            : 'bg-muted/50 hover:bg-muted border border-transparent'
                                             }`}
                                     >
                                         <div
@@ -490,23 +490,23 @@ export default function StudentDashboard() {
                                             px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md border transform transition-transform duration-300
                                             ${exam.completed
                                                 ? 'bg-emerald-100/95 border-emerald-300 shadow-emerald-500/15 text-emerald-700'
-                                                : 'bg-white/95 border-slate-200 shadow-slate-500/10 text-slate-600'
+                                                : 'bg-card/95 border-border shadow-black/5 text-muted-foreground'
                                             }
                                         `}>
                                             {exam.completed && <span className="mr-1 text-[10px]">✓</span>}
                                             {exam.name}
                                         </div>
                                         {/* Connectivity Line */}
-                                        <div className={`w-0.5 h-2 rounded-full ${exam.completed ? 'bg-emerald-400' : 'bg-slate-300'}`} />
+                                        <div className={`w-0.5 h-2 rounded-full ${exam.completed ? 'bg-emerald-400' : 'bg-border'}`} />
                                     </div>
                                 ))}
                             </div>
 
                             {/* The Main Bar Container */}
-                            <div className="relative h-3 w-full bg-slate-200/50 rounded-full cursor-pointer overflow-visible mt-1">
+                            <div className="relative h-3 w-full bg-muted/50 rounded-full cursor-pointer overflow-visible mt-1">
 
                                 {/* Bar Background / Track */}
-                                <div className="absolute inset-0 rounded-full overflow-hidden shadow-inner bg-slate-100 border border-slate-200">
+                                <div className="absolute inset-0 rounded-full overflow-hidden shadow-inner bg-muted border border-border">
                                     {/* Section Dividers */}
                                     <div className="absolute inset-0 w-full flex z-10 opacity-20">
                                         {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="flex-1 border-r border-slate-400 last:border-0" />)}

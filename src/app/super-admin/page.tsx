@@ -375,7 +375,7 @@ function SchoolsSection() {
                 {isSchoolsLoading ? (
                     Array(4).fill(0).map((_, i) => (
                         <Card key={i} className="animate-pulse rounded-2xl border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
-                            <CardHeader className="h-28 bg-slate-100/50 dark:bg-slate-800/50" />
+                            <CardHeader className="h-28 bg-muted/50" />
                             <CardContent className="p-5 space-y-4">
                                 <div className="h-4 bg-slate-200/70 dark:bg-slate-700/70 rounded w-3/4" />
                                 <div className="h-4 bg-slate-200/70 dark:bg-slate-700/70 rounded w-1/2" />
@@ -383,7 +383,7 @@ function SchoolsSection() {
                         </Card>
                     ))
                 ) : filteredSchools.length === 0 ? (
-                    <div className="col-span-full py-24 flex flex-col items-center justify-center text-center bg-white/30 dark:bg-slate-900/30 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-sm">
+                    <div className="col-span-full py-24 flex flex-col items-center justify-center text-center bg-card/30 rounded-3xl border border-border/50 backdrop-blur-sm">
                         <div className="p-5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 mb-6">
                             <SchoolIcon className="h-12 w-12 text-indigo-300 dark:text-indigo-700" />
                         </div>
@@ -394,7 +394,7 @@ function SchoolsSection() {
                     filteredSchools.map((school) => (
                         <Card
                             key={school.id}
-                            className="group relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl cursor-pointer transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-500/10"
+                            className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl cursor-pointer transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-500/10"
                             onClick={() => router.push(`/super-admin/school/${school.slug || school.id}`)}
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -407,7 +407,7 @@ function SchoolsSection() {
                                     </div>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full" onClick={(e) => e.stopPropagation()}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-muted rounded-full" onClick={(e) => e.stopPropagation()}>
                                                 <MoreVertical className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
@@ -418,7 +418,7 @@ function SchoolsSection() {
                                             >
                                                 <Edit className="h-4 w-4 mr-2 text-indigo-500" /> Edit Details
                                             </DropdownMenuItem>
-                                            <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                                            <DropdownMenuSeparator className="bg-border" />
                                             <DropdownMenuItem
                                                 className="cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/30 focus:text-red-700 dark:focus:text-red-300"
                                                 onClick={(e) => {
@@ -441,7 +441,7 @@ function SchoolsSection() {
                             </CardHeader>
 
                             <CardContent className="relative px-6 pb-6 pt-3 space-y-5">
-                                <div className="flex items-center text-sm text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                                <div className="flex items-center text-sm text-slate-600 dark:text-slate-300 bg-muted/50 p-2.5 rounded-lg border border-border">
                                     <Mail className="h-4 w-4 mr-2.5 shrink-0 text-indigo-400" />
                                     <span className="truncate font-medium">{school.contact_email || "No contact email"}</span>
                                 </div>
@@ -462,14 +462,14 @@ function SchoolsSection() {
                                 </div>
                             </CardContent>
 
-                            <CardFooter className="relative bg-slate-50/50 dark:bg-slate-900/30 px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center group-hover:bg-indigo-50/30 dark:group-hover:bg-indigo-900/20 transition-colors">
+                            <CardFooter className="relative bg-muted/50 px-6 py-4 border-t border-border flex justify-between items-center group-hover:bg-indigo-50/30 dark:group-hover:bg-indigo-900/20 transition-colors">
                                 <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                                     Open Dashboard <ArrowRight className="h-3 w-3" />
                                 </span>
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="ml-auto text-xs font-medium border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-white dark:hover:bg-slate-900 shadow-sm"
+                                    className="ml-auto text-xs font-medium border-border hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-card shadow-sm"
                                     onClick={(e) => {
                                         e.stopPropagation()
                                         router.push(`/super-admin/school/${school.slug || school.id}?tab=admins`)
@@ -513,7 +513,7 @@ function SchoolsSection() {
                                 value={editForm.name}
                                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                                 placeholder="e.g. Springfield High School"
-                                className="h-10 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30"
+                                className="h-10 bg-card focus-visible:ring-indigo-500/30"
                             />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -525,7 +525,7 @@ function SchoolsSection() {
                                     value={editForm.contact_email}
                                     onChange={(e) => setEditForm({ ...editForm, contact_email: e.target.value })}
                                     placeholder="admin@school.edu"
-                                    className="h-10 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30"
+                                    className="h-10 bg-card focus-visible:ring-indigo-500/30"
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -535,7 +535,7 @@ function SchoolsSection() {
                                     value={editForm.address}
                                     onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                                     placeholder="123 Education Lane"
-                                    className="h-10 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30"
+                                    className="h-10 bg-card focus-visible:ring-indigo-500/30"
                                 />
                             </div>
                         </div>
@@ -756,8 +756,8 @@ function CatalogSection() {
     return (
         <div className="space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                <Card className="group relative overflow-hidden border-indigo-100 dark:border-indigo-900/50 shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-slate-900">
+            <div className="grid grid-cols-2 gap-4 md:gap-6">
+                <Card className="group relative overflow-hidden border-indigo-100 dark:border-indigo-900/50 shadow-sm hover:shadow-md transition-all duration-300 bg-card">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
                         <Layers3 className="w-24 h-24 text-indigo-600" />
                     </div>
@@ -781,7 +781,7 @@ function CatalogSection() {
                     </CardContent>
                 </Card>
 
-                <Card className="group relative overflow-hidden border-fuchsia-100 dark:border-fuchsia-900/50 shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-slate-900">
+                <Card className="group relative overflow-hidden border-fuchsia-100 dark:border-fuchsia-900/50 shadow-sm hover:shadow-md transition-all duration-300 bg-card">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
                         <BookOpenCheck className="w-24 h-24 text-fuchsia-600" />
                     </div>
@@ -831,7 +831,7 @@ function CatalogSection() {
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
                 {/* Classes Panel */}
-                <Card className="flex flex-col border-indigo-100 dark:border-indigo-900/50 shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                <Card className="flex flex-col border-indigo-100 dark:border-indigo-900/50 shadow-sm bg-card overflow-hidden">
                     <CardHeader className="bg-indigo-50/50 dark:bg-indigo-950/20 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -852,7 +852,7 @@ function CatalogSection() {
                                         placeholder="Class name (e.g. Class 5)"
                                         value={newClassName}
                                         onChange={(e) => setNewClassName(e.target.value)}
-                                        className="pl-9 border-slate-200 focus-visible:ring-indigo-500 bg-slate-50 dark:bg-slate-900/50"
+                                        className="pl-9 border-border focus-visible:ring-indigo-500 bg-muted/50"
                                     />
                                 </div>
                                 <div className="relative w-full sm:w-28">
@@ -861,7 +861,7 @@ function CatalogSection() {
                                         placeholder="Sort Order"
                                         value={newClassSortOrder}
                                         onChange={(e) => setNewClassSortOrder(e.target.value)}
-                                        className="border-slate-200 focus-visible:ring-indigo-500 bg-slate-50 dark:bg-slate-900/50"
+                                        className="border-border focus-visible:ring-indigo-500 bg-muted/50"
                                     />
                                 </div>
                                 <Button
@@ -880,7 +880,7 @@ function CatalogSection() {
                                     <div className="text-center pt-6 pb-4 text-slate-400 italic">No classes added yet.</div>
                                 ) : (
                                     classes.map((item) => (
-                                        <div key={item.id} className="group flex items-center gap-3 border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800/80 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all duration-300">
+                                        <div key={item.id} className="group flex items-center gap-3 border border-border/60 rounded-xl p-3 bg-card hover:bg-muted/50 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all duration-300">
                                             {editingClassId === item.id ? (
                                                 <div className="flex-1 flex items-center gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
                                                     <Input value={editingClassName} onChange={(e) => setEditingClassName(e.target.value)} className="h-9" autoFocus />
@@ -914,7 +914,7 @@ function CatalogSection() {
                                                         <span>{item.name}</span>
                                                     </button>
 
-                                                    <span className="flex-shrink-0 text-[11px] uppercase tracking-wider font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                                                    <span className="flex-shrink-0 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-md">
                                                         Sort {item.sort_order}
                                                     </span>
 
@@ -952,7 +952,7 @@ function CatalogSection() {
                 </Card>
 
                 {/* Subjects Panel */}
-                <Card className="flex flex-col border-fuchsia-100 dark:border-fuchsia-900/50 shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                <Card className="flex flex-col border-fuchsia-100 dark:border-fuchsia-900/50 shadow-sm bg-card overflow-hidden">
                     <CardHeader className="bg-fuchsia-50/50 dark:bg-fuchsia-950/20 border-b border-fuchsia-100 dark:border-fuchsia-900/50 pb-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -973,7 +973,7 @@ function CatalogSection() {
                                         placeholder="Subject name"
                                         value={newSubjectName}
                                         onChange={(e) => setNewSubjectName(e.target.value)}
-                                        className="pl-9 border-slate-200 focus-visible:ring-fuchsia-500 bg-slate-50 dark:bg-slate-900/50"
+                                        className="pl-9 border-border focus-visible:ring-fuchsia-500 bg-muted/50"
                                     />
                                 </div>
                                 <div className="relative w-full sm:w-32">
@@ -981,7 +981,7 @@ function CatalogSection() {
                                         placeholder="Code (opt)"
                                         value={newSubjectCode}
                                         onChange={(e) => setNewSubjectCode(e.target.value)}
-                                        className="border-slate-200 focus-visible:ring-fuchsia-500 bg-slate-50 dark:bg-slate-900/50 uppercase"
+                                        className="border-border focus-visible:ring-fuchsia-500 bg-muted/50 uppercase"
                                     />
                                 </div>
                                 <Button
@@ -1000,7 +1000,7 @@ function CatalogSection() {
                                     <div className="text-center pt-6 pb-4 text-slate-400 italic">No subjects added yet.</div>
                                 ) : (
                                     subjects.map((item) => (
-                                        <div key={item.id} className="group flex items-center gap-3 border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800/80 shadow-sm hover:shadow-md hover:border-fuchsia-200 dark:hover:border-fuchsia-800 transition-all duration-300">
+                                        <div key={item.id} className="group flex items-center gap-3 border border-border/60 rounded-xl p-3 bg-card hover:bg-muted/50 shadow-sm hover:shadow-md hover:border-fuchsia-200 dark:hover:border-fuchsia-800 transition-all duration-300">
                                             {editingSubjectId === item.id ? (
                                                 <div className="flex-1 flex items-center gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
                                                     <Input value={editingSubjectName} onChange={(e) => setEditingSubjectName(e.target.value)} className="h-9" autoFocus />
@@ -1067,7 +1067,7 @@ function CatalogSection() {
                 </Card>
             </div>
 
-            <Card className="border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+            <Card className="border-border shadow-sm bg-card overflow-hidden">
                 <div className="h-1 w-full bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400"></div>
                 <CardHeader className="pb-4 pt-6">
                     <CardTitle className="text-xl flex items-center gap-2 text-slate-800 dark:text-slate-100">
@@ -1078,7 +1078,7 @@ function CatalogSection() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="p-5 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-800/40 dark:border-slate-800">
+                    <div className="p-5 rounded-xl bg-muted/50 border border-border">
                         <div className="flex flex-col md:flex-row gap-4 md:items-center">
                             <Label htmlFor="assignment-class-select" className="text-sm font-semibold text-slate-600 dark:text-slate-300 shrink-0">
                                 Target Class
@@ -1089,7 +1089,7 @@ function CatalogSection() {
                                     onValueChange={(value) => setSelectedClassId(value)}
                                     disabled={classesQuery.isLoading || classes.length === 0}
                                 >
-                                    <SelectTrigger id="assignment-class-select" className="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm h-11">
+                                    <SelectTrigger id="assignment-class-select" className="w-full bg-card border-border shadow-sm h-11">
                                         <SelectValue placeholder={classes.length === 0 ? "No classes available" : "Choose class"} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1115,7 +1115,7 @@ function CatalogSection() {
                             {subjects.map((subject) => {
                                 const checked = assignedSubjectIds.includes(subject.id)
                                 return (
-                                    <label key={subject.id} className={`group relative flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-all duration-300 overflow-hidden ${checked ? "border-violet-500 bg-violet-50/50 dark:bg-violet-500/10 shadow-[0_4px_14px_0_rgba(139,92,246,0.15)] dark:shadow-none translate-y-[-1px]" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-sm"}`}>
+                                    <label key={subject.id} className={`group relative flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-all duration-300 overflow-hidden ${checked ? "border-violet-500 bg-violet-50/50 dark:bg-violet-500/10 shadow-[0_4px_14px_0_rgba(139,92,246,0.15)] dark:shadow-none translate-y-[-1px]" : "border-border bg-card hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-sm"}`}>
                                         <div className={`absolute inset-0 bg-gradient-to-r from-violet-500/0 to-violet-500/5 dark:to-violet-500/10 transition-opacity duration-300 ${checked ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}></div>
 
                                         <div className={`relative flex items-center justify-center w-5 h-5 rounded-[6px] border transition-all duration-300 ${checked ? "bg-violet-600 border-violet-600 text-white" : "border-slate-300 dark:border-slate-600 bg-transparent group-hover:border-violet-400"}`}>
@@ -1258,13 +1258,15 @@ function SuperAdminPageContent() {
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />
                 <main className="flex-1 overflow-auto p-4 md:p-6 space-y-6">
-                    {tab === "schools" && <SchoolsSection />}
-                    {tab === "catalog" && <CatalogSection />}
-                    {tab === "question-uploader" && <QuestionUploaderForm />}
-                    {tab === "quiz-scheduler" && <SuperAdminQuizSchedulerPage />}
-                    {tab === "materials" && <SuperAdminMaterialsForm />}
-                    {tab === "settings" && <SuperAdminSettingsPanel embedded />}
-                    {tab === "trash" && <SuperAdminTrashPanel embedded />}
+                    <div className="mx-auto w-full max-w-[1600px]">
+                        {tab === "schools" && <SchoolsSection />}
+                        {tab === "catalog" && <CatalogSection />}
+                        {tab === "question-uploader" && <QuestionUploaderForm />}
+                        {tab === "quiz-scheduler" && <SuperAdminQuizSchedulerPage />}
+                        {tab === "materials" && <SuperAdminMaterialsForm />}
+                        {tab === "settings" && <SuperAdminSettingsPanel embedded />}
+                        {tab === "trash" && <SuperAdminTrashPanel embedded />}
+                    </div>
                 </main>
             </div>
         </div>

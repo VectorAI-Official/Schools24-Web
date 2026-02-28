@@ -28,7 +28,9 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />
                 <main className="flex-1 overflow-auto p-3 md:p-6">
-                    {children}
+                    <div className="mx-auto w-full max-w-[1600px]">
+                        {children}
+                    </div>
                 </main>
             </div>
             <AdamChatbot />

@@ -315,7 +315,7 @@ export function SuperAdminMaterialsForm() {
     <div className="space-y-6">
       <div className="space-y-6 max-w-7xl mx-auto pb-12">
         {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white/40 dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card/40 p-6 rounded-2xl border border-border/50 backdrop-blur-xl">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent tracking-tight">
               Study Materials
@@ -335,19 +335,19 @@ export function SuperAdminMaterialsForm() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-4 shadow-sm flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 p-4 shadow-sm flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-11 bg-white/80 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 rounded-xl focus-visible:ring-emerald-500 transition-shadow"
+              className="pl-9 h-11 bg-card/80 border-border rounded-xl focus-visible:ring-emerald-500 transition-shadow"
               placeholder="Search by title, file or description..."
             />
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
             <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] h-11 bg-white/80 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 rounded-xl">
+              <SelectTrigger className="w-full sm:w-[180px] h-11 bg-card/80 border-border rounded-xl">
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <GraduationCap className="h-4 w-4 text-indigo-500" />
                   <SelectValue placeholder="All Classes" />
@@ -360,7 +360,7 @@ export function SuperAdminMaterialsForm() {
             </Select>
 
             <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] h-11 bg-white/80 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 rounded-xl">
+              <SelectTrigger className="w-full sm:w-[180px] h-11 bg-card/80 border-border rounded-xl">
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <FileText className="h-4 w-4 text-emerald-500" />
                   <SelectValue placeholder="All Subjects" />
@@ -375,11 +375,11 @@ export function SuperAdminMaterialsForm() {
         </div>
 
         {/* Table Data */}
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm overflow-hidden">
+        <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200/60 dark:border-slate-800/60 hover:bg-transparent">
+                <TableRow className="bg-muted/50 border-b border-border/60 hover:bg-transparent">
                   <TableHead className="font-semibold text-slate-600 dark:text-slate-300 py-4 px-6">Material</TableHead>
                   <TableHead className="font-semibold text-slate-600 dark:text-slate-300 py-4 px-6">Uploaded By</TableHead>
                   <TableHead className="font-semibold text-slate-600 dark:text-slate-300 py-4 px-6">Subject</TableHead>
@@ -402,7 +402,7 @@ export function SuperAdminMaterialsForm() {
                   <TableRow>
                     <TableCell colSpan={6} className="h-64 text-center">
                       <div className="flex flex-col items-center justify-center">
-                        <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
                           <FileText className="h-8 w-8 text-slate-400" />
                         </div>
                         <p className="text-lg font-medium text-slate-900 dark:text-white">No materials found</p>
@@ -412,14 +412,14 @@ export function SuperAdminMaterialsForm() {
                   </TableRow>
                 ) : (
                   materials.map((material) => (
-                    <TableRow key={material.id} className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800/60">
+                    <TableRow key={material.id} className="group hover:bg-muted/50 transition-colors border-b border-border/60">
                       <TableCell className="px-6 py-4">
                         <div className="flex items-center gap-3 min-w-[200px]">
                           <div className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center shadow-sm ${isPdf(material.mime_type, material.file_name) ? 'bg-rose-50 text-rose-500 dark:bg-rose-500/10' :
                             ['doc', 'docx'].some(ext => material.file_name.toLowerCase().endsWith(ext)) ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/10' :
                               ['ppt', 'pptx'].some(ext => material.file_name.toLowerCase().endsWith(ext)) ? 'bg-amber-50 text-amber-500 dark:bg-amber-500/10' :
                                 material.mime_type.includes('video') ? 'bg-purple-50 text-purple-500 dark:bg-purple-500/10' :
-                                  'bg-slate-100 text-slate-500 dark:bg-slate-800'
+                                  'bg-muted text-muted-foreground'
                             }`}>
                             <FileText className="h-5 w-5" />
                           </div>
