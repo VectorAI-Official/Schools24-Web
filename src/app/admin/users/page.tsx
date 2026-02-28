@@ -333,14 +333,27 @@ export default function UsersPage() {
     }
 
     const handleAddUser = () => {
-        if (!newUser.name || !newUser.email || !newUser.password) {
+        const trimmedName = newUser.name.trim()
+        const trimmedEmail = newUser.email.trim()
+        const trimmedPassword = newUser.password.trim()
+
+        if (!trimmedName || !trimmedEmail || !trimmedPassword) {
             toast.error('Missing fields', {
                 description: 'Please fill in Name, Email, and Password'
             })
             return
         }
 
-        if (newUser.password.length < 6) {
+        // Validate email format before hitting the backend
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(trimmedEmail)) {
+            toast.error('Invalid email address', {
+                description: `"${trimmedEmail}" is not a valid email. Example: john@school.com`
+            })
+            return
+        }
+
+        if (trimmedPassword.length < 6) {
             toast.error('Invalid password', {
                 description: 'Password must be at least 6 characters'
             })
@@ -348,24 +361,20 @@ export default function UsersPage() {
         }
 
         if (newUser.role === 'student') {
-            toast.error('Use Students Details page to add students', {
-                description: 'Students require class assignment and parent info. Go to Students Details → Add Student.',
-                action: {
-                    label: 'Go there',
-                    onClick: () => window.location.href = '/admin/students-details',
-                },
-                duration: 8000,
+            toast.info('Student created — add class & details in Students Details page', {
+                description: 'Class assignment and parent info can be filled in via Students Details → Edit.',
+                duration: 6000,
             })
-            return
+            // Fall through — let creation proceed
         }
 
         createUser.mutate({
-            full_name: newUser.name,
-            email: newUser.email,
+            full_name: trimmedName,
+            email: trimmedEmail,
             role: newUser.role,
-            phone: newUser.phone,
-            department: newUser.department,
-            password: newUser.password,
+            phone: newUser.phone.trim(),
+            department: newUser.department.trim(),
+            password: trimmedPassword,
         }, {
             onSuccess: () => {
                 setIsAddDialogOpen(false)
@@ -554,10 +563,21 @@ export default function UsersPage() {
                 <div>
                     <div className="flex items-center gap-3">
                         <h1 className="text-xl md:text-3xl font-bold">User Management</h1>
-                        <Button variant="outline" onClick={() => setIsClassDialogOpen(true)}>
-                            <BookOpen className="mr-2 h-4 w-4" />
-                            Class Management
-                        </Button>
+                        <div className="relative">
+                            {/* Pulsing beacon to draw admin attention to Class Management */}
+                            <span className="absolute -top-1 -right-1 flex h-3 w-3 z-10">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500" />
+                            </span>
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsClassDialogOpen(true)}
+                                className="border-amber-400 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:border-amber-500 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700 dark:hover:bg-amber-900/40"
+                            >
+                                <BookOpen className="mr-2 h-4 w-4" />
+                                Class Management
+                            </Button>
+                        </div>
                     </div>
                     <p className="text-muted-foreground">Manage all users in the system</p>
                 </div>
@@ -582,8 +602,8 @@ export default function UsersPage() {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-                                <Users className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                                <Users className="h-5 w-5 text-muted-foreground" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold">{userStats.total}</p>

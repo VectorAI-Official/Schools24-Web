@@ -165,7 +165,7 @@ export default function QuizSchedulerPage() {
   const optionsQuery = useQuery({
     queryKey: ["teacher-quiz-options"],
     queryFn: () =>
-      api.get<{ options: ClassOption[] }>("/teacher/quizzes/options"),
+      api.getOrEmpty<{ options: ClassOption[] }>("/teacher/quizzes/options", { options: [] }),
   });
 
   useEffect(() => {
@@ -182,8 +182,9 @@ export default function QuizSchedulerPage() {
       if (classFilter !== "all") params.set("class_id", classFilter);
       if (subjectFilter !== "all") params.set("subject_id", subjectFilter);
       if (debouncedSearch) params.set("search", debouncedSearch);
-      return api.get<{ quizzes: QuizItem[] }>(
+      return api.getOrEmpty<{ quizzes: QuizItem[] }>(
         `/teacher/quizzes?${params.toString()}`,
+        { quizzes: [] }
       );
     },
   });
@@ -213,8 +214,9 @@ export default function QuizSchedulerPage() {
       const params = new URLSearchParams();
       params.set("class_id", classID);
       params.set("subject_id", subjectID);
-      return api.get<{ chapters: QuizChapter[] }>(
+      return api.getOrEmpty<{ chapters: QuizChapter[] }>(
         `/teacher/quizzes/chapters?${params.toString()}`,
+        { chapters: [] }
       );
     },
   });
@@ -231,8 +233,9 @@ export default function QuizSchedulerPage() {
       params.set("class_id", managementClassID);
       params.set("subject_id", managementSubjectID);
       params.set("include_platform", "true");
-      return api.get<{ chapters: QuizChapter[] }>(
+      return api.getOrEmpty<{ chapters: QuizChapter[] }>(
         `/teacher/quizzes/chapters?${params.toString()}`,
+        { chapters: [] }
       );
     },
   });

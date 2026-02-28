@@ -164,7 +164,8 @@ export default function StudentLeaderboardPage() {
 
     const { data, isLoading, isError, error } = useQuery<QuizLeaderboardResponse>({
         queryKey: ['student-quiz-leaderboard'],
-        queryFn: () => api.get<QuizLeaderboardResponse>('/student/leaderboard/quiz'),
+        queryFn: () => api.getOrEmpty<QuizLeaderboardResponse>('/student/leaderboard/quiz',
+            { class_id: '', class_name: '', total_quizzes: 0, total_students: 0, entries: [], my_entry: undefined }),
         staleTime: 60_000,
         enabled: mode === 'quiz',
     })
@@ -175,7 +176,8 @@ export default function StudentLeaderboardPage() {
         error: assessmentsError,
     } = useQuery<AssessmentLeaderboardResponse>({
         queryKey: ['student-assessment-leaderboard'],
-        queryFn: () => api.get<AssessmentLeaderboardResponse>('/student/leaderboard/assessments'),
+        queryFn: () => api.getOrEmpty<AssessmentLeaderboardResponse>('/student/leaderboard/assessments',
+            { class_id: '', class_name: '', total_assessments: 0, total_students: 0, entries: [], my_entry: undefined }),
         staleTime: 60_000,
         enabled: mode === 'assessments',
     })
@@ -186,7 +188,8 @@ export default function StudentLeaderboardPage() {
         error: schoolError,
     } = useQuery<SchoolAssessmentLeaderboardResponse>({
         queryKey: ['student-school-assessment-leaderboard'],
-        queryFn: () => api.get<SchoolAssessmentLeaderboardResponse>('/student/leaderboard/school-assessments'),
+        queryFn: () => api.getOrEmpty<SchoolAssessmentLeaderboardResponse>('/student/leaderboard/school-assessments',
+            { total_students: 0, entries: [], my_entry: undefined }),
         staleTime: 5 * 60_000,
         enabled: mode === 'school-assessments',
     })

@@ -46,8 +46,9 @@ export function useStudentSubjectPerformance() {
     return useQuery({
         queryKey: ['student-subject-performance'],
         queryFn: () =>
-            api.get<StudentSubjectPerformanceResponse>(
+            api.getOrEmpty<StudentSubjectPerformanceResponse>(
                 '/student/assessments/subject-performance',
+                { academic_year: '', class_name: '', subjects: [] },
             ),
         staleTime: 60_000,
     })
@@ -57,8 +58,9 @@ export function useStudentAssessmentLeaderboard() {
     return useQuery({
         queryKey: ['student-assessment-leaderboard'],
         queryFn: () =>
-            api.get<AssessmentLeaderboardResponse>(
+            api.getOrEmpty<AssessmentLeaderboardResponse>(
                 '/student/leaderboard/assessments',
+                { class_id: '', class_name: '', total_assessments: 0, total_students: 0, entries: [], my_entry: null },
             ),
         staleTime: 60_000,
     })

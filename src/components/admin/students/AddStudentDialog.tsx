@@ -21,6 +21,13 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from 'sonner'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Info } from 'lucide-react'
 
 export interface ClassOption {
     id: string
@@ -104,7 +111,19 @@ export function AddStudentDialog({ open, onOpenChange, onAdd, classes = [], isLo
                     <TabsContent value="academic" className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="class">Class *</Label>
+                                <div className="flex items-center gap-1.5">
+                                    <Label htmlFor="class">Class *</Label>
+                                    <TooltipProvider delayDuration={100}>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                                Make sure to set up classes in &ldquo;Class Management&rdquo; from the User Management page first.
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Select
                                     value={newStudent.class_id}
                                     onValueChange={(value) => setNewStudent({ ...newStudent, class_id: value })}

@@ -200,12 +200,12 @@ function SchoolsSection() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 rounded-xl border border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-4 md:p-5 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 rounded-xl border border-border/60 bg-card/50 backdrop-blur-xl p-4 md:p-5 shadow-sm">
                 <div className="relative w-full md:w-[400px]">
                     <Search className="absolute left-3.5 top-3 h-4 w-4 text-indigo-500/70" />
                     <Input
                         placeholder="Search schools by name or contact email..."
-                        className="pl-11 h-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-indigo-500/30 transition-all shadow-sm rounded-lg"
+                        className="pl-11 h-10 bg-card border-border focus-visible:ring-indigo-500/30 transition-all shadow-sm rounded-lg"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -218,7 +218,7 @@ function SchoolsSection() {
                             Add New School
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-slate-200 dark:border-slate-800">
+                    <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-border">
                         <div className="h-2 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"></div>
                         <div className="px-6 pt-6 pb-2">
                             <DialogHeader>
@@ -237,19 +237,19 @@ function SchoolsSection() {
                                 <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
                                     <MapPin className="h-4 w-4" /> School Intelligence
                                 </h3>
-                                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800 space-y-4">
+                                <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="name" className="text-slate-700 dark:text-slate-300">Registered Name</Label>
-                                        <Input id="name" placeholder="e.g. Springfield High School" value={newSchool.name} onChange={(e) => setNewSchool({ ...newSchool, name: e.target.value })} className="bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30" />
+                                        <Label htmlFor="name">Registered Name</Label>
+                                        <Input id="name" placeholder="e.g. Springfield High School" value={newSchool.name} onChange={(e) => setNewSchool({ ...newSchool, name: e.target.value })} className="bg-card focus-visible:ring-indigo-500/30" />
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="contact" className="text-slate-700 dark:text-slate-300">Primary Contact Email</Label>
-                                            <Input id="contact" type="email" placeholder="admin@springfield.edu" value={newSchool.contact_email} onChange={(e) => setNewSchool({ ...newSchool, contact_email: e.target.value })} className="bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30" />
+                                            <Label htmlFor="contact">Primary Contact Email</Label>
+                                            <Input id="contact" type="email" placeholder="admin@springfield.edu" value={newSchool.contact_email} onChange={(e) => setNewSchool({ ...newSchool, contact_email: e.target.value })} className="bg-card focus-visible:ring-indigo-500/30" />
                                         </div>
                                         <div className="grid gap-2">
-                                            <Label htmlFor="address" className="text-slate-700 dark:text-slate-300">Campus Address</Label>
-                                            <Input id="address" placeholder="123 Education Lane, City" value={newSchool.address} onChange={(e) => setNewSchool({ ...newSchool, address: e.target.value })} className="bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30" />
+                                            <Label htmlFor="address">Campus Address</Label>
+                                            <Input id="address" placeholder="123 Education Lane, City" value={newSchool.address} onChange={(e) => setNewSchool({ ...newSchool, address: e.target.value })} className="bg-card focus-visible:ring-indigo-500/30" />
                                         </div>
                                     </div>
                                 </div>
@@ -257,7 +257,7 @@ function SchoolsSection() {
 
                             {/* Admin Accounts Section */}
                             <div className="space-y-4">
-                                <div className="flex justify-between items-end border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <div className="flex justify-between items-end border-b border-border pb-2">
                                     <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
                                         <Shield className="h-4 w-4" /> Root Administrators
                                     </h3>
@@ -273,7 +273,7 @@ function SchoolsSection() {
                                 </div>
                                 <div className="space-y-4">
                                     {(newSchool.admins || [{ name: "", email: "", password: "" }]).map((admin, index) => (
-                                        <div key={index} className="p-4 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 relative group transition-all hover:border-indigo-200 dark:hover:border-indigo-800 shadow-sm">
+                                        <div key={index} className="p-4 bg-card rounded-xl border border-border relative group transition-all hover:border-indigo-300 dark:hover:border-indigo-700 shadow-sm">
                                             {index > 0 && (
                                                 <Button
                                                     type="button"
@@ -334,7 +334,7 @@ function SchoolsSection() {
                                                             />
                                                             <button
                                                                 type="button"
-                                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 hover:bg-muted rounded-md transition-colors"
                                                                 onClick={() => setShowPasswords({ ...showPasswords, [index]: !showPasswords[index] })}
                                                                 aria-label={showPasswords[index] ? "Hide password" : "Show password"}
                                                             >
@@ -358,8 +358,8 @@ function SchoolsSection() {
                                 </div>
                             </div>
                         </div>
-                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
-                            <Button variant="outline" onClick={() => setIsAddSchoolOpen(false)} className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        <div className="p-4 border-t border-border bg-muted/50 flex justify-end gap-3">
+                            <Button variant="outline" onClick={() => setIsAddSchoolOpen(false)}>
                                 Cancel
                             </Button>
                             <Button onClick={handleCreateSchool} disabled={createSchool.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 min-w-[140px]">

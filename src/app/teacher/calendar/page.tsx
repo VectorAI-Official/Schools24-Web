@@ -197,7 +197,7 @@ export default function TeacherCalendarPage() {
                         </div>
 
                         {/* Event Type Legend */}
-                        <div className="mt-4 flex items-center justify-center gap-4 md:gap-6 flex-wrap px-2 py-3 rounded-xl bg-slate-50/50 dark:bg-slate-800/20 border border-slate-100 dark:border-slate-700/20">
+                        <div className="mt-4 flex items-center justify-center gap-4 md:gap-6 flex-wrap px-2 py-3 rounded-xl bg-muted/50 border border-border/50">
                             {eventTypes.map((type) => (
                                 <div key={type.value} className="flex items-center gap-2">
                                     <div className={`h-2.5 w-2.5 rounded-full ${type.color} shadow-sm`} />

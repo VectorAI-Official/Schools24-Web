@@ -17,7 +17,7 @@ import { PasswordPromptDialog } from '@/components/super-admin/PasswordPromptDia
 import { toast } from 'sonner'
 
 export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boolean }) {
-  const { user, isLoading: authLoading } = useAuth()
+  const { user, isLoading: authLoading, logout } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const rawTab = searchParams.get('tab') || 'profile'
@@ -114,12 +114,15 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
       },
       {
         onSuccess: () => {
-          // Clear form on success
           setPasswordData({
             current_password: '',
             new_password: '',
             confirm_password: '',
           })
+          // Log out after a short delay so the success toast is visible
+          setTimeout(() => {
+            logout()
+          }, 1500)
         },
       }
     )
@@ -214,7 +217,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
     superAdmins.some(sa => sa.email.toLowerCase() === newSuperAdmin.email.toLowerCase())
 
   return (
-    <div className={embedded ? "space-y-6" : "min-h-screen bg-slate-50 dark:bg-slate-900 p-6"}>
+    <div className={embedded ? "space-y-6" : "min-h-screen bg-background p-6"}>
       <div className={embedded ? "space-y-6" : "max-w-4xl mx-auto space-y-6"}>
         {/* Header */}
         {!embedded && (
@@ -237,16 +240,16 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
 
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex w-full md:w-auto p-1 bg-slate-100/80 dark:bg-slate-800/50 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm self-start max-w-xl mx-auto md:mx-0">
-            <TabsTrigger value="profile" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Profile</TabsTrigger>
-            <TabsTrigger value="security" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Security</TabsTrigger>
-            <TabsTrigger value="super-admins" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Super Admins</TabsTrigger>
+          <TabsList className="flex w-full md:w-auto p-1 bg-muted/80 rounded-2xl border border-border/50 backdrop-blur-sm self-start max-w-xl mx-auto md:mx-0">
+            <TabsTrigger value="profile" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Profile</TabsTrigger>
+            <TabsTrigger value="security" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Security</TabsTrigger>
+            <TabsTrigger value="super-admins" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Super Admins</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="m-0 focus-visible:outline-none focus-visible:ring-0">
-            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden shadow-sm">
-              <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 overflow-hidden shadow-sm">
+              <div className="p-6 md:p-8 border-b border-border">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                   Profile Information
                 </h2>
@@ -263,7 +266,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                       required
                       value={profileData.full_name}
                       onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
-                      className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
+                      className="h-11 bg-muted/30 rounded-xl"
                     />
                   </div>
 
@@ -271,7 +274,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
                       <Label htmlFor="email" className="text-slate-700 dark:text-slate-300 font-medium">Email Address</Label>
-                      <Input id="email" type="email" value={user.email} disabled className="h-11 bg-slate-100/50 dark:bg-slate-900/50 text-slate-500 rounded-xl border-dashed" />
+                      <Input id="email" type="email" value={user.email} disabled className="h-11 bg-muted/50 text-muted-foreground rounded-xl border-dashed" />
                       <p className="text-xs text-slate-500">Email cannot be changed directly.</p>
                     </div>
 
@@ -285,12 +288,12 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                         placeholder="10-digit mobile number"
                         value={profileData.phone}
                         onChange={(e) => setProfileData({ ...profileData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                        className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
+                        className="h-11 bg-muted/30 rounded-xl"
                       />
                     </div>
                   </div>
                 </div>
-                <div className="p-6 md:px-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex justify-end">
+                <div className="p-6 md:px-8 border-t border-border bg-muted/20 flex justify-end">
                   <Button type="submit" disabled={updateProfile.isPending || (profileData.full_name === user.full_name && profileData.phone === user.phone)} className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 rounded-xl px-8 h-11 transition-all">
                     {updateProfile.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Changes"}
                   </Button>
@@ -301,8 +304,8 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
 
           {/* Security Tab */}
           <TabsContent value="security" className="m-0 focus-visible:outline-none focus-visible:ring-0">
-            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden shadow-sm">
-              <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 overflow-hidden shadow-sm">
+              <div className="p-6 md:p-8 border-b border-border">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                   Change Password
                 </h2>
@@ -323,14 +326,14 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                         onChange={(e) =>
                           setPasswordData({ ...passwordData, current_password: e.target.value })
                         }
-                        className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
+                        className="h-11 bg-muted/30 rounded-xl"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowPasswords({ ...showPasswords, current: !showPasswords.current })
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-md transition-colors"
                         aria-label={showPasswords.current ? "Hide password" : "Show password"}
                       >
                         {showPasswords.current ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
@@ -352,12 +355,12 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                           onChange={(e) =>
                             setPasswordData({ ...passwordData, new_password: e.target.value })
                           }
-                          className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
+                          className="h-11 bg-muted/30 rounded-xl"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-md transition-colors"
                           aria-label={showPasswords.new ? "Hide password" : "Show password"}
                         >
                           {showPasswords.new ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
@@ -383,14 +386,14 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                           onChange={(e) =>
                             setPasswordData({ ...passwordData, confirm_password: e.target.value })
                           }
-                          className="h-11 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl"
+                          className="h-11 bg-muted/30 rounded-xl"
                         />
                         <button
                           type="button"
                           onClick={() =>
                             setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
                           }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-md transition-colors"
                           aria-label={showPasswords.confirm ? "Hide password" : "Show password"}
                         >
                           {showPasswords.confirm ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
@@ -402,10 +405,10 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                     </div>
                   </div>
                 </div>
-                <div className="p-6 md:px-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex justify-end">
+                <div className="p-6 md:px-8 border-t border-border bg-muted/20 flex justify-end">
                   <Button
                     type="submit"
-                    className="bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl px-8 h-11 transition-all"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-8 h-11 transition-all"
                     disabled={
                       changePassword.isPending ||
                       !passwordsMatch ||
@@ -423,8 +426,8 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
 
           {/* Super Admins Tab */}
           <TabsContent value="super-admins" className="m-0 focus-visible:outline-none focus-visible:ring-0">
-            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden shadow-sm">
-              <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 overflow-hidden shadow-sm">
+              <div className="p-6 md:p-8 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                     Super Admin Management
@@ -435,7 +438,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
 
               <div className="p-6 md:p-8 space-y-8">
                 {/* Create Form */}
-                <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
+                <div className="bg-muted/30 rounded-2xl border border-border p-6">
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <Plus className="h-5 w-5 text-indigo-500" /> Add New Super Admin
                   </h3>
@@ -449,7 +452,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                           required
                           value={newSuperAdmin.full_name}
                           onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, full_name: e.target.value })}
-                          className="h-11 bg-white dark:bg-slate-950/50 rounded-xl"
+                          className="h-11 bg-background rounded-xl"
                         />
                       </div>
                       <div className="grid gap-2">
@@ -460,7 +463,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                           required
                           value={newSuperAdmin.email}
                           onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, email: e.target.value })}
-                          className={`h-11 bg-white dark:bg-slate-950/50 rounded-xl ${emailAlreadyExists ? 'border-rose-500 focus-visible:ring-rose-500' : ''}`}
+                          className={`h-11 bg-background rounded-xl ${emailAlreadyExists ? 'border-rose-500 focus-visible:ring-rose-500' : ''}`}
                         />
                         {emailAlreadyExists && (
                           <p className="text-xs text-rose-500 font-medium mt-1">
@@ -478,12 +481,12 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                             minLength={8}
                             value={newSuperAdmin.password}
                             onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, password: e.target.value })}
-                            className="h-11 bg-white dark:bg-slate-950/50 rounded-xl"
+                            className="h-11 bg-background rounded-xl"
                           />
                           <button
                             type="button"
                             onClick={() => setShowNewAdminPassword(!showNewAdminPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-md transition-colors"
                             aria-label={showNewAdminPassword ? "Hide password" : "Show password"}
                           >
                             {showNewAdminPassword ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
@@ -500,7 +503,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                           placeholder="10-digit mobile number"
                           value={newSuperAdmin.phone}
                           onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                          className="h-11 bg-white dark:bg-slate-950/50 rounded-xl"
+                          className="h-11 bg-background rounded-xl"
                         />
                       </div>
                     </div>
@@ -538,13 +541,13 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                       Loading administrators...
                     </div>
                   ) : superAdmins.length === 0 ? (
-                    <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed border-border">
                       <p className="text-slate-500 font-medium">No other super admins found.</p>
                     </div>
                   ) : (
                     <div className="grid gap-3 pt-2">
                       {superAdmins.map((sa) => (
-                        <div key={sa.id} className="group flex items-center justify-between p-4 bg-white hover:bg-slate-50 dark:bg-slate-900/50 dark:hover:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 transition-all shadow-sm hover:shadow-md">
+                        <div key={sa.id} className="group flex items-center justify-between p-4 bg-card hover:bg-muted/20 rounded-xl border border-border/60 transition-all shadow-sm hover:shadow-md">
                           <div className="flex items-center gap-4 min-w-0">
                             <Avatar className="h-12 w-12 border-2 border-white dark:border-slate-800 shadow-sm shrink-0">
                               <AvatarImage src={sa.profile_picture_url || undefined} alt={sa.full_name} />

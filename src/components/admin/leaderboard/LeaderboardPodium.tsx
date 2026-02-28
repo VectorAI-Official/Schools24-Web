@@ -52,7 +52,7 @@ export function LeaderboardPodium({ items, type }: LeaderboardPodiumProps) {
                 {/* Winner Card - Glassmorphism */}
                 <div className={`
                     relative w-56 p-5 rounded-2xl
-                    backdrop-blur-xl bg-white/80 dark:bg-slate-900/80
+                    backdrop-blur-xl bg-card/80
                     border ${borderColor}
                     shadow-2xl ${glowColor}
                     ${isFirst ? 'scale-105' : ''}
@@ -74,12 +74,12 @@ export function LeaderboardPodium({ items, type }: LeaderboardPodiumProps) {
                     {/* Avatar */}
                     <div className="flex justify-center mt-4 mb-3">
                         <div className={`relative p-1 rounded-full ${isFirst ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : isSecond ? 'bg-gradient-to-br from-slate-300 to-slate-500' : 'bg-gradient-to-br from-orange-400 to-orange-600'}`}>
-                            <Avatar className="w-20 h-20 border-4 border-white dark:border-slate-800">
-                                <AvatarFallback className="text-xl font-bold bg-white dark:bg-slate-800">
+                            <Avatar className="w-20 h-20 border-4 border-background">
+                                <AvatarFallback className="text-xl font-bold bg-card">
                                     {getInitials(item.name)}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-800 rounded-full p-1 shadow-md">
+                            <div className="absolute -bottom-1 -right-1 bg-card rounded-full p-1 shadow-md">
                                 {isFirst ? (
                                     <Trophy className="w-4 h-4 text-yellow-500" fill="currentColor" />
                                 ) : (

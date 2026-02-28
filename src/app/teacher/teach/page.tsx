@@ -122,7 +122,7 @@ export default function TeachPage() {
 
   const { data: timetableData } = useQuery({
     queryKey: ["teacher-teach-timetable", academicYear],
-    queryFn: () => api.get<{ timetable: TimetableEntry[] }>(`/teacher/timetable?academic_year=${encodeURIComponent(academicYear)}`),
+    queryFn: () => api.getOrEmpty<{ timetable: TimetableEntry[] }>(`/teacher/timetable?academic_year=${encodeURIComponent(academicYear)}`, { timetable: [] }),
     staleTime: 60 * 1000,
   })
 
@@ -181,7 +181,7 @@ export default function TeachPage() {
       if (selectedClassName) params.set("class_level", selectedClassName)
       if (selectedSubject) params.set("subject", selectedSubject)
       if (debouncedSearch) params.set("search", debouncedSearch)
-      return api.get<StudyMaterialsPage>(`/teacher/materials?${params.toString()}`)
+      return api.getOrEmpty<StudyMaterialsPage>(`/teacher/materials?${params.toString()}`, { materials: [], page: 1, page_size: 100, has_more: false, next_page: 0, order: 'asc' })
     },
     enabled: !!selectedClassName && !!selectedSubject,
   })

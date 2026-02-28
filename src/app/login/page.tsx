@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { GraduationCap, Eye, EyeOff, Shield, BookOpen, Award, Loader2, ArrowRight, Lock, Mail, ArrowLeft, Users, Calendar, TrendingUp } from 'lucide-react'
+import { Eye, EyeOff, Shield, BookOpen, Award, Loader2, ArrowRight, Lock, Mail, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 
 const loginSchema = z.object({
@@ -155,7 +155,15 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 pt-20 md:pt-28 relative overflow-hidden bg-gradient-to-br from-gray-50 via-gray-100 to-zinc-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
+        <div
+            className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden"
+            style={{
+                backgroundImage: "url('/assets/background.png')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+            }}
+        >
             {/* Animated Background Layers */}
             <div className="absolute inset-0">
                 <div className={`absolute top-0 left-0 w-[600px] h-[600px] bg-gradient-to-br ${currentRole.gradient} opacity-20 rounded-full blur-3xl animate-float-slow transition-all duration-1000 mix-blend-multiply dark:mix-blend-screen`} />
@@ -186,7 +194,7 @@ export default function LoginPage() {
 
             {/* Back Button */}
             <Link
-                href="/"
+                href="https://schools24.in"
                 className="absolute top-6 left-6 z-20 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 group shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
                 <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
@@ -194,87 +202,9 @@ export default function LoginPage() {
             </Link>
 
             {/* Main Content */}
-            <div className="w-full max-w-7xl relative z-10">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                    {/* Left Side - Info Section */}
-                    <div className="hidden lg:block space-y-8 animate-fade-in">
-                        {/* Header */}
-                        <div className="text-left">
-                            <Link href="/" className="inline-flex items-center gap-6 mb-6 group">
-                                <div className="relative">
-                                    <div className={`absolute inset-0 bg-gradient-to-br ${currentRole.gradient} rounded-3xl blur-2xl opacity-40 group-hover:opacity-70 transition-all duration-700 animate-pulse`} />
-                                    <div className={`absolute -inset-1 bg-gradient-to-br ${currentRole.gradient} rounded-3xl opacity-20 group-hover:opacity-40 transition-all duration-500 animate-spin`} style={{ animationDuration: '8s' }} />
-
-                                    <div className={`relative flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br ${currentRole.gradient} shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-500 transform group-hover:rotate-3`}>
-                                        <GraduationCap className="h-12 w-12 text-white animate-float" />
-                                    </div>
-                                </div>
-                                <div className="text-left">
-                                    <h1 className="font-bold text-5xl md:text-6xl bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
-                                        schools24
-                                    </h1>
-                                    <p className="text-base text-slate-600 dark:text-slate-400 mt-2 font-medium">
-                                        Education Management System
-                                    </p>
-                                </div>
-                            </Link>
-                        </div>
-
-                        {/* Features */}
-                        <div className="space-y-4">
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Why Choose schools24?</h3>
-                            {[
-                                { icon: Users, title: 'Collaborative Learning', desc: 'Connect teachers, students, and parents seamlessly', delay: '0.1s' },
-                                { icon: Calendar, title: 'Smart Scheduling', desc: 'Automated timetables and attendance tracking', delay: '0.2s' },
-                                { icon: TrendingUp, title: 'Performance Analytics', desc: 'Real-time insights and progress monitoring', delay: '0.3s' },
-                                { icon: Shield, title: 'Secure & Reliable', desc: 'Enterprise-grade security for your data', delay: '0.4s' },
-                            ].map((feature, index) => {
-                                const Icon = feature.icon
-                                return (
-                                    <div
-                                        key={index}
-                                        className="flex items-start gap-3 p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg transition-all duration-300 group animate-slide-in-left"
-                                        style={{ animationDelay: feature.delay }}
-                                    >
-                                        <div className={`p-3 rounded-lg bg-gradient-to-br ${currentRole.gradient} shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300`}>
-                                            <Icon className="h-6 w-6 text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-bold text-slate-900 dark:text-white mb-1">{feature.title}</h4>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400">{feature.desc}</p>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-
-                    </div>
-
-                    {/* Right Side - Login Form */}
-                    <div className="w-full">
-                        {/* Mobile Header - Only visible on mobile */}
-                        <div className="lg:hidden text-center mb-8 animate-bounce-in">
-                            <Link href="/" className="inline-flex items-center gap-4 group">
-                                <div className="relative">
-                                    <div className={`absolute inset-0 bg-gradient-to-br ${currentRole.gradient} rounded-2xl blur-xl opacity-40 group-hover:opacity-70 transition-all duration-700 animate-pulse`} />
-
-                                    <div className={`relative flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br ${currentRole.gradient} shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-500`}>
-                                        <GraduationCap className="h-8 w-8 text-white" />
-                                    </div>
-                                </div>
-                                <div className="text-left">
-                                    <h1 className="font-bold text-3xl bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent">
-                                        schools24
-                                    </h1>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-                                        Education Management
-                                    </p>
-                                </div>
-                            </Link>
-                        </div>
-
-                        {/* Login Card */}
+            <div className="w-full max-w-xl relative z-10">
+                <div className="w-full">
+                    {/* Login Card */}
                         <Card className="shadow-2xl border-2 border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-800 relative overflow-hidden animate-scale-in max-w-xl mx-auto backdrop-blur-sm">
                             <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${currentRole.gradient} transition-all duration-700`}>
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
@@ -288,7 +218,7 @@ export default function LoginPage() {
                                         key={currentRole.role}
                                         className="text-3xl md:text-4xl mb-3 font-bold text-slate-900 dark:text-white tracking-tight animate-fade-in"
                                     >
-                                        Welcome, {currentRole.title}!
+                                        Welcome
                                     </CardTitle>
                                     <CardDescription
                                         key={`${currentRole.role}-desc`}
@@ -417,7 +347,6 @@ export default function LoginPage() {
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
     )
 }

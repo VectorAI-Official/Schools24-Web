@@ -94,7 +94,7 @@ export default function QuestionGeneratorPage() {
         queryFn: () => {
             const params = new URLSearchParams()
             params.append("academic_year", academicYear)
-            return api.get<{ timetable: TimetableEntry[] }>(`/teacher/timetable?${params.toString()}`)
+            return api.getOrEmpty<{ timetable: TimetableEntry[] }>(`/teacher/timetable?${params.toString()}`, { timetable: [] })
         },
     })
 

@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -90,6 +90,8 @@ export function useStudents(
         enabled: options.enabled ?? canLoad,
         staleTime: 30_000,
         refetchInterval: 30_000,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
     });
 }
 
@@ -98,30 +100,81 @@ export function useStudentMutations() {
 
     const updateStudentMutation = useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<Student> }) => {
-            // Map frontend naming to backend snake_case if necessary, 
-            // but our Student interface is consistently snake_case now.
             return api.put(`/admin/students/${id}`, data);
+        },
+        // Optimistic update: merge changes into cached pages immediately so the
+        // table row reflects the new values before the server responds.
+        onMutate: async ({ id, data }) => {
+            await queryClient.cancelQueries({ queryKey: ['students'] });
+            const previousData = queryClient.getQueriesData<InfiniteData<StudentsResponse>>({ queryKey: ['students'] });
+            queryClient.setQueriesData<InfiniteData<StudentsResponse>>(
+                { queryKey: ['students'] },
+                (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        pages: old.pages.map(page => ({
+                            ...page,
+                            students: page.students.map(s =>
+                                s.id === id ? { ...s, ...data } : s
+                            ),
+                        })),
+                    };
+                }
+            );
+            return { previousData };
+        },
+        onError: (error: unknown, _vars, context) => {
+            // Roll back on failure
+            if (context?.previousData) {
+                context.previousData.forEach(([key, data]) => {
+                    queryClient.setQueryData(key, data);
+                });
+            }
+            toast.error('Failed to update student', { description: getErrorMessage(error) });
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['students'] });
             toast.success('Student updated successfully');
         },
-        onError: (error: unknown) => {
-            toast.error('Failed to update student', { description: getErrorMessage(error) });
-        }
     });
 
     const deleteStudentMutation = useMutation({
         mutationFn: async (id: string) => {
             return api.delete(`/admin/students/${id}`);
         },
+        // Optimistic update: remove student from cached pages immediately.
+        onMutate: async (id) => {
+            await queryClient.cancelQueries({ queryKey: ['students'] });
+            const previousData = queryClient.getQueriesData<InfiniteData<StudentsResponse>>({ queryKey: ['students'] });
+            queryClient.setQueriesData<InfiniteData<StudentsResponse>>(
+                { queryKey: ['students'] },
+                (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        pages: old.pages.map(page => ({
+                            ...page,
+                            total: Math.max(0, page.total - 1),
+                            students: page.students.filter(s => s.id !== id),
+                        })),
+                    };
+                }
+            );
+            return { previousData };
+        },
+        onError: (error: unknown, _id, context) => {
+            if (context?.previousData) {
+                context.previousData.forEach(([key, data]) => {
+                    queryClient.setQueryData(key, data);
+                });
+            }
+            toast.error('Failed to delete student', { description: getErrorMessage(error) });
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['students'] });
             toast.success('Student deleted successfully');
         },
-        onError: (error: unknown) => {
-            toast.error('Failed to delete student', { description: getErrorMessage(error) });
-        }
     });
 
     return {
@@ -138,26 +191,72 @@ export interface CreateStudentPayload {
     password: string;
     phone?: string;
     class_id: string;
-    roll_number: string;
+    section?: string;
+    roll_number?: string;
+    admission_number?: string;
     date_of_birth?: string;
+    gender?: string;
+    academic_year?: string;
     parent_name?: string;
     parent_phone?: string;
+    parent_email?: string;
     address?: string;
-    gender?: string;
-    section?: string;
     school_id?: string;
 }
 
 export function useCreateStudent() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: CreateStudentPayload) => api.post('/admin/students', data),
+        mutationFn: (data: CreateStudentPayload) => api.post<{ student_id: string }>('/admin/students', data),
+        // Optimistic add: inject a placeholder row immediately so the table grows
+        // before the server confirms. The server response invalidation will replace it.
+        onMutate: async (data) => {
+            await queryClient.cancelQueries({ queryKey: ['students'] });
+            const previousData = queryClient.getQueriesData<InfiniteData<StudentsResponse>>({ queryKey: ['students'] });
+            const placeholder: Student = {
+                id: `optimistic-${Date.now()}`,
+                user_id: '',
+                full_name: data.full_name,
+                email: data.email,
+                admission_number: data.admission_number || '',
+                class_id: data.class_id,
+                class_name: undefined,
+                section: data.section,
+                gender: data.gender || '',
+                date_of_birth: data.date_of_birth || '',
+                academic_year: data.academic_year,
+                parent_name: data.parent_name,
+                parent_phone: data.parent_phone,
+                parent_email: data.parent_email,
+                address: data.address,
+            };
+            queryClient.setQueriesData<InfiniteData<StudentsResponse>>(
+                { queryKey: ['students'] },
+                (old) => {
+                    if (!old) return old;
+                    const firstPage = old.pages[0];
+                    return {
+                        ...old,
+                        pages: [
+                            { ...firstPage, total: firstPage.total + 1, students: [placeholder, ...firstPage.students] },
+                            ...old.pages.slice(1),
+                        ],
+                    };
+                }
+            );
+            return { previousData };
+        },
+        onError: (error: unknown, _data, context) => {
+            if (context?.previousData) {
+                context.previousData.forEach(([key, data]) => {
+                    queryClient.setQueryData(key, data);
+                });
+            }
+            toast.error('Failed to add student', { description: getErrorMessage(error) });
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['students'] });
             toast.success('Student added successfully');
         },
-        onError: (error: unknown) => {
-            toast.error('Failed to add student', { description: getErrorMessage(error) });
-        }
     });
 }

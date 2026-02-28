@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { api, ValidationError } from '@/lib/api'
 import { toast } from 'sonner'
 
 export interface EventApi {
@@ -144,10 +144,12 @@ export function useStudentEvents(
             qs.append('page', page.toString())
             qs.append('page_size', pageSize.toString())
 
-            const res = await api.get<EventsResponse>(`/student/events?${qs.toString()}`)
-            return {
-                ...res,
-                events: res.events.map(mapEvent),
+            try {
+                const res = await api.get<EventsResponse>(`/student/events?${qs.toString()}`)
+                return { ...res, events: res.events.map(mapEvent) }
+            } catch (e) {
+                if (e instanceof ValidationError) return { events: [], total: 0, page: 1, page_size: pageSize, has_more: false }
+                throw e
             }
         },
         enabled,

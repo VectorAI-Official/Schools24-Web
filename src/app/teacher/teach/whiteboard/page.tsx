@@ -397,7 +397,7 @@ export default function WhiteboardPage() {
             className={`flex flex-col bg-background ${isFullscreen ? 'h-screen' : 'h-[calc(100vh-8rem)]'}`}
         >
             {/* Toolbar */}
-            <div className={`flex flex-wrap items-center justify-between p-4 border-b bg-card gap-4 ${isFullscreen ? 'bg-white/95 backdrop-blur-sm shadow-lg' : ''}`}>
+            <div className={`flex flex-wrap items-center justify-between p-4 border-b bg-card gap-4 ${isFullscreen ? 'bg-card/95 backdrop-blur-sm shadow-lg' : ''}` }>
                 <div className="flex items-center gap-4 flex-wrap">
                     {!isFullscreen && (
                         <Link href="/teacher/teach">

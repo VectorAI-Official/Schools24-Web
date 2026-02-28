@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { api, ValidationError } from '@/lib/api'
 import { compareClassLabels } from '@/lib/classOrdering'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -149,7 +149,7 @@ export default function TeacherMaterialsPage() {
 
   const { data: timetableData } = useQuery({
     queryKey: ['teacher-materials-timetable', academicYear],
-    queryFn: () => api.get<{ timetable: TimetableEntry[] }>(`/teacher/timetable?academic_year=${encodeURIComponent(academicYear)}`),
+    queryFn: () => api.getOrEmpty<{ timetable: TimetableEntry[] }>(`/teacher/timetable?academic_year=${encodeURIComponent(academicYear)}`, { timetable: [] }),
     staleTime: 60 * 1000,
   })
 
@@ -210,15 +210,20 @@ export default function TeacherMaterialsPage() {
   } = useInfiniteQuery({
     queryKey: ['teacher-materials', 20, 'asc', subjectFilter, classFilter, debouncedSearch],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => {
-      const params = new URLSearchParams()
-      params.set('page', String(pageParam))
-      params.set('page_size', '20')
-      params.set('order', 'asc')
-      if (subjectFilter !== 'all') params.set('subject', subjectFilter)
-      if (classFilter !== 'all') params.set('class_level', classFilter)
-      if (debouncedSearch) params.set('search', debouncedSearch)
-      return api.get<StudyMaterialsPage>(`/teacher/materials?${params.toString()}`)
+    queryFn: async ({ pageParam }) => {
+      try {
+        const params = new URLSearchParams()
+        params.set('page', String(pageParam))
+        params.set('page_size', '20')
+        params.set('order', 'asc')
+        if (subjectFilter !== 'all') params.set('subject', subjectFilter)
+        if (classFilter !== 'all') params.set('class_level', classFilter)
+        if (debouncedSearch) params.set('search', debouncedSearch)
+        return await api.get<StudyMaterialsPage>(`/teacher/materials?${params.toString()}`)
+      } catch (e) {
+        if (e instanceof ValidationError) return { materials: [], page: 1, page_size: 20, has_more: false, next_page: 0, order: 'asc' as const }
+        throw e
+      }
     },
     getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.next_page : undefined),
   })

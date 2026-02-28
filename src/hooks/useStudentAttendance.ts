@@ -39,7 +39,7 @@ export function useStudentAttendance(params: AttendanceQueryParams = {}, enabled
             if (params.startDate) query.set('start_date', params.startDate)
             if (params.endDate) query.set('end_date', params.endDate)
             const suffix = query.toString() ? `?${query.toString()}` : ''
-            return api.get<StudentAttendanceResponse>(`/student/attendance${suffix}`)
+            return api.getOrEmpty<StudentAttendanceResponse>(`/student/attendance${suffix}`, { attendance: [], stats: null })
         },
         staleTime: 30 * 1000,
     })

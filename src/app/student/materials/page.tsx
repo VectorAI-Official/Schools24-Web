@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { api, ValidationError } from '@/lib/api'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -124,14 +124,21 @@ export default function StudentMaterialsPage() {
   } = useInfiniteQuery({
     queryKey: ['student-materials', 'desc', selectedSubject, debouncedSearch],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => {
-      const params = new URLSearchParams()
-      params.set('page', String(pageParam))
-      params.set('page_size', '20')
-      params.set('order', 'desc')
-      if (selectedSubject !== 'all') params.set('subject', selectedSubject)
-      if (debouncedSearch) params.set('search', debouncedSearch)
-      return api.get<StudentMaterialsPage>(`/student/materials?${params.toString()}`)
+    queryFn: async ({ pageParam }) => {
+      try {
+        const params = new URLSearchParams()
+        params.set('page', String(pageParam))
+        params.set('page_size', '20')
+        params.set('order', 'desc')
+        if (selectedSubject !== 'all') params.set('subject', selectedSubject)
+        if (debouncedSearch) params.set('search', debouncedSearch)
+        return await api.get<StudentMaterialsPage>(`/student/materials?${params.toString()}`)
+      } catch (e) {
+        if (e instanceof ValidationError) {
+          return { materials: [], page: 1, page_size: 20, has_more: false, next_page: 1, order: 'desc' } as StudentMaterialsPage
+        }
+        throw e
+      }
     },
     getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.next_page : undefined),
   })

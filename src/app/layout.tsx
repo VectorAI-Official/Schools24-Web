@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   publisher: "schools24",
   icons: {
     icon: [
-      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/assets/icon-transbg.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
       { url: "/apple-icon.png", sizes: "512x512", type: "image/png" },

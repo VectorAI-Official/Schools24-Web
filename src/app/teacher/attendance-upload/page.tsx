@@ -48,7 +48,7 @@ export default function AttendanceUploadPage() {
 
     const { data: classesData, isLoading: classesLoading } = useQuery({
         queryKey: ["teacher-attendance-classes"],
-        queryFn: () => api.get<{ classes: TeacherClass[] }>("/teacher/classes"),
+        queryFn: () => api.getOrEmpty<{ classes: TeacherClass[] }>("/teacher/classes", { classes: [] }),
         staleTime: 30 * 1000,
     })
 
@@ -72,7 +72,7 @@ export default function AttendanceUploadPage() {
 
     const { data: studentsData, isLoading: studentsLoading } = useQuery({
         queryKey: ["teacher-attendance-students", selectedClassId],
-        queryFn: () => api.get<{ students: ClassStudent[] }>(`/teacher/classes/${selectedClassId}/students`),
+        queryFn: () => api.getOrEmpty<{ students: ClassStudent[] }>(`/teacher/classes/${selectedClassId}/students`, { students: [] }),
         enabled: !!selectedClassId,
         staleTime: 10 * 1000,
     })
@@ -83,8 +83,9 @@ export default function AttendanceUploadPage() {
         queryKey: ["teacher-attendance-existing", selectedClassId, selectedDate],
         enabled: !!selectedClassId && !!selectedDate,
         queryFn: () =>
-            api.get<{ class_id: string; date: string; students: AttendanceStudentRecord[] }>(
-                `/teacher/attendance?class_id=${selectedClassId}&date=${selectedDate}`
+            api.getOrEmpty<{ class_id: string; date: string; students: AttendanceStudentRecord[] }>(
+                `/teacher/attendance?class_id=${selectedClassId}&date=${selectedDate}`,
+                { class_id: '', date: '', students: [] }
             ),
         staleTime: 0,
     })

@@ -35,11 +35,16 @@ const clearAuthData = () => {
 };
 
 // Custom error class for validation errors (won't trigger Next.js error overlay)
-class ValidationError extends Error {
+export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ValidationError';
   }
+}
+
+/** Returns true when the error is a 4xx "no data" error (as opposed to a network failure) */
+export function isNoDataError(err: unknown): boolean {
+  return err instanceof ValidationError
 }
 
 async function fetchClient<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
@@ -113,6 +118,15 @@ async function fetchClient<T>(endpoint: string, options: FetchOptions = {}): Pro
 
 export const api = {
   get: <T>(endpoint: string, options?: FetchOptions) => fetchClient<T>(endpoint, { ...options, method: "GET" }),
+  /** Like `get` but returns `fallback` on 404/400 instead of throwing. Network errors still propagate. */
+  getOrEmpty: async <T>(endpoint: string, fallback: T, options?: FetchOptions): Promise<T> => {
+    try {
+      return await fetchClient<T>(endpoint, { ...options, method: "GET" })
+    } catch (err) {
+      if (err instanceof ValidationError) return fallback
+      throw err
+    }
+  },
   post: <T>(endpoint: string, body: any, options?: FetchOptions) => fetchClient<T>(endpoint, { ...options, method: "POST", body: JSON.stringify(body) }),
   put: <T>(endpoint: string, body: any, options?: FetchOptions) => fetchClient<T>(endpoint, { ...options, method: "PUT", body: JSON.stringify(body) }),
   delete: <T>(endpoint: string, options?: FetchOptions) => fetchClient<T>(endpoint, { ...options, method: "DELETE" }),

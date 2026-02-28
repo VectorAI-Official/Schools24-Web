@@ -148,7 +148,7 @@ export default function StudentQuizzesPage() {
 
     const { data, isLoading, isError, error } = useQuery<QuizListResponse>({
         queryKey: ['student-quizzes'],
-        queryFn: () => api.get<QuizListResponse>('/student/quizzes'),
+        queryFn: () => api.getOrEmpty<QuizListResponse>('/student/quizzes', { quizzes: [] }),
         staleTime: 30_000,
     })
 
@@ -413,7 +413,7 @@ export default function StudentQuizzesPage() {
         return (
             <div className="min-h-[calc(100vh-120px)] flex flex-col animate-fade-in">
                 {/* Quiz Header */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-4 mb-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md bg-gradient-to-br from-indigo-500 to-violet-600">
@@ -432,7 +432,7 @@ export default function StudentQuizzesPage() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-lg font-bold ${isLowTime ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-slate-50 text-slate-700'}`}>
+                            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-lg font-bold ${isLowTime ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-muted text-foreground'}`}>
                                 <Timer className="w-5 h-5" />
                                 {formatTime(timeLeft)}
                             </div>
@@ -471,12 +471,12 @@ export default function StudentQuizzesPage() {
                                                     'flex items-center gap-4 p-5 rounded-xl border-2 text-left transition-all duration-200',
                                                     isSelected
                                                         ? 'border-indigo-500 bg-indigo-50 shadow-md shadow-indigo-100'
-                                                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm'
+                                                        : 'border-border bg-card hover:border-border/70 hover:bg-muted/20 hover:shadow-sm'
                                                 )}
                                             >
                                                 <div className={cn(
                                                     'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 transition-all',
-                                                    isSelected ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600'
+                                                    isSelected ? 'bg-indigo-600 text-white shadow-md' : 'bg-muted text-muted-foreground'
                                                 )}>
                                                     {letter}
                                                 </div>
@@ -491,7 +491,7 @@ export default function StudentQuizzesPage() {
                         </Card>
 
                         {/* Bottom Actions */}
-                        <div className="flex items-center justify-between mt-4 bg-white rounded-xl border border-slate-200 shadow-sm p-3">
+                        <div className="flex items-center justify-between mt-4 bg-card rounded-xl border border-border shadow-sm p-3">
                             <div className="flex items-center gap-2">
                                 <Button variant="outline" size="sm" disabled={currentQ === 0}
                                     onClick={() => goToQuestion(currentQ - 1)}
@@ -502,7 +502,7 @@ export default function StudentQuizzesPage() {
                                     className={cn(
                                         statuses[currentQ]?.includes('review')
                                             ? 'bg-purple-50 border-purple-300 text-purple-700'
-                                            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                            : 'border-border text-muted-foreground hover:bg-muted/30'
                                     )}>
                                     {statuses[currentQ]?.includes('review')
                                         ? <BookmarkCheck className="w-4 h-4 mr-1" />
@@ -515,7 +515,7 @@ export default function StudentQuizzesPage() {
                                 <Button variant="ghost" size="sm" onClick={clearAnswer} className="text-slate-500 hover:text-red-600">
                                     <XCircle className="w-4 h-4 mr-1" /> Clear
                                 </Button>
-                                <div className="flex items-center gap-1 border border-slate-200 rounded-lg px-1 py-0.5">
+                                <div className="flex items-center gap-1 border border-border rounded-lg px-1 py-0.5">
                                     {question.options.map((opt) => {
                                         const letter = String.fromCharCode(64 + opt.order_index)
                                         const isSelected = selectedOptionId === opt.id
@@ -523,7 +523,7 @@ export default function StudentQuizzesPage() {
                                             <button key={opt.id} onClick={() => selectAnswer(question.id, opt.id)}
                                                 className={cn(
                                                     'w-8 h-8 rounded-md text-sm font-semibold transition-all',
-                                                    isSelected ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'
+                                                    isSelected ? 'bg-indigo-600 text-white' : 'text-muted-foreground hover:bg-muted'
                                                 )}>
                                                 {letter}
                                             </button>
@@ -565,7 +565,7 @@ export default function StudentQuizzesPage() {
                                     ))}
                                 </div>
 
-                                <div className="h-px bg-slate-100 mb-4" />
+                                <div className="h-px bg-border mb-4" />
 
                                 <div className="grid grid-cols-5 gap-2">
                                     {activeAttempt.questions.map((q, idx) => {
@@ -710,7 +710,7 @@ export default function StudentQuizzesPage() {
                                                             'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium',
                                                             opt.is_correct ? 'bg-green-100 text-green-700 ring-1 ring-green-300' : '',
                                                             opt.is_selected && !opt.is_correct ? 'bg-red-100 text-red-700 ring-1 ring-red-300 line-through' : '',
-                                                            !opt.is_correct && !opt.is_selected ? 'bg-slate-100 text-slate-500' : ''
+                                                            !opt.is_correct && !opt.is_selected ? 'bg-muted text-muted-foreground' : ''
                                                         )}>
                                                             <span className="font-bold">{String.fromCharCode(64 + opt.order_index)}.</span> {opt.option_text}
                                                         </span>
@@ -810,7 +810,7 @@ export default function StudentQuizzesPage() {
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Select Subject</h3>
                                     {subjects.length > 0 && (
-                                        <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                        <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                                             {subjects.length} subject{subjects.length !== 1 ? 's' : ''}
                                         </span>
                                     )}
@@ -838,7 +838,7 @@ export default function StudentQuizzesPage() {
                                                         'flex items-center gap-3 p-3 rounded-xl text-left transition-all duration-200 border',
                                                         isActive
                                                             ? 'shadow-md ring-2 border-transparent'
-                                                            : 'border-slate-100 hover:bg-slate-50 hover:border-slate-200'
+                                                            : 'border-border/50 hover:bg-muted/30 hover:border-border'
                                                     )}
                                                     style={isActive ? { backgroundColor: palette.light, ['--tw-ring-color' as string]: palette.color } : {}}>
                                                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0"
@@ -865,7 +865,7 @@ export default function StudentQuizzesPage() {
                                 <CardContent className="p-5">
                                     <div className="flex items-center justify-between mb-1">
                                         <h3 className="font-bold text-slate-700">All Chapters</h3>
-                                        <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                        <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                                             {sortedGroupedChapters.length} chapter{sortedGroupedChapters.length !== 1 ? 's' : ''}
                                         </span>
                                     </div>
@@ -875,7 +875,7 @@ export default function StudentQuizzesPage() {
                                             <button key={f} onClick={() => setChapterFilter(f)}
                                                 className={cn(
                                                     'px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all capitalize',
-                                                    chapterFilter === f ? 'text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                                    chapterFilter === f ? 'text-white shadow-md' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                                 )}
                                                 style={chapterFilter === f ? { backgroundColor: selectedPalette.color } : {}}>
                                                 {f}
@@ -899,7 +899,7 @@ export default function StudentQuizzesPage() {
                                                             'flex flex-col w-full p-3 rounded-xl text-left transition-all gap-2 border',
                                                             isSelected
                                                                 ? 'shadow-sm ring-1 border-transparent'
-                                                                : 'border-slate-100 hover:bg-slate-50 hover:border-slate-200'
+                                                                : 'border-border/50 hover:bg-muted/30 hover:border-border'
                                                         )}
                                                         style={isSelected ? { backgroundColor: selectedPalette.light, ['--tw-ring-color' as string]: selectedPalette.color } : {}}>
                                                         {/* Row 1: name + chevron */}
@@ -909,7 +909,7 @@ export default function StudentQuizzesPage() {
                                                                 style={{ color: isSelected ? selectedPalette.color : '#94a3b8' }} />
                                                         </div>
                                                         {/* Row 2: progress bar */}
-                                                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                                                        <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
                                                             <div
                                                                 className="h-full rounded-full transition-all duration-500"
                                                                 style={{ width: `${group.completionProgress}%`, backgroundColor: progressColor }}
@@ -963,7 +963,7 @@ export default function StudentQuizzesPage() {
                                             const isActing = startMutation.isPending && actingQuizId === quiz.id
                                             const isLoadingResult = resultMutation.isPending && actingQuizId === quiz.id
                                             return (
-                                                <div key={quiz.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-white hover:shadow-md transition-all">
+                                                <div key={quiz.id} className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:shadow-md transition-all">
                                                     <div className="w-2 h-10 rounded-full flex-shrink-0" style={{ backgroundColor: selectedPalette.color + '50' }} />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="font-semibold text-sm text-slate-800 truncate">{quiz.title}</p>
@@ -993,7 +993,7 @@ export default function StudentQuizzesPage() {
                                                                 {isLoadingResult ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Eye className="w-4 h-4" /> View Result</>}
                                                             </button>
                                                         ) : (
-                                                            <span className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm text-slate-500 bg-slate-50 border border-slate-200">
+                                                            <span className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm text-muted-foreground bg-muted border border-border">
                                                                 <Clock className="w-4 h-4 text-amber-400" />
                                                                 {quiz.is_anytime
                                                                     ? 'Anytime'
@@ -1030,7 +1030,7 @@ export default function StudentQuizzesPage() {
                                                     <h4 className="font-semibold text-sm text-slate-800 mb-1">{chName}</h4>
                                                     <p className="text-[11px] text-slate-400 mb-3">{quiz.subject_name}</p>
                                                     <div className="flex items-center gap-2 mb-3">
-                                                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                                                             <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: palette.color }} />
                                                         </div>
                                                         <span className="text-[11px] font-medium text-slate-500">{pct.toFixed(0)}%</span>

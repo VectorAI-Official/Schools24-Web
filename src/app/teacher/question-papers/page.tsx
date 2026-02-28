@@ -42,7 +42,7 @@ import {
     Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { api } from '@/lib/api'
+import { api, ValidationError } from '@/lib/api'
 import { compareClassLabels } from '@/lib/classOrdering'
 
 interface QuestionDocument {
@@ -117,7 +117,7 @@ export default function TeacherQuestionPapersPage() {
 
     const { data: timetableData } = useQuery({
         queryKey: ['teacher-question-papers-timetable', academicYear],
-        queryFn: () => api.get<{ timetable: TimetableEntry[] }>(`/teacher/timetable?academic_year=${encodeURIComponent(academicYear)}`),
+        queryFn: () => api.getOrEmpty<{ timetable: TimetableEntry[] }>(`/teacher/timetable?academic_year=${encodeURIComponent(academicYear)}`, { timetable: [] }),
         staleTime: 60 * 1000,
     })
 
@@ -130,21 +130,26 @@ export default function TeacherQuestionPapersPage() {
     } = useInfiniteQuery({
         queryKey: ['teacher-question-documents', 'infinite', 20, 'asc', subjectFilter, classFilter, debouncedSearch],
         initialPageParam: 1,
-        queryFn: ({ pageParam }) => {
-            const params = new URLSearchParams()
-            params.set('page', String(pageParam))
-            params.set('page_size', '20')
-            params.set('order', 'asc')
-            if (subjectFilter !== 'all') {
-                params.set('subject', subjectFilter === 'unspecified' ? '__unspecified__' : subjectFilter)
+        queryFn: async ({ pageParam }) => {
+            try {
+                const params = new URLSearchParams()
+                params.set('page', String(pageParam))
+                params.set('page_size', '20')
+                params.set('order', 'asc')
+                if (subjectFilter !== 'all') {
+                    params.set('subject', subjectFilter === 'unspecified' ? '__unspecified__' : subjectFilter)
+                }
+                if (classFilter !== 'all') {
+                    params.set('class_level', classFilter === 'unspecified' ? '__unspecified__' : classFilter)
+                }
+                if (debouncedSearch) {
+                    params.set('search', debouncedSearch)
+                }
+                return await api.get<QuestionDocumentsPage>(`/teacher/question-documents?${params.toString()}`)
+            } catch (e) {
+                if (e instanceof ValidationError) return { documents: [], page: 1, page_size: 20, has_more: false, next_page: 0, order: 'asc' as const }
+                throw e
             }
-            if (classFilter !== 'all') {
-                params.set('class_level', classFilter === 'unspecified' ? '__unspecified__' : classFilter)
-            }
-            if (debouncedSearch) {
-                params.set('search', debouncedSearch)
-            }
-            return api.get<QuestionDocumentsPage>(`/teacher/question-documents?${params.toString()}`)
         },
         getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.next_page : undefined),
     })

@@ -11,8 +11,6 @@ import {
     Download, FileText, BarChart3, GraduationCap, TrendingUp, Award,
     Printer, Share2, CheckCircle, Calendar, Star
 } from 'lucide-react'
-import { mockStudents } from '@/lib/mockData'
-import { api } from '@/lib/api'
 import {
     BarChart,
     Bar,
@@ -23,9 +21,9 @@ import {
     ResponsiveContainer,
     Cell,
 } from 'recharts'
+import { api } from '@/lib/api'
+import { useStudentAttendance } from '@/hooks/useStudentAttendance'
 import { toast } from 'sonner'
-
-const student = mockStudents[0]
 
 const COLORS = ['#f97316', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
@@ -67,6 +65,25 @@ interface SubjectPerformanceResponse {
     subjects: SubjectPerformanceEntry[]
 }
 
+interface AssessmentLeaderboardResponse {
+    class_id: string
+    class_name: string
+    total_assessments: number
+    total_students: number
+    entries: Array<{ student_id: string; rank: number; avg_assessment_pct: number; is_current_student: boolean }>
+    my_entry: { rank: number; avg_assessment_pct: number } | null
+}
+
+function deriveGrade(avg: number): string {
+    if (avg >= 90) return 'A+'
+    if (avg >= 80) return 'A'
+    if (avg >= 70) return 'B+'
+    if (avg >= 60) return 'B'
+    if (avg >= 50) return 'C'
+    if (avg >= 35) return 'D'
+    return 'F'
+}
+
 const STORAGE_KEYS = {
     TOKEN: 'School24_token',
     REMEMBER: 'School24_remember',
@@ -102,16 +119,39 @@ export default function StudentReportsPage() {
     const reportsQuery = useQuery({
         queryKey: ['student-report-documents'],
         queryFn: () =>
-            api.get<StudentReportDocumentsPage>(
+            api.getOrEmpty<StudentReportDocumentsPage>(
                 '/student/report-documents?page=1&page_size=100&order=desc',
+                { reports: [], page: 1, page_size: 100, has_more: false, next_page: 1, order: 'desc' },
             ),
     })
 
     const subjectPerfQuery = useQuery({
         queryKey: ['student-subject-performance'],
         queryFn: () =>
-            api.get<SubjectPerformanceResponse>('/student/assessments/subject-performance'),
+            api.getOrEmpty<SubjectPerformanceResponse>('/student/assessments/subject-performance',
+                { academic_year: '', class_name: '', subjects: [] }),
     })
+
+    const leaderboardQuery = useQuery({
+        queryKey: ['student-assessment-leaderboard'],
+        queryFn: () => api.getOrEmpty<AssessmentLeaderboardResponse>(
+            '/student/leaderboard/assessments',
+            { class_id: '', class_name: '', total_assessments: 0, total_students: 0, entries: [], my_entry: null },
+        ),
+        staleTime: 60_000,
+    })
+
+    const { data: attendanceData } = useStudentAttendance({}, true)
+
+    // ── Computed summary stats from real data ─────────────────────
+    const subjects = subjectPerfQuery.data?.subjects ?? []
+    const avgScore = subjects.length > 0
+        ? Math.round(subjects.reduce((s, e) => s + e.avg_percentage, 0) / subjects.length)
+        : null
+    const overallGrade = avgScore !== null ? deriveGrade(avgScore) : null
+    const myRank = leaderboardQuery.data?.my_entry?.rank ?? null
+    const totalStudents = leaderboardQuery.data?.total_students ?? null
+    const attendancePct = attendanceData?.stats?.attendance_percent ?? null
 
     useEffect(() => {
         setMounted(true)
@@ -224,7 +264,9 @@ export default function StudentReportsPage() {
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30 mb-3">
                                 <GraduationCap className="h-7 w-7" />
                             </div>
-                            <p className="text-xl md:text-3xl font-bold text-violet-700 dark:text-violet-400">{student.grade}</p>
+                            <p className="text-xl md:text-3xl font-bold text-violet-700 dark:text-violet-400">
+                                {overallGrade ?? (subjectPerfQuery.isLoading ? '—' : '—')}
+                            </p>
                             <p className="text-sm text-muted-foreground">Overall Grade</p>
                         </div>
                     </CardContent>
@@ -237,7 +279,9 @@ export default function StudentReportsPage() {
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30 mb-3">
                                 <TrendingUp className="h-7 w-7" />
                             </div>
-                            <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">{student.performance.averageScore}%</p>
+                            <p className="text-xl md:text-3xl font-bold text-green-700 dark:text-green-400">
+                                {avgScore !== null ? `${avgScore}%` : '—'}
+                            </p>
                             <p className="text-sm text-muted-foreground">Average Score</p>
                         </div>
                     </CardContent>
@@ -250,7 +294,9 @@ export default function StudentReportsPage() {
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/30 mb-3">
                                 <Award className="h-7 w-7" />
                             </div>
-                            <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">#{student.performance.rank}</p>
+                            <p className="text-xl md:text-3xl font-bold text-yellow-700 dark:text-yellow-400">
+                                {myRank !== null ? `#${myRank}${totalStudents ? ` / ${totalStudents}` : ''}` : '—'}
+                            </p>
                             <p className="text-sm text-muted-foreground">Class Rank</p>
                         </div>
                     </CardContent>
@@ -263,7 +309,9 @@ export default function StudentReportsPage() {
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30 mb-3">
                                 <BarChart3 className="h-7 w-7" />
                             </div>
-                            <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">{student.attendance}%</p>
+                            <p className="text-xl md:text-3xl font-bold text-blue-700 dark:text-blue-400">
+                                {attendancePct !== null ? `${Math.round(attendancePct)}%` : '—'}
+                            </p>
                             <p className="text-sm text-muted-foreground">Attendance</p>
                         </div>
                     </CardContent>

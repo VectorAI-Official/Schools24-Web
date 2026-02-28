@@ -35,6 +35,7 @@ import { useStudents, useStudentMutations, useCreateStudent } from '@/hooks/useA
 import { useClasses } from '@/hooks/useClasses'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { useDebounce } from '@/hooks/useDebounce'
 import { sortClassLabels } from '@/lib/classOrdering'
 
 // Imported Components
@@ -54,6 +55,10 @@ export default function StudentsDetailsPage() {
     const [classFilter, setClassFilter] = useState<string>('all')
     const [feeFilter, setFeeFilter] = useState<string>('all')
 
+    // Debounce search so the API is only called 400ms after the user stops typing,
+    // not on every keystroke.
+    const debouncedSearch = useDebounce(searchQuery, 400)
+
     // Use Infinite Query for Students
     const {
         data,
@@ -61,7 +66,7 @@ export default function StudentsDetailsPage() {
         hasNextPage,
         isFetchingNextPage,
         isLoading
-    } = useStudents(searchQuery, 20, schoolId)
+    } = useStudents(debouncedSearch, 20, schoolId)
 
     const { updateStudent, deleteStudent, isDeleting } = useStudentMutations()
     const createStudent = useCreateStudent()

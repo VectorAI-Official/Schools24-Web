@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -494,40 +495,35 @@ export function Sidebar() {
         {/* Logo Section */}
         <div className="relative flex h-20 items-center justify-between px-4 border-b border-border/50">
           {!collapsed && (
-            <Link href="" className="flex items-center gap-3 group">
-              <div
+            <Link href="" className="flex items-center gap-2 group">
+              <Image
+                src="/assets/icon-transbg.png"
+                alt="Schools24 Logo"
+                width={44}
+                height={44}
+                className="h-11 w-11 object-contain transition-transform duration-300 group-hover:scale-105"
+                priority
+              />
+              <span
                 className={cn(
-                  "relative flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300",
-                  `bg-gradient-to-br ${config.gradient}`,
-                  "shadow-lg group-hover:shadow-xl group-hover:scale-105",
+                  "font-bold text-xl tracking-tight",
+                  `bg-gradient-to-r ${config.gradient} bg-clip-text text-transparent`,
                 )}
-                style={{ boxShadow: `0 8px 24px ${config.glowColor}` }}
               >
-                <GraduationCap className="h-6 w-6 text-white" />
-                <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="flex flex-col">
-                <span
-                  className={cn(
-                    "font-bold text-xl tracking-tight",
-                    `bg-gradient-to-r ${config.gradient} bg-clip-text text-transparent`,
-                  )}
-                >
-                  schools24
-                </span>
-              </div>
+                Schools24
+              </span>
             </Link>
           )}
           {collapsed && (
-            <div
-              className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-xl mx-auto transition-all duration-300",
-                `bg-gradient-to-br ${config.gradient}`,
-                "shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer",
-              )}
-              style={{ boxShadow: `0 8px 24px ${config.glowColor}` }}
-            >
-              <GraduationCap className="h-6 w-6 text-white" />
+            <div className="flex items-center justify-center mx-auto">
+              <Image
+                src="/assets/icon-transbg.png"
+                alt="Schools24 Logo"
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain transition-transform duration-300 hover:scale-105"
+                priority
+              />
             </div>
           )}
         </div>

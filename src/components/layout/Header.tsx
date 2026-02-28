@@ -48,7 +48,7 @@ export function Header() {
                         {/* Colored gradient background layer */}
                         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/45 via-purple-400/40 to-fuchsia-400/45 dark:from-violet-500/55 dark:via-purple-400/50 dark:to-fuchsia-400/55" />
                         {/* Blur/Glass effect */}
-                        <div className="absolute inset-0 backdrop-blur-md bg-white/40 dark:bg-slate-900/40" />
+                        <div className="absolute inset-0 backdrop-blur-md bg-background/40" />
                         {/* Border glow */}
                         <div className="absolute inset-0 rounded-xl border border-white/50 dark:border-white/10" />
 

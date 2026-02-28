@@ -266,7 +266,7 @@ export function QuestionUploaderForm() {
     return (
         <>
             <div className="space-y-6 lg:space-y-8">
-                <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm overflow-hidden bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+                <Card className="border border-border/60 shadow-sm overflow-hidden bg-card/50 backdrop-blur-xl">
                     <CardHeader className="bg-gradient-to-r from-rose-500/10 via-red-500/5 to-orange-500/10 dark:from-rose-500/20 dark:via-red-500/10 dark:to-orange-500/20 pb-8">
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-600 shadow-lg shadow-rose-500/30">
@@ -279,12 +279,12 @@ export function QuestionUploaderForm() {
                         </div>
                     </CardHeader>
                     <CardContent className="p-6 md:p-8 -mt-6 relative z-10">
-                        <div className="bg-white dark:bg-slate-950 rounded-2xl p-2 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div className="bg-card rounded-2xl p-2 shadow-sm border border-border">
                             <div
                                 className={`relative border-2 border-dashed rounded-xl p-10 transition-all duration-300 flex flex-col items-center justify-center text-center space-y-5
                                 ${dragActive
                                         ? "border-rose-500 bg-rose-50/50 dark:bg-rose-900/20"
-                                        : "border-slate-200 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-900/50"
+                                        : "border-border hover:border-rose-300 dark:hover:border-rose-700/50 hover:bg-muted/50"
                                     }`}
                                 onDragEnter={handleDrag}
                                 onDragLeave={handleDrag}
@@ -303,7 +303,7 @@ export function QuestionUploaderForm() {
                                 />
 
                                 <div className={`flex h-24 w-24 items-center justify-center rounded-full transition-all duration-500 shadow-sm
-                                ${dragActive ? "bg-rose-100 dark:bg-rose-900/40 scale-110 shadow-rose-500/20" : "bg-slate-100 dark:bg-slate-900"
+                                ${dragActive ? "bg-rose-100 dark:bg-rose-900/40 scale-110 shadow-rose-500/20" : "bg-muted"
                                     }`}>
                                     <FileUp className={`h-10 w-10 transition-colors duration-300 ${dragActive ? "text-rose-600 dark:text-rose-400" : "text-slate-400 dark:text-slate-500"}`} />
                                 </div>
@@ -345,7 +345,7 @@ export function QuestionUploaderForm() {
                             <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="flex items-center justify-between p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-950/20 shadow-sm">
                                     <div className="flex items-center gap-4">
-                                        <div className="p-3 rounded-lg bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800">
+                                        <div className="p-3 rounded-lg bg-card shadow-sm border border-border">
                                             <File className={`h-6 w-6 ${selectedFile.name.toLowerCase().endsWith(".pdf") ? "text-red-500" : "text-blue-500"}`} />
                                         </div>
                                         <div>
@@ -368,8 +368,8 @@ export function QuestionUploaderForm() {
                 </Card>
 
                 <div className="grid gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-12">
-                    <Card className="lg:col-span-7 xl:col-span-8 border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
-                        <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <Card className="lg:col-span-7 xl:col-span-8 border-border/60 shadow-sm bg-card/50 backdrop-blur-xl">
+                        <CardHeader className="pb-4 border-b border-border">
                             <CardTitle className="flex items-center gap-2 text-xl font-bold">
                                 <FileText className="h-5 w-5 text-indigo-500" /> Assessment Metadata
                             </CardTitle>
@@ -383,7 +383,7 @@ export function QuestionUploaderForm() {
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="e.g., Final Year Model Mathematics Paper 2024"
-                                    className="h-11 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30"
+                                    className="h-11 bg-card focus-visible:ring-indigo-500/30"
                                 />
                             </div>
 
@@ -394,7 +394,7 @@ export function QuestionUploaderForm() {
                                         setClassId(value)
                                         setSubjectId("")
                                     }}>
-                                        <SelectTrigger className="h-11 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30">
+                                        <SelectTrigger className="h-11 bg-card focus-visible:ring-indigo-500/30">
                                             <SelectValue placeholder="Select class level" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -413,7 +413,7 @@ export function QuestionUploaderForm() {
                                 <div className="grid gap-2">
                                     <Label className="text-slate-700 dark:text-slate-300 font-medium">Subject Module</Label>
                                     <Select value={subjectId} onValueChange={setSubjectId} disabled={!classId}>
-                                        <SelectTrigger className="h-11 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30">
+                                        <SelectTrigger className="h-11 bg-card focus-visible:ring-indigo-500/30">
                                             <SelectValue placeholder={classId ? "Select related subject" : "Select class first"} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -434,7 +434,7 @@ export function QuestionUploaderForm() {
                             <div className="grid gap-2">
                                 <Label className="text-slate-700 dark:text-slate-300 font-medium">Question Format Type</Label>
                                 <Select value={questionType} onValueChange={setQuestionType}>
-                                    <SelectTrigger className="h-11 bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30">
+                                        <SelectTrigger className="h-11 bg-card focus-visible:ring-indigo-500/30">
                                         <SelectValue placeholder="Select primary format" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -450,11 +450,11 @@ export function QuestionUploaderForm() {
 
                             <div className="grid gap-3">
                                 <Label className="text-slate-700 dark:text-slate-300 font-medium">Anticipated Difficulty</Label>
-                                <div className="flex gap-3 bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                                <div className="flex gap-3 bg-muted/50 p-1.5 rounded-xl border border-border">
                                     <Button
                                         type="button"
                                         variant={difficulty === "easy" ? "default" : "ghost"}
-                                        className={`flex-1 rounded-lg transition-all ${difficulty === "easy" ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm" : "hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                                        className={`flex-1 rounded-lg transition-all ${difficulty === "easy" ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm" : "hover:bg-muted"}`}
                                         onClick={() => setDifficulty("easy")}
                                     >
                                         Beginner
@@ -462,7 +462,7 @@ export function QuestionUploaderForm() {
                                     <Button
                                         type="button"
                                         variant={difficulty === "medium" ? "default" : "ghost"}
-                                        className={`flex-1 rounded-lg transition-all ${difficulty === "medium" ? "bg-amber-500 hover:bg-amber-600 text-white shadow-sm" : "hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                                        className={`flex-1 rounded-lg transition-all ${difficulty === "medium" ? "bg-amber-500 hover:bg-amber-600 text-white shadow-sm" : "hover:bg-muted"}`}
                                         onClick={() => setDifficulty("medium")}
                                     >
                                         Intermediate
@@ -470,7 +470,7 @@ export function QuestionUploaderForm() {
                                     <Button
                                         type="button"
                                         variant={difficulty === "hard" ? "default" : "ghost"}
-                                        className={`flex-1 rounded-lg transition-all ${difficulty === "hard" ? "bg-rose-500 hover:bg-rose-600 text-white shadow-sm" : "hover:bg-slate-200 dark:hover:bg-slate-800"}`}
+                                        className={`flex-1 rounded-lg transition-all ${difficulty === "hard" ? "bg-rose-500 hover:bg-rose-600 text-white shadow-sm" : "hover:bg-muted"}`}
                                         onClick={() => setDifficulty("hard")}
                                     >
                                         Advanced
@@ -485,7 +485,7 @@ export function QuestionUploaderForm() {
                                     value={contextText}
                                     onChange={(e) => setContextText(e.target.value)}
                                     placeholder="Provide evaluator notes, specific chapters covered, or test parameters..."
-                                    className="resize-none bg-white dark:bg-slate-950 focus-visible:ring-indigo-500/30 rounded-xl"
+                                    className="resize-none bg-card focus-visible:ring-indigo-500/30 rounded-xl"
                                     rows={4}
                                 />
                             </div>
@@ -517,8 +517,8 @@ export function QuestionUploaderForm() {
                         </CardContent>
                     </Card>
 
-                    <Card className="lg:col-span-5 xl:col-span-4 border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col">
-                        <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                    <Card className="lg:col-span-5 xl:col-span-4 border-border/60 shadow-sm bg-card/50 backdrop-blur-xl flex flex-col">
+                        <CardHeader className="pb-4 border-b border-border bg-muted/50">
                             <CardTitle className="flex items-center gap-2 text-lg">
                                 <Eye className="h-5 w-5 text-indigo-400" /> Operational Log
                             </CardTitle>
@@ -535,7 +535,7 @@ export function QuestionUploaderForm() {
                                 </div>
                             ) : !previewDocument ? (
                                 <div className="flex flex-col items-center justify-center p-12 text-center">
-                                    <div className="p-5 rounded-full bg-slate-50 dark:bg-slate-900 mb-5 border border-slate-100 dark:border-slate-800">
+                                    <div className="p-5 rounded-full bg-muted mb-5 border border-border">
                                         <FileText className="h-10 w-10 text-slate-300 dark:text-slate-600" />
                                     </div>
                                     <h4 className="font-medium text-slate-700 dark:text-slate-300 mb-1">Awaiting Transmission</h4>
@@ -553,24 +553,24 @@ export function QuestionUploaderForm() {
                                                     {previewDocument.title || previewDocument.file_name}
                                                 </p>
                                                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                                                    <Badge variant="outline" className="bg-white dark:bg-slate-950 font-medium whitespace-nowrap border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400">{previewDocument.question_type}</Badge>
+                                                    <Badge variant="outline" className="bg-card font-medium whitespace-nowrap border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400">{previewDocument.question_type}</Badge>
                                                     {previewDocument.difficulty && <Badge variant="secondary" className="whitespace-nowrap capitalize">{previewDocument.difficulty}</Badge>}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden text-sm">
-                                        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                                        <div className="rounded-2xl border border-border overflow-hidden text-sm">
+                                            <div className="flex items-center justify-between p-3.5 bg-muted/50 border-b border-border">
                                             <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5"><Layers3 className="h-4 w-4" /> Curriculum Map</span>
                                             <span className="font-semibold text-slate-800 dark:text-slate-200 text-right">
                                                 {previewDocument.class_level}<br /><span className="text-indigo-600 dark:text-indigo-400">{previewDocument.subject}</span>
                                             </span>
                                         </div>
-                                        <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800">
+                                            <div className="flex items-center justify-between p-3.5 border-b border-border">
                                             <span className="text-slate-500 dark:text-slate-400 font-medium">Digital Signature</span>
                                             <span className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[150px]" title={previewDocument.file_name}>{previewDocument.file_name}</span>
                                         </div>
-                                        <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                                            <div className="flex items-center justify-between p-3.5 border-b border-border bg-muted/50">
                                             <span className="text-slate-500 dark:text-slate-400 font-medium">Weight</span>
                                             <span className="font-semibold text-slate-800 dark:text-slate-200">{formatFileSize(previewDocument.file_size)}</span>
                                         </div>
@@ -671,8 +671,8 @@ function SuperAdminQuestionDocumentsList() {
         : docs
 
     return (
-        <Card className="border border-slate-200/60 dark:border-slate-800/60 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl mt-8">
-            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-5">
+            <Card className="border border-border/60 shadow-sm bg-card/50 backdrop-blur-xl mt-8">
+                <CardHeader className="border-b border-border pb-5">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <CardTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
@@ -688,7 +688,7 @@ function SuperAdminQuestionDocumentsList() {
                         </div>
                         <Input
                             placeholder="Search by title, subject, or author..."
-                            className="pl-10 h-11 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 focus-visible:ring-indigo-500/30 rounded-xl transition-all"
+                            className="pl-10 h-11 bg-muted/50 border-border focus-visible:ring-indigo-500/30 rounded-xl transition-all"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
@@ -703,7 +703,7 @@ function SuperAdminQuestionDocumentsList() {
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-24 text-center px-4">
-                        <div className="p-6 rounded-full bg-slate-50 dark:bg-slate-900 mb-6 border border-slate-100 dark:border-slate-800 shadow-sm inline-flex">
+                        <div className="p-6 rounded-full bg-muted mb-6 border border-border shadow-sm inline-flex">
                             <FileText className="h-12 w-12 text-slate-300 dark:text-slate-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
@@ -716,8 +716,8 @@ function SuperAdminQuestionDocumentsList() {
                 ) : (
                     <div className="overflow-x-auto">
                         <Table>
-                            <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
-                                <TableRow className="hover:bg-transparent border-slate-100 dark:border-slate-800">
+                            <TableHeader className="bg-muted/50">
+                                <TableRow className="hover:bg-transparent border-border">
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 py-4 px-6 rounded-tl-xl w-[25%]">Document Profile</TableHead>
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 py-4 w-[15%]">Curriculum</TableHead>
                                     <TableHead className="font-semibold text-slate-700 dark:text-slate-300 py-4 w-[20%]">Format & Level</TableHead>
@@ -728,7 +728,7 @@ function SuperAdminQuestionDocumentsList() {
                             </TableHeader>
                             <TableBody>
                                 {filtered.map(doc => (
-                                    <TableRow key={doc.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors border-slate-100 dark:border-slate-800 border-b last:border-0">
+                                    <TableRow key={doc.id} className="group hover:bg-muted/50 transition-colors border-border border-b last:border-0">
                                         <TableCell className="p-4 px-6 align-top">
                                             <div className="flex items-start gap-4">
                                                 <div className="mt-1 p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 shadow-sm border border-indigo-100 dark:border-indigo-800">
@@ -748,7 +748,7 @@ function SuperAdminQuestionDocumentsList() {
                                         </TableCell>
                                         <TableCell className="align-top py-4">
                                             <div className="flex flex-wrap gap-2">
-                                                <Badge variant="outline" className="bg-white dark:bg-slate-950 font-medium text-xs whitespace-nowrap capitalize border-slate-200 dark:border-slate-700">{doc.question_type.replace(/_/g, " ")}</Badge>
+                                                <Badge variant="outline" className="bg-card font-medium text-xs whitespace-nowrap capitalize border-border">{doc.question_type.replace(/_/g, " ")}</Badge>
                                                 {doc.difficulty && (
                                                     <Badge className={`text-[10px] capitalize whitespace-nowrap px-2 py-0 h-5 font-semibold ${
                                                         doc.difficulty === 'easy' ? 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 hover:bg-emerald-100' :
@@ -762,7 +762,7 @@ function SuperAdminQuestionDocumentsList() {
                                         </TableCell>
                                         <TableCell className="align-top py-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 shrink-0">
+                                                <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center border border-border shrink-0">
                                                     <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{doc.uploaded_by_name?.charAt(0) || "S"}</span>
                                                 </div>
                                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 max-w-[120px] truncate" title={doc.uploaded_by_name}>{doc.uploaded_by_name || "System"}</span>
@@ -792,7 +792,7 @@ function SuperAdminQuestionDocumentsList() {
                                                     <DropdownMenuItem onClick={() => openDocument(doc.id, true)} className="gap-2 focus:bg-indigo-50 dark:focus:bg-indigo-900/20 focus:text-indigo-600 dark:focus:text-indigo-400">
                                                         <Download className="h-4 w-4" /> Secure Download
                                                     </DropdownMenuItem>
-                                                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-1 mx-2" />
+                                                    <div className="h-px bg-border my-1 mx-2" />
                                                     <DropdownMenuItem
                                                         className="gap-2 text-rose-600 focus:text-rose-700 focus:bg-rose-50 dark:focus:bg-rose-900/20"
                                                         onClick={() => setDeleteTarget({ id: doc.id, title: doc.title })}

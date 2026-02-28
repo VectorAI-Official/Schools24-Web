@@ -23,7 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from 'sonner'
 import { Student } from '@/hooks/useAdminStudents'
 import { api } from '@/lib/api'
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Info } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from "@/lib/utils"
 import {
     Popover,
@@ -185,7 +186,19 @@ export function EditStudentDialog({ open, onOpenChange, student, onSave, schoolI
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Class</Label>
+                                <div className="flex items-center gap-1.5">
+                                    <Label>Class</Label>
+                                    <TooltipProvider delayDuration={100}>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                                Make sure to set up classes in &ldquo;Class Management&rdquo; from the User Management page first.
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Select
                                     value={formData.class_id}
                                     onValueChange={(val) => setFormData({ ...formData, class_id: val })}
@@ -349,7 +362,19 @@ export function EditStudentDialog({ open, onOpenChange, student, onSave, schoolI
                     <TabsContent value="transport" className="space-y-4 py-4">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label>Transport Mode</Label>
+                                <div className="flex items-center gap-1.5">
+                                    <Label>Transport Mode</Label>
+                                    <TooltipProvider delayDuration={100}>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                                Make sure to set up bus routes in &ldquo;Bus Routes&rdquo; before selecting School Bus.
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Select
                                     value={formData.transport_mode}
                                     onValueChange={(value) => setFormData(prev => ({

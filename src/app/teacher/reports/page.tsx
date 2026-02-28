@@ -167,8 +167,9 @@ export default function TeacherReportsPage() {
   const optionsQuery = useQuery({
     queryKey: ["teacher-report-options", academicYear],
     queryFn: () =>
-      api.get<TeacherReportOptionsResponse>(
+      api.getOrEmpty<TeacherReportOptionsResponse>(
         `/teacher/reports/options?academic_year=${academicYear}`,
+        { assessments: [], classes: [] }
       ),
   });
 
@@ -203,8 +204,9 @@ export default function TeacherReportsPage() {
     ],
     enabled: !!selectedAssessmentID && !!selectedClassID && !!selectedSubjectID,
     queryFn: () =>
-      api.get<TeacherReportMarksSheet>(
+      api.getOrEmpty<TeacherReportMarksSheet>(
         `/teacher/reports/marks-sheet?assessment_id=${selectedAssessmentID}&class_id=${selectedClassID}&subject_id=${selectedSubjectID}`,
+        { assessment_id: '', class_id: '', subject_id: '', subject_name: '', class_name: '', total_marks: 0, students: [] }
       ),
   });
 
@@ -215,7 +217,7 @@ export default function TeacherReportsPage() {
     queryKey: ["teacher-class-students", srClassID],
     enabled: !!srClassID,
     queryFn: () =>
-      api.get<{ students: ClassStudent[] }>(`/teacher/classes/${srClassID}/students`),
+      api.getOrEmpty<{ students: ClassStudent[] }>(`/teacher/classes/${srClassID}/students`, { students: [] }),
   });
 
   const studentReportsQuery = useQuery({
@@ -223,7 +225,7 @@ export default function TeacherReportsPage() {
     queryFn: () => {
       const params = new URLSearchParams({ page: "1", page_size: "50", order: "desc" });
       if (srFilterClassID) params.set("class_id", srFilterClassID);
-      return api.get<StudentReportsPage>(`/teacher/student-reports?${params}`);
+      return api.getOrEmpty<StudentReportsPage>(`/teacher/student-reports?${params}`, { reports: [], page: 1, page_size: 50, has_more: false, next_page: 0 });
     },
   });
 

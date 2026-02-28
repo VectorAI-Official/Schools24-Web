@@ -24,7 +24,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Download, Printer, Calendar, Plus, Edit, Trash2, Save, User, MapPin, Settings, Clock, BookOpen } from 'lucide-react'
+import { Download, Printer, Calendar, Plus, Edit, Trash2, Save, User, MapPin, Settings, Clock, BookOpen, Info } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/AuthContext'
 import { useClasses } from '@/hooks/useClasses'
 import { sortSchoolClasses } from '@/lib/classOrdering'
@@ -446,6 +447,16 @@ export default function StudentsTimetablePage() {
                             ))}
                         </SelectContent>
                     </Select>
+                    <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 text-muted-foreground cursor-help shrink-0" />
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-[220px] text-xs">
+                                Make sure to set up classes in &ldquo;Class Management&rdquo; from the User Management page first.
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                     <Badge variant="outline" className="h-7 sm:h-8 px-2 text-xs hidden sm:flex items-center">
                         <Calendar className="mr-1 h-3 w-3" />
                         2025-26

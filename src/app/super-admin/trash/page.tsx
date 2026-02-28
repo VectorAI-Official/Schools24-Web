@@ -103,7 +103,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
   if (authLoading || !isSuperAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
         </div>
@@ -112,17 +112,17 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
   }
 
   return (
-    <div className={embedded ? "space-y-8" : "min-h-screen bg-slate-50 dark:bg-slate-900"}>
+    <div className={embedded ? "space-y-8" : "min-h-screen bg-background"}>
       {!embedded && (
-        <header className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
           <div className="container mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-orange-600 rounded-lg">
                 <Trash2 className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight">Trash Bin</h1>
-                <p className="text-xs text-slate-400">Deleted Schools - 24 Hour Recovery Window</p>
+                <h1 className="text-xl font-bold tracking-tight text-foreground">Trash Bin</h1>
+                <p className="text-xs text-muted-foreground">Deleted Schools - 24 Hour Recovery Window</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -173,12 +173,12 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
         {/* Search Bar */}
         {(deletedSchools?.length || 0) > 0 && (
-          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-4 shadow-sm flex items-center">
+          <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 p-4 shadow-sm flex items-center">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Search deleted schools by name, email, or admin..."
-                className="pl-9 h-11 bg-white/80 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 rounded-xl focus-visible:ring-indigo-500 transition-shadow"
+                className="pl-9 h-11 bg-background/80 border-border rounded-xl focus-visible:ring-indigo-500 transition-shadow"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -195,7 +195,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
         {/* Empty State */}
         {!isLoadingDeleted && (deletedSchools?.length || 0) === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-sm text-center">
+          <div className="flex flex-col items-center justify-center py-20 bg-card/40 backdrop-blur-xl rounded-3xl border border-border/50 shadow-sm text-center">
             <div className="h-20 w-20 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-6 shadow-inner">
               <SchoolIcon className="h-10 w-10 text-emerald-500" />
             </div>
@@ -208,7 +208,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
             {!embedded && (
               <Button
                 onClick={() => router.push('/super-admin')}
-                className="mt-8 bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-xl shadow-md h-11 px-6 transition-all"
+                className="mt-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md h-11 px-6 transition-all"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
               </Button>
@@ -242,7 +242,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
                   bg: 'bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/30 dark:to-slate-900/60',
                   badge: 'bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50',
                   icon: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40',
-                  button: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer transition-all'
+                  button: 'bg-card hover:bg-muted/40 text-foreground border border-border cursor-pointer transition-all'
                 }
               }
 
@@ -341,8 +341,8 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
         {/* No Search Results */}
         {!isLoadingDeleted && (deletedSchools?.length || 0) > 0 && filteredSchools.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 shadow-sm text-center">
-            <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 shadow-inner">
+          <div className="flex flex-col items-center justify-center py-16 bg-card/40 backdrop-blur-xl rounded-3xl border border-dashed border-border shadow-sm text-center">
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4 shadow-inner">
               <Search className="h-8 w-8 text-slate-400" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">

@@ -58,7 +58,7 @@ export interface TeacherStudentFeeResponse {
 export function useTeacherClasses() {
     return useQuery({
         queryKey: ['teacher', 'classes'],
-        queryFn: () => api.get<{ classes: TeacherClass[] }>('/teacher/classes'),
+        queryFn: () => api.getOrEmpty<{ classes: TeacherClass[] }>('/teacher/classes', { classes: [] }),
         staleTime: 60 * 1000,
     })
 }
@@ -69,8 +69,9 @@ export function useTeacherClassStudents(classId: string | null) {
         queryKey: ['teacher', 'class-students', classId],
         enabled: !!classId,
         queryFn: () =>
-            api.get<{ students: TeacherClassStudent[] }>(
-                `/teacher/classes/${classId}/students`
+            api.getOrEmpty<{ students: TeacherClassStudent[] }>(
+                `/teacher/classes/${classId}/students`,
+                { students: [] }
             ),
         staleTime: 60 * 1000,
     })
@@ -82,8 +83,13 @@ export function useTeacherStudentFees(studentId: string | null) {
         queryKey: ['teacher', 'student-fees', studentId],
         enabled: !!studentId,
         queryFn: () =>
-            api.get<TeacherStudentFeeResponse>(
-                `/teacher/fees/student/${studentId}`
+            api.getOrEmpty<TeacherStudentFeeResponse>(
+                `/teacher/fees/student/${studentId}`,
+                {
+                    student_id: '', student_name: '', class_name: '', academic_year: '',
+                    total_amount: 0, paid_amount: 0, pending_amount: 0,
+                    breakdown: [], payment_history: [],
+                }
             ),
         staleTime: 30 * 1000,
     })

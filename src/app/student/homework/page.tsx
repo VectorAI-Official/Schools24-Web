@@ -165,7 +165,7 @@ export default function StudentHomeworkPage() {
     // ── Fetch ─────────────────────────────────────────────────────
     const { data, isLoading } = useQuery({
         queryKey: ['student-homework'],
-        queryFn: () => api.get<{ homework: BackendHomework[] }>('/academic/homework?status=all'),
+        queryFn: () => api.getOrEmpty<{ homework: BackendHomework[] }>('/academic/homework?status=all', { homework: [] }),
     })
 
     const homework: HomeworkItem[] = useMemo(

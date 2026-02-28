@@ -174,7 +174,7 @@ export default function HomeworkPage() {
 
   const optionsQuery = useQuery({
     queryKey: ["teacher-homework-options"],
-    queryFn: () => api.get<{ options: HomeworkClassOption[] }>("/teacher/homework/options"),
+    queryFn: () => api.getOrEmpty<{ options: HomeworkClassOption[] }>("/teacher/homework/options", { options: [] }),
   })
 
   useEffect(() => {
@@ -191,7 +191,7 @@ export default function HomeworkPage() {
       if (classFilter !== "all") params.set("class_id", classFilter)
       if (subjectFilter !== "all") params.set("subject_id", subjectFilter)
       if (debouncedSearch) params.set("search", debouncedSearch)
-      return api.get<{ homework: HomeworkItem[] }>(`/teacher/homework?${params.toString()}`)
+      return api.getOrEmpty<{ homework: HomeworkItem[] }>(`/teacher/homework?${params.toString()}`, { homework: [] })
     },
   })
 
@@ -199,8 +199,9 @@ export default function HomeworkPage() {
   const submissionsQuery = useQuery({
     queryKey: ["teacher-homework-submissions", viewHomework?.id],
     queryFn: () =>
-      api.get<HomeworkSubmissionsResponse>(
-        `/teacher/homework/${viewHomework!.id}/submissions`
+      api.getOrEmpty<HomeworkSubmissionsResponse>(
+        `/teacher/homework/${viewHomework!.id}/submissions`,
+        { homework_id: '', title: '', submissions_count: 0, students_count: 0, submissions: [] }
       ),
     enabled: !!viewHomework,
   })

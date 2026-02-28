@@ -50,8 +50,10 @@ import {
     Download,
     RefreshCw,
     Loader2,
-    AlertTriangle
+    AlertTriangle,
+    Info
 } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { BusRoute } from '@/types'
 import { Progress } from '@/components/ui/progress'
 import { toast } from 'sonner'
@@ -346,7 +348,19 @@ export default function BusRoutesPage() {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="add-driverName">Driver Name *</Label>
+                                        <div className="flex items-center gap-1.5">
+                                            <Label htmlFor="add-driverName">Driver Name *</Label>
+                                            <TooltipProvider delayDuration={100}>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                                        Make sure to create a driver from &ldquo;Staff Management&rdquo; first.
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
                                         <Select
                                             value={formData.driverStaffId}
                                             onValueChange={(value) => setFormData({ ...formData, driverStaffId: value })}
@@ -642,7 +656,7 @@ export default function BusRoutesPage() {
                                                     ? 'bg-indigo-500 border-indigo-500'
                                                     : stopIndex === route.stops.length - 1
                                                         ? 'bg-violet-500 border-violet-500'
-                                                        : 'bg-white dark:bg-slate-900 border-indigo-400'
+                                                        : 'bg-card border-indigo-400'
                                                     }`} />
                                                 {/* Stop info */}
                                                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
@@ -793,7 +807,19 @@ export default function BusRoutesPage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="edit-driverName">Driver Name *</Label>
+                                <div className="flex items-center gap-1.5">
+                                    <Label htmlFor="edit-driverName">Driver Name *</Label>
+                                    <TooltipProvider delayDuration={100}>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                                Make sure to create a driver from &ldquo;Staff Management&rdquo; first.
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <Select
                                     value={formData.driverStaffId}
                                     onValueChange={(value) => setFormData({ ...formData, driverStaffId: value })}

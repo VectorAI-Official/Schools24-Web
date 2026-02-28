@@ -29,7 +29,10 @@ export function useTeacherLeaderboard(params: { academicYear?: string; enabled?:
 
     return useQuery({
         queryKey: ['teacher-leaderboard', params.academicYear],
-        queryFn: () => api.get<TeacherLeaderboardResponse>(`/teacher/leaderboard${query.toString() ? `?${query.toString()}` : ''}`),
+        queryFn: () => api.getOrEmpty<TeacherLeaderboardResponse>(
+            `/teacher/leaderboard${query.toString() ? `?${query.toString()}` : ''}`,
+            { academic_year: '', items: [], top_3: [], my_teacher_id: '', my_rank: 0, my_rating: 0, my_students_count: 0, my_trend: 'stable' }
+        ),
         enabled: params.enabled ?? true,
     })
 }

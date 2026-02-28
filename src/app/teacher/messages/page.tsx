@@ -8,12 +8,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Search, Send, MessageSquare, Loader2, Calendar } from 'lucide-react'
+import { Search, Send, MessageSquare, Loader2, Calendar, Wifi, WifiOff } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
-import { api } from '@/lib/api'
+import { api, ValidationError } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 import { compareClassLabels } from '@/lib/classOrdering'
+import { useTeacherMessagesWS } from '@/hooks/useTeacherMessagesWS'
 
 interface ClassMessageGroup {
     class_id: string
@@ -69,7 +70,7 @@ export default function TeacherMessagesPage() {
 
     const { data: groupsData, isLoading: groupsLoading } = useQuery({
         queryKey: ['teacher-class-message-groups'],
-        queryFn: () => api.get<ClassGroupsResponse>('/teacher/messages/class-groups'),
+        queryFn: () => api.getOrEmpty<ClassGroupsResponse>('/teacher/messages/class-groups', { groups: [] }),
         staleTime: 30 * 1000,
     })
 
@@ -105,8 +106,14 @@ export default function TeacherMessagesPage() {
         queryKey: ['teacher-class-group-messages', effectiveSelectedClassId],
         enabled: !!effectiveSelectedClassId,
         initialPageParam: 1,
-        queryFn: ({ pageParam }) =>
-            api.get<ClassMessagesPage>(`/teacher/messages/class-groups/${effectiveSelectedClassId}/messages?page=${pageParam}&page_size=50`),
+        queryFn: async ({ pageParam }) => {
+            try {
+                return await api.get<ClassMessagesPage>(`/teacher/messages/class-groups/${effectiveSelectedClassId}/messages?page=${pageParam}&page_size=50`)
+            } catch (e) {
+                if (e instanceof ValidationError) return { messages: [], page: 1, page_size: 50, has_more: false, next_page: 0 }
+                throw e
+            }
+        },
         getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.next_page : undefined),
     })
 
@@ -127,6 +134,12 @@ export default function TeacherMessagesPage() {
             toast.error('Failed to send message', { description: error instanceof Error ? error.message : 'Please try again' })
         },
     })
+
+    // Real-time WebSocket: injects new messages directly into the query cache.
+    const { wsStatus } = useTeacherMessagesWS(
+        effectiveSelectedClassId,
+        ['teacher-class-group-messages', effectiveSelectedClassId]
+    )
 
     const onSend = (e: FormEvent) => {
         e.preventDefault()
@@ -205,20 +218,33 @@ export default function TeacherMessagesPage() {
 
                 <Card className="md:col-span-2">
                     <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarFallback>
-                                    {selectedGroup ? getInitials(formatClassLabel(selectedGroup)) : <MessageSquare className="h-4 w-4" />}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <CardTitle className="text-lg">
-                                    {selectedGroup ? formatClassLabel(selectedGroup) : 'Select a class group'}
-                                </CardTitle>
-                                <p className="text-sm text-muted-foreground">
-                                    {selectedGroup ? 'Messages from teachers and students in this class' : 'Choose a class on the left panel'}
-                                </p>
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarFallback>
+                                        {selectedGroup ? getInitials(formatClassLabel(selectedGroup)) : <MessageSquare className="h-4 w-4" />}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-lg">
+                                        {selectedGroup ? formatClassLabel(selectedGroup) : 'Select a class group'}
+                                    </CardTitle>
+                                    <p className="text-sm text-muted-foreground">
+                                        {selectedGroup ? 'Messages from teachers and students in this class' : 'Choose a class on the left panel'}
+                                    </p>
+                                </div>
                             </div>
+                            {effectiveSelectedClassId && (
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+                                    {wsStatus === 'connected' ? (
+                                        <><Wifi className="h-3.5 w-3.5 text-emerald-500" /><span className="text-emerald-600 dark:text-emerald-400">Live</span></>
+                                    ) : wsStatus === 'connecting' ? (
+                                        <><Loader2 className="h-3.5 w-3.5 animate-spin" /><span>Connecting…</span></>
+                                    ) : (
+                                        <><WifiOff className="h-3.5 w-3.5" /><span>Offline</span></>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4">

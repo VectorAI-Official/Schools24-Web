@@ -47,18 +47,49 @@ const STORAGE_KEYS = {
     REMEMBER: 'School24_remember'
 } as const
 
+const getCookieValue = (name: string): string | null => {
+    if (typeof document === 'undefined') return null
+    const parts = document.cookie.split('; ').find(row => row.startsWith(`${name}=`))
+    return parts ? decodeURIComponent(parts.split('=')[1]) : null
+}
+
+const decodeJwtPayload = (token: string): Record<string, any> | null => {
+    try {
+        const payloadPart = token.split('.')[1]
+        if (!payloadPart) return null
+        const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/')
+        const json = atob(base64)
+        return JSON.parse(json)
+    } catch {
+        return null
+    }
+}
+
 const getStorage = (): Storage => {
     if (typeof window === 'undefined') return localStorage
     const remembered = localStorage.getItem(STORAGE_KEYS.REMEMBER) === 'true'
     return remembered ? localStorage : sessionStorage
 }
 
-const isTokenExpired = (): boolean => {
-    const storage = getStorage()
-    const expiryStr = storage.getItem(STORAGE_KEYS.EXPIRY)
-    if (!expiryStr) return true
-    const expiry = parseInt(expiryStr, 10)
-    return Date.now() > expiry
+const isTokenExpired = (token?: string | null): boolean => {
+    const expiryStr = getStoredValue(STORAGE_KEYS.EXPIRY)
+    if (expiryStr) {
+        const expiry = parseInt(expiryStr, 10)
+        if (!Number.isNaN(expiry)) {
+            return Date.now() > expiry
+        }
+    }
+
+    if (token) {
+        const payload = decodeJwtPayload(token)
+        const exp = payload?.exp
+        if (typeof exp === 'number') {
+            return Date.now() > exp * 1000
+        }
+    }
+
+    // If we cannot determine expiry, avoid forcing logout immediately.
+    return false
 }
 
 const clearAuthData = () => {
@@ -75,6 +106,50 @@ const isValidRole = (role: unknown): role is UserRole => {
     return role === 'super_admin' || role === 'admin' || role === 'teacher' || role === 'student' || role === 'staff' || role === 'parent'
 }
 
+const getStoredValue = (key: string): string | null => {
+    if (typeof window === 'undefined') return null
+    const primary = getStorage()
+    return (
+        primary.getItem(key) ||
+        localStorage.getItem(key) ||
+        sessionStorage.getItem(key)
+    )
+}
+
+const getActiveToken = (): string | null => {
+    return getStoredValue(STORAGE_KEYS.TOKEN) || getCookieValue(STORAGE_KEYS.TOKEN)
+}
+
+const rehydrateUserFromSources = (): User | null => {
+    const storedUser = getStoredValue(STORAGE_KEYS.USER)
+    const token = getActiveToken()
+
+    if (!token) return null
+
+    if (storedUser) {
+        try {
+            return JSON.parse(storedUser) as User
+        } catch {
+            // continue to JWT fallback
+        }
+    }
+
+    const payload = decodeJwtPayload(token)
+    if (!payload || !isValidRole(payload.role)) return null
+
+    const email = (payload.email as string) || ''
+    const fallbackName = (email && email.includes('@')) ? email.split('@')[0] : 'User'
+
+    return {
+        id: (payload.user_id as string) || (payload.sub as string) || '',
+        name: (payload.full_name as string) || (payload.name as string) || fallbackName,
+        full_name: (payload.full_name as string) || (payload.name as string) || fallbackName,
+        email,
+        role: payload.role as UserRole,
+        school_id: payload.school_id as string | undefined,
+    }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -82,29 +157,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname()
 
     useEffect(() => {
-        const storage = getStorage()
-        const storedUser = storage.getItem(STORAGE_KEYS.USER)
-        const storedToken = storage.getItem(STORAGE_KEYS.TOKEN)
+        const activeToken = getActiveToken()
+        const hydratedUser = rehydrateUserFromSources()
 
-        if (storedUser && storedToken) {
-            if (isTokenExpired()) {
-                clearAuthData()
-                setUser(null)
-            } else {
-                try {
-                    setUser(JSON.parse(storedUser))
-                } catch {
-                    clearAuthData()
-                }
-            }
+        if (!activeToken) {
+            setUser(null)
+            setIsLoading(false)
+            return
         }
+
+        if (isTokenExpired(activeToken)) {
+            clearAuthData()
+            setUser(null)
+            setIsLoading(false)
+            return
+        }
+
+        if (hydratedUser) {
+            setUser(hydratedUser)
+
+            // Ensure active tab has token/user available for API calls
+            const storage = getStorage()
+            if (!storage.getItem(STORAGE_KEYS.TOKEN)) {
+                storage.setItem(STORAGE_KEYS.TOKEN, activeToken)
+            }
+            if (!storage.getItem(STORAGE_KEYS.USER)) {
+                storage.setItem(STORAGE_KEYS.USER, JSON.stringify(hydratedUser))
+            }
+        } else {
+            // Token exists but we cannot reconstruct a valid user session.
+            // Clear invalid auth to prevent redirect loops across tabs.
+            clearAuthData()
+            setUser(null)
+        }
+
         setIsLoading(false)
     }, [])
 
     useEffect(() => {
         const handleStorage = (event: StorageEvent) => {
-            if (event.key === STORAGE_KEYS.TOKEN && event.newValue == null) {
-                setUser(null)
+            if (!event.key) return
+            if (
+                event.key === STORAGE_KEYS.TOKEN ||
+                event.key === STORAGE_KEYS.USER ||
+                event.key === STORAGE_KEYS.REMEMBER ||
+                event.key === STORAGE_KEYS.EXPIRY
+            ) {
+                const hydratedUser = rehydrateUserFromSources()
+                setUser(hydratedUser)
             }
         }
 

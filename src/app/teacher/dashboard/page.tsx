@@ -82,7 +82,7 @@ interface TeacherDashboardResponse {
 export default function TeacherDashboard() {
     const { data: dashboardData } = useQuery({
         queryKey: ['teacher-dashboard'],
-        queryFn: () => api.get<TeacherDashboardResponse>('/teacher/dashboard'),
+        queryFn: () => api.getOrEmpty<TeacherDashboardResponse>('/teacher/dashboard', {} as TeacherDashboardResponse),
     })
 
     const totalStudents = Number(dashboardData?.total_students ?? 0)

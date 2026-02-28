@@ -37,7 +37,10 @@ export function useStudentFees(enabled = true) {
     return useQuery({
         queryKey: ['student-fees'],
         enabled,
-        queryFn: () => api.get<StudentFeesResponse>('/student/fees'),
+        queryFn: () => api.getOrEmpty<StudentFeesResponse>('/student/fees', {
+            student_id: '', academic_year: '', total_amount: 0, paid_amount: 0,
+            pending_amount: 0, breakdown: [], payment_history: [],
+        }),
         staleTime: 30 * 1000,
     })
 }

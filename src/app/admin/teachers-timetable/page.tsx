@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Download, Printer, Calendar, Edit, Trash2, Save, User, MapPin, AlertTriangle } from 'lucide-react'
+import { Download, Printer, Calendar, Edit, Trash2, Save, User, MapPin, AlertTriangle, Info } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTeachers } from '@/hooks/useAdminTeachers'
 import { useSubjects } from '@/hooks/useSubjects'
@@ -300,7 +301,19 @@ export default function TeachersTimetablePage() {
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label>Class</Label>
+                            <div className="flex items-center gap-1.5">
+                                <Label>Class</Label>
+                                <TooltipProvider delayDuration={100}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                            Make sure to set up classes in &ldquo;Class Management&rdquo; from the User Management page first.
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
                             <Select value={formData.classId} onValueChange={(v) => setFormData({ ...formData, classId: v })}>
                                 <SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger>
                                 <SelectContent>

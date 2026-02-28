@@ -71,14 +71,20 @@ export function useTeacherClassTimetable(classId: string, academicYear: string, 
 export function useStudentTimetableConfig() {
     return useQuery({
         queryKey: ['student-timetable-config'],
-        queryFn: () => api.get<{ config: { days: TimetableDayConfig[]; periods: TimetablePeriodConfig[] } }>(`/academic/timetable/config`),
+        queryFn: () => api.getOrEmpty<{ config: { days: TimetableDayConfig[]; periods: TimetablePeriodConfig[] } }>(
+            '/academic/timetable/config',
+            { config: { days: [], periods: [] } }
+        ),
     })
 }
 
 export function useStudentTimetable() {
     return useQuery({
         queryKey: ['student-timetable'],
-        queryFn: () => api.get<{ timetable: Array<{ day_of_week: number; day_name: string; periods: TimetableEntry[] }> }>(`/academic/timetable`),
+        queryFn: () => api.getOrEmpty<{ timetable: Array<{ day_of_week: number; day_name: string; periods: TimetableEntry[] }> }>(
+            '/academic/timetable',
+            { timetable: [] }
+        ),
     })
 }
 

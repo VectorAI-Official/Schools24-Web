@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Send, MessageSquare, Loader2, Calendar } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
-import { api } from '@/lib/api'
+import { api, ValidationError } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
@@ -48,8 +48,16 @@ export default function StudentMessagesPage() {
     } = useInfiniteQuery({
         queryKey: ['student-class-messages'],
         initialPageParam: 1,
-        queryFn: ({ pageParam }) =>
-            api.get<StudentClassMessagesPage>(`/student/messages?page=${pageParam}&page_size=50`),
+        queryFn: async ({ pageParam }) => {
+            try {
+                return await api.get<StudentClassMessagesPage>(`/student/messages?page=${pageParam}&page_size=50`)
+            } catch (e) {
+                if (e instanceof ValidationError) {
+                    return { class_id: '', class_name: '', messages: [], page: 1, page_size: 50, has_more: false, next_page: 1, total_count: 0 } as StudentClassMessagesPage
+                }
+                throw e
+            }
+        },
         getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.next_page : undefined),
     })
 

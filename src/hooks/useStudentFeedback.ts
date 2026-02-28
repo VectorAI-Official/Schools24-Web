@@ -45,7 +45,7 @@ export function useStudentFeedbackOptions(enabled = true) {
     return useQuery({
         queryKey: ['student-feedback-options'],
         enabled,
-        queryFn: () => api.get<FeedbackOptionsResponse>('/student/feedback/options'),
+        queryFn: () => api.getOrEmpty<FeedbackOptionsResponse>('/student/feedback/options', { teachers: [] }),
         staleTime: 60 * 1000,
     })
 }
@@ -54,7 +54,7 @@ export function useStudentFeedbackHistory(limit = 50, enabled = true) {
     return useQuery({
         queryKey: ['student-feedback-history', limit],
         enabled,
-        queryFn: () => api.get<FeedbackListResponse>(`/student/feedback?limit=${limit}`),
+        queryFn: () => api.getOrEmpty<FeedbackListResponse>(`/student/feedback?limit=${limit}`, { feedback: [] }),
     })
 }
 

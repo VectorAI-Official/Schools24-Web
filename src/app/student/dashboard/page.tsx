@@ -108,27 +108,27 @@ export default function StudentDashboard() {
 
     const dashboardQuery = useQuery({
         queryKey: ['student-dashboard'],
-        queryFn: () => api.get<DashboardResponse>('/student/dashboard'),
+        queryFn: () => api.getOrEmpty<DashboardResponse>('/student/dashboard', { student: undefined, class: undefined }),
         staleTime: 60_000,
     })
     const timetableQuery = useQuery({
         queryKey: ['student-dashboard-timetable'],
-        queryFn: () => api.get<TimetableResponse>('/academic/timetable'),
+        queryFn: () => api.getOrEmpty<TimetableResponse>('/academic/timetable', { timetable: [] }),
         staleTime: 60_000,
     })
     const quizzesQuery = useQuery({
         queryKey: ['student-dashboard-quizzes'],
-        queryFn: () => api.get<QuizListResponse>('/student/quizzes'),
+        queryFn: () => api.getOrEmpty<QuizListResponse>('/student/quizzes', { quizzes: [] }),
         staleTime: 60_000,
     })
     const leaderboardQuery = useQuery({
         queryKey: ['student-dashboard-leaderboard-quiz'],
-        queryFn: () => api.get<QuizLeaderboardResponse>('/student/leaderboard/quiz'),
+        queryFn: () => api.getOrEmpty<QuizLeaderboardResponse>('/student/leaderboard/quiz', { total_students: 0, entries: [], my_entry: undefined }),
         staleTime: 60_000,
     })
     const stagesQuery = useQuery({
         queryKey: ['student-dashboard-assessment-stages'],
-        queryFn: () => api.get<AssessmentStagesResponse>('/student/assessments/stages'),
+        queryFn: () => api.getOrEmpty<AssessmentStagesResponse>('/student/assessments/stages', { completed_count: 0, total_count: 0, stages: [] }),
         staleTime: 60_000,
     })
 
