@@ -169,7 +169,7 @@ export default function AttendanceUploadPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
                         Attendance
@@ -217,7 +217,7 @@ export default function AttendanceUploadPage() {
                 />
             </div>
 
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                 <Card>
                     <CardContent className="p-4 md:p-6 flex items-center gap-4">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600">
@@ -266,7 +266,7 @@ export default function AttendanceUploadPage() {
 
             <Card>
                 <CardHeader>
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
                             <CardTitle>Mark Attendance</CardTitle>
                             <CardDescription>Only students assigned to the selected class are listed</CardDescription>

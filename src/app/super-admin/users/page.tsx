@@ -58,7 +58,7 @@ function StatCard({
     )
 }
 
-export default function SuperAdminUsersPage() {
+export function UserGrowthSection() {
     const [year, setYear] = useState(currentYear)
 
     const { data, isLoading, isError } = useQuery<MonthlyUsersResponse>({
@@ -106,7 +106,7 @@ export default function SuperAdminUsersPage() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                 <StatCard
                     label="Total New Users"
                     value={summary?.total_new_users ?? 0}

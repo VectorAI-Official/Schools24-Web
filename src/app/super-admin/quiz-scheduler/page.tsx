@@ -716,7 +716,7 @@ export default function SuperAdminQuizSchedulerPage() {
                       <Label className="text-slate-700 dark:text-slate-300">Quiz Title</Label>
                       <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Mid-Term Geometry Exam" className="h-11 bg-muted/50 rounded-xl" />
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
                       <div className="grid gap-3">
                         <Label className="text-slate-700 dark:text-slate-300">Class Level</Label>
                         <Select value={classID} onValueChange={(value) => { setClassID(value); setSubjectID(""); setChapterName(""); }}>
@@ -863,7 +863,7 @@ export default function SuperAdminQuizSchedulerPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 lg:gap-6">
         <Card className="border border-border/60 shadow-sm bg-card/50 backdrop-blur-xl hover:shadow-md transition-shadow">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center border border-amber-200 dark:border-amber-800/50">
@@ -912,7 +912,7 @@ export default function SuperAdminQuizSchedulerPage() {
 
       <Card className="border border-border/60 shadow-sm bg-card/50 backdrop-blur-xl">
         <CardContent className="p-4 md:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="relative flex-1 w-full lg:max-w-md group">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />

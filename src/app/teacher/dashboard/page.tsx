@@ -118,7 +118,7 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                 {quickActions.map((action, index) => (
                     <Card key={index} className="card-hover cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-100/50 dark:border-blue-800/50 hover:border-blue-300 dark:hover:border-blue-500 transition-all shadow-sm hover:shadow-md" onClick={() => window.location.href = action.href}>
                         <CardContent className="p-4 md:p-6 flex flex-col items-center text-center">
@@ -132,7 +132,7 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
                 <Card className="card-hover bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 border-teal-100/50 dark:border-teal-800/50 hover:border-teal-300 dark:hover:border-teal-500 transition-all shadow-sm hover:shadow-md">
                     <CardContent className="p-4 md:p-6">
                         <div className="flex items-center justify-between">

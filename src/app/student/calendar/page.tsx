@@ -91,8 +91,8 @@ export default function StudentCalendarPage() {
                 </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2">
+            <div className="grid gap-6 xl:grid-cols-3">
+                <div className="xl:col-span-2">
                     <Card className="overflow-hidden shadow-xl border-0">
                         <CardContent className="p-5 md:p-6">
                         {/* Calendar widget area */}

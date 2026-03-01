@@ -394,7 +394,7 @@ export default function TeacherMaterialsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 bg-clip-text text-transparent">
             Study Materials
@@ -683,7 +683,7 @@ export default function TeacherMaterialsPage() {
             />
 
             <div className="rounded-lg border border-dashed p-4">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="text-sm text-muted-foreground">
                   Allowed: {ACCEPTED_EXTENSIONS.join(', ').toUpperCase()} | Max 25MB
                 </div>

@@ -315,7 +315,7 @@ export function SuperAdminMaterialsForm() {
     <div className="space-y-6">
       <div className="space-y-6 max-w-7xl mx-auto pb-12">
         {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-card/40 p-6 rounded-2xl border border-border/50 backdrop-blur-xl">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-card/40 p-6 rounded-2xl border border-border/50 backdrop-blur-xl">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent tracking-tight">
               Study Materials
@@ -335,7 +335,7 @@ export function SuperAdminMaterialsForm() {
         </div>
 
         {/* Filters */}
-        <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 p-4 shadow-sm flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 p-4 shadow-sm flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
@@ -514,7 +514,7 @@ export function SuperAdminMaterialsForm() {
               <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.mp4,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,video/mp4" onChange={(e) => { const file = e.target.files?.[0]; if (file) validateAndSetFile(file) }} />
 
               <div className="rounded-lg border border-dashed p-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div className="text-sm text-muted-foreground">Allowed: {ACCEPTED_EXTENSIONS.join(', ').toUpperCase()} | Max 25MB</div>
                   <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}><Upload className="h-4 w-4 mr-2" />Choose File</Button>
                 </div>

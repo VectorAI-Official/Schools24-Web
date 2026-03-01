@@ -104,7 +104,7 @@ export default function StudentEventsPage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
                     <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">

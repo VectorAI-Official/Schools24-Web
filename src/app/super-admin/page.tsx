@@ -33,6 +33,7 @@ import { SuperAdminMaterialsForm } from "@/app/super-admin/materials/page"
 import SuperAdminQuizSchedulerPage from "@/app/super-admin/quiz-scheduler/page"
 import { SuperAdminSettingsPanel } from "@/app/super-admin/settings/page"
 import { SuperAdminTrashPanel } from "@/app/super-admin/trash/page"
+import { UserGrowthSection } from "@/app/super-admin/users/page"
 import { useAuth } from "@/contexts/AuthContext"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useInfiniteSchools, useCreateSchool, useDeleteSchool, useUpdateSchool, CreateSchoolParams, UpdateSchoolParams } from "@/hooks/useSchools"
@@ -40,10 +41,10 @@ import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit, Layers3, BookOpenCheck, Check, X, Shield, Sparkles, CheckCircle2, Save, ArrowRight } from "lucide-react"
 
-type SuperAdminTab = "schools" | "catalog" | "question-uploader" | "quiz-scheduler" | "materials" | "settings" | "trash"
+type SuperAdminTab = "schools" | "catalog" | "question-uploader" | "quiz-scheduler" | "materials" | "settings" | "trash" | "users"
 
 function getTabFromSearch(raw: string | null): SuperAdminTab {
-    if (raw === "catalog" || raw === "question-uploader" || raw === "quiz-scheduler" || raw === "materials" || raw === "settings" || raw === "trash") return raw
+    if (raw === "catalog" || raw === "question-uploader" || raw === "quiz-scheduler" || raw === "materials" || raw === "settings" || raw === "trash" || raw === "users") return raw
     return "schools"
 }
 
@@ -371,7 +372,7 @@ function SchoolsSection() {
                 </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {isSchoolsLoading ? (
                     Array(4).fill(0).map((_, i) => (
                         <Card key={i} className="animate-pulse rounded-2xl border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
@@ -1111,7 +1112,7 @@ function CatalogSection() {
 
                     <div className="space-y-3">
                         <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Available Subjects</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
                             {subjects.map((subject) => {
                                 const checked = assignedSubjectIds.includes(subject.id)
                                 return (
@@ -1266,6 +1267,7 @@ function SuperAdminPageContent() {
                         {tab === "materials" && <SuperAdminMaterialsForm />}
                         {tab === "settings" && <SuperAdminSettingsPanel embedded />}
                         {tab === "trash" && <SuperAdminTrashPanel embedded />}
+                        {tab === "users" && <UserGrowthSection />}
                     </div>
                 </main>
             </div>

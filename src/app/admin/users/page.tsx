@@ -559,7 +559,7 @@ export default function UsersPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-3">
                         <h1 className="text-xl md:text-3xl font-bold">User Management</h1>
@@ -598,7 +598,7 @@ export default function UsersPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
@@ -656,7 +656,7 @@ export default function UsersPage() {
             {/* Users Table */}
             <Card>
                 <CardHeader>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="relative flex-1 min-w-0 md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -889,7 +889,7 @@ export default function UsersPage() {
                                     .sort((a, b) => a[0] - b[0])
                                     .map(([grade, gradeClasses]) => (
                                         <div key={grade} className="rounded-lg border p-4">
-                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                                                 <div>
                                                     <p className="text-sm text-muted-foreground">Class</p>
                                                     <p className="text-lg font-semibold">

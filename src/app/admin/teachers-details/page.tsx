@@ -228,7 +228,7 @@ export default function TeachersDetailsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold">Teachers Details</h1>
                     <p className="text-muted-foreground">View and manage all teaching staff</p>
@@ -256,7 +256,7 @@ export default function TeachersDetailsPage() {
             </div>
 
             {/* Stats Cards */}
-            < div className="grid gap-4 grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6" >
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
                 <Card className="bg-gradient-to-br from-green-500 to-teal-600 border-0">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">

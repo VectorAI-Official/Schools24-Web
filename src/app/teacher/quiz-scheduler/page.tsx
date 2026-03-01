@@ -996,7 +996,7 @@ export default function QuizSchedulerPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -1056,7 +1056,7 @@ export default function QuizSchedulerPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="p-4 md:p-6 text-center">
             <p className="text-xl md:text-3xl font-bold text-primary">

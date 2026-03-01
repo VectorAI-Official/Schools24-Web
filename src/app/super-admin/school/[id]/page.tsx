@@ -114,7 +114,7 @@ export default function SchoolConsolePage() {
 
         <Card className="border-slate-200/80 dark:border-slate-800 shadow-sm">
           <CardContent className="p-5 md:p-6">
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/20">
                   <SchoolIcon className="h-8 w-8 text-white" />

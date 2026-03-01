@@ -323,7 +323,7 @@ const superAdminNavItems: NavItem[] = [
   },
   {
     title: "User Growth",
-    href: "/super-admin/users",
+    href: "/super-admin?tab=users",
     icon: <TrendingUp className="h-5 w-5" />,
     category: "Analytics",
   },

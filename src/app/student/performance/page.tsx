@@ -167,13 +167,13 @@ export default function StudentPerformancePage() {
 
                 {/* Stats */}
                 {isLoading ? (
-                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                         {[...Array(4)].map((_, i) => (
                             <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />
                         ))}
                     </div>
                 ) : (
-                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                         {/* Class Rank */}
                         <Card className="border border-amber-200/80 shadow-sm bg-gradient-to-br from-amber-50 via-yellow-50/80 to-orange-50/60 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
                             <CardContent className="p-5 relative">

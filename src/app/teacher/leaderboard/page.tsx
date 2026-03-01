@@ -79,7 +79,7 @@ export default function TeacherLeaderboardPage() {
             </div>
 
             {/* My Rank Card + Quick Stats */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                 {/* My Rank - Prominent */}
                 <Card className="lg:col-span-2 border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-transparent">
                     <CardContent className="p-4 md:p-6">

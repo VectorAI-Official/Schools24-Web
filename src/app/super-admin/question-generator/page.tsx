@@ -367,7 +367,7 @@ export function QuestionUploaderForm() {
                     </CardContent>
                 </Card>
 
-                <div className="grid gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-12">
+                <div className="grid gap-6 lg:gap-8 grid-cols-1 xl:grid-cols-12">
                     <Card className="lg:col-span-7 xl:col-span-8 border-border/60 shadow-sm bg-card/50 backdrop-blur-xl">
                         <CardHeader className="pb-4 border-b border-border">
                             <CardTitle className="flex items-center gap-2 text-xl font-bold">

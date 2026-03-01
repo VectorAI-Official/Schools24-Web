@@ -207,7 +207,7 @@ export default function InventoryPage() {
                                         <Input value={newItem.location} onChange={(e) => setNewItem({ ...newItem, location: e.target.value })} placeholder="Store Room A" />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                     <div className="grid gap-2">
                                         <Label>Quantity</Label>
                                         <Input type="number" value={newItem.quantity} onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })} />
@@ -267,7 +267,7 @@ export default function InventoryPage() {
                                             <Input value={editItem.location} onChange={(e) => setEditItem({ ...editItem, location: e.target.value })} placeholder="Store Room A" />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                         <div className="grid gap-2">
                                             <Label>Quantity</Label>
                                             <Input type="number" value={editItem.quantity} onChange={(e) => setEditItem({ ...editItem, quantity: Number(e.target.value) })} />
@@ -300,7 +300,7 @@ export default function InventoryPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                 <Card>
                     <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
@@ -357,7 +357,7 @@ export default function InventoryPage() {
 
             <Card>
                 <CardHeader>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="relative flex-1 max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input

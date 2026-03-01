@@ -447,7 +447,7 @@ export default function StudentQuizzesPage() {
                     <Progress value={timePercent} className="mt-3 h-1.5" />
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-4 flex-1">
+                <div className="flex flex-col xl:flex-row gap-4 flex-1">
                     {/* Main Question Area */}
                     <div className="flex-1 flex flex-col">
                         <Card className="flex-1 border-0 shadow-lg">
@@ -548,7 +548,7 @@ export default function StudentQuizzesPage() {
                     </div>
 
                     {/* Sidebar — Question Navigation */}
-                    <div className="w-full lg:w-[220px] xl:w-[240px] flex-shrink-0">
+                    <div className="w-full xl:w-[240px] flex-shrink-0">
                         <Card className="border-0 shadow-lg lg:sticky lg:top-4">
                             <CardContent className="p-4">
                                 <div className="space-y-2 mb-5">
@@ -631,7 +631,7 @@ export default function StudentQuizzesPage() {
                 </div>
 
                 {/* Score Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                     <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-blue-50 col-span-2 md:col-span-1">
                         <CardContent className="p-5 text-center">
                             <div className="relative w-24 h-24 mx-auto mb-3">
@@ -758,7 +758,7 @@ export default function StudentQuizzesPage() {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 {[
                     { label: 'Quizzes Taken', value: attemptedQuizzes.length, icon: Target, color: '#4f46e5', bg: 'from-indigo-50 to-violet-50' },
                     { label: 'Avg Score', value: attemptedQuizzes.length > 0 ? `${avgBestPct}%` : '—', icon: BarChart3, color: '#0d9488', bg: 'from-teal-50 to-emerald-50' },

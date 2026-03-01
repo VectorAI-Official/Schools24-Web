@@ -427,7 +427,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
           {/* Super Admins Tab */}
           <TabsContent value="super-admins" className="m-0 focus-visible:outline-none focus-visible:ring-0">
             <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 overflow-hidden shadow-sm">
-              <div className="p-6 md:p-8 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="p-6 md:p-8 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                     Super Admin Management
