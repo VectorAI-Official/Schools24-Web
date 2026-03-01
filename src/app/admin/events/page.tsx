@@ -268,8 +268,8 @@ export default function EventsPage() {
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Event Calendar</h1>
                     <p className="text-muted-foreground mt-1">Manage school events, holidays, and important dates</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" onClick={handleExport} className="hover:bg-muted transition-colors" disabled={!canLoad}>
+                <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                    <Button variant="outline" onClick={handleExport} className="hover:bg-muted transition-colors w-full sm:w-auto" disabled={!canLoad}>
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
@@ -293,14 +293,14 @@ export default function EventsPage() {
                             }
                             setIsAddDialogOpen(true)
                         }}
-                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl w-full sm:w-auto"
                     >
                         <Plus className="mr-2 h-4 w-4" />
                         Add Event
                     </Button>
 
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                        <DialogContent>
+                        <DialogContent className="w-[95vw] sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Create New Event</DialogTitle>
                                 <DialogDescription>
@@ -323,7 +323,7 @@ export default function EventsPage() {
                                         value={formData.type}
                                         onValueChange={(value: EventFormData['type']) => setFormData({ ...formData, type: value })}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -386,9 +386,9 @@ export default function EventsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
                 {/* Calendar */}
-                <Card className="md:col-span-2 overflow-hidden min-h-[600px]">
+                <Card className="lg:col-span-2 overflow-hidden min-h-[420px] md:min-h-[600px]">
 
                     <CardContent className="p-4 md:p-6">
                         <div className="bg-gradient-to-br from-background to-muted/30 rounded-xl p-4 md:p-6 border shadow-inner">
@@ -462,7 +462,7 @@ export default function EventsPage() {
                                     {/* Events for Selected Date */}
                                     {eventsOnDate.length > 0 && (
                                         <div className="space-y-3">
-                                            <div className="flex items-center justify-between px-1">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1">
                                                 <p className="text-sm font-bold text-foreground flex items-center gap-2">
                                                     <CalendarDays className="h-4 w-4 text-primary" />
                                                     {new Date().toDateString() === date.toDateString() ? "Events Today" : "Events"}
@@ -482,7 +482,7 @@ export default function EventsPage() {
 
                                                         <div className="pl-3">
                                                             {/* Event header */}
-                                                            <div className="flex items-start justify-between gap-2 mb-2">
+                                                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
                                                                 <h4 className="font-bold text-sm leading-tight flex-1">{event.title}</h4>
                                                                 <div className="flex items-center gap-2">
                                                                     <Badge
@@ -550,9 +550,9 @@ export default function EventsPage() {
                 </Card>
 
                 {/* Events List */}
-                <Card className="md:col-span-1 flex flex-col h-[600px]">
+                <Card className="lg:col-span-1 flex flex-col min-h-[420px] md:h-[600px]">
                     <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-b shrink-0">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
                                 <CardTitle className="text-xl">Upcoming Events</CardTitle>
                                 <CardDescription className="mt-1">All scheduled events and activities</CardDescription>
@@ -674,7 +674,7 @@ export default function EventsPage() {
 
             {/* Edit Dialog */}
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent>
+                <DialogContent className="w-[95vw] sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Event</DialogTitle>
                         <DialogDescription>
@@ -697,7 +697,7 @@ export default function EventsPage() {
                                 value={formData.type}
                                 onValueChange={(value: EventFormData['type']) => setFormData({ ...formData, type: value })}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>

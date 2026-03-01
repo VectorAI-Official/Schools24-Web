@@ -311,11 +311,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Charts Row */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
                 {/* Revenue Chart */}
                 <div className="md:col-span-2">
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
                                 <CardTitle>Revenue Overview</CardTitle>
                                 <CardDescription>Fee collections by period</CardDescription>
@@ -470,7 +470,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Attendance & Performance */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
                 {/* Weekly Attendance */}
                 <Card>
                     <CardHeader>
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
 
                 {/* Top Performers */}
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
                             <CardTitle>Top Performers</CardTitle>
                             <CardDescription>Students with highest scores</CardDescription>
@@ -572,10 +572,10 @@ export default function AdminDashboard() {
             </div>
 
             {/* Events & Recent Activity */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
                 {/* Upcoming Events */}
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
                             <CardTitle>Upcoming Events</CardTitle>
                             <CardDescription>Events scheduled for this month</CardDescription>
@@ -644,7 +644,7 @@ export default function AdminDashboard() {
                 {/* Recent Fee Payments */}
                 <div>
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
                                 <CardTitle>Recent Fee Activity</CardTitle>
                                 <CardDescription>Latest fee transactions</CardDescription>

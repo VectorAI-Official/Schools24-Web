@@ -423,7 +423,7 @@ export default function StudentsTimetablePage() {
         : ''
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
+        <div className="h-[calc(100dvh-4rem)] min-h-[calc(100dvh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 flex-shrink-0">
                 <div>
@@ -483,9 +483,9 @@ export default function StudentsTimetablePage() {
                     <div
                         className="h-full grid"
                         style={{
-                            gridTemplateColumns: `minmax(80px, 100px) repeat(${periodsConfig.length}, minmax(60px, 1fr))`,
-                            gridTemplateRows: `minmax(32px, 0.6fr) repeat(${dayConfigs.length}, minmax(0, 1fr))`,
-                            minWidth: `${80 + periodsConfig.length * 60}px`
+                            gridTemplateColumns: `minmax(96px, 120px) repeat(${periodsConfig.length}, minmax(170px, 1fr))`,
+                            gridTemplateRows: `minmax(56px, 56px) repeat(${dayConfigs.length}, minmax(96px, 1fr))`,
+                            minWidth: `${96 + periodsConfig.length * 170}px`
                         }}
                     >
                         {/* Header Row */}
@@ -558,7 +558,7 @@ export default function StudentsTimetablePage() {
 
             {/* Edit Dialog */}
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent>
+                <DialogContent className="w-[95vw] sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>{selectedSlot?.entryId ? 'Edit Timetable Slot' : 'Add Timetable Slot'}</DialogTitle>
                         <DialogDescription>
@@ -572,7 +572,7 @@ export default function StudentsTimetablePage() {
                                 value={effectiveSubjectId}
                                 onValueChange={(value) => setFormData({ ...formData, subjectId: value })}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select subject" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -590,7 +590,7 @@ export default function StudentsTimetablePage() {
                                 value={formData.teacherId}
                                 onValueChange={(value) => setFormData({ ...formData, teacherId: value })}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select teacher" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -640,7 +640,7 @@ export default function StudentsTimetablePage() {
 
             {/* Periods Configuration Dialog */}
             <Dialog open={isPeriodsDialogOpen} onOpenChange={setIsPeriodsDialogOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Clock className="h-5 w-5" />
@@ -657,7 +657,7 @@ export default function StudentsTimetablePage() {
                                 value={tempConfig.periods.length.toString()}
                                 onValueChange={(v) => handlePeriodCountChange(parseInt(v))}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -670,7 +670,7 @@ export default function StudentsTimetablePage() {
 
                         <div className="border rounded-lg p-4 space-y-3">
                             <Label className="text-sm font-medium">Active Days (max 7)</Label>
-                            <div className="grid grid-cols-2 sm:grid-cols-1 md:grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                 {tempConfig.days.map((day) => (
                                     <label key={day.day_of_week} className="flex items-center gap-2 text-sm">
                                         <input
@@ -731,11 +731,11 @@ export default function StudentsTimetablePage() {
                             ))}
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsPeriodsDialogOpen(false)}>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsPeriodsDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={savePeriodsConfig} className="bg-gradient-to-r from-blue-500 to-cyan-600">
+                        <Button onClick={savePeriodsConfig} className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-600">
                             <Save className="mr-2 h-4 w-4" />
                             Save Configuration
                         </Button>
@@ -745,7 +745,7 @@ export default function StudentsTimetablePage() {
 
             {/* Subjects Dialog */}
             <Dialog open={isSubjectsDialogOpen} onOpenChange={setIsSubjectsDialogOpen}>
-                <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+                <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <BookOpen className="h-5 w-5" />
@@ -817,15 +817,15 @@ export default function StudentsTimetablePage() {
                             </div>
                         )}
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsSubjectsDialogOpen(false)}>Close</Button>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsSubjectsDialogOpen(false)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Subject Form Dialog */}
             <Dialog open={isSubjectFormOpen} onOpenChange={setIsSubjectFormOpen}>
-                <DialogContent className="max-w-xl">
+                <DialogContent className="w-[95vw] max-w-xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>{editingSubject ? 'Edit Subject' : 'Add New Subject'}</DialogTitle>
                         <DialogDescription>
@@ -905,9 +905,9 @@ export default function StudentsTimetablePage() {
                             <Label htmlFor="is_optional">Optional Subject</Label>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsSubjectFormOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSaveSubject} disabled={createSubject.isPending || updateSubject.isPending}>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsSubjectFormOpen(false)}>Cancel</Button>
+                        <Button className="w-full sm:w-auto" onClick={handleSaveSubject} disabled={createSubject.isPending || updateSubject.isPending}>
                             <Save className="h-4 w-4 mr-2" />
                             {editingSubject ? 'Update' : 'Create'}
                         </Button>

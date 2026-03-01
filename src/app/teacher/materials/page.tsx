@@ -552,7 +552,7 @@ export default function TeacherMaterialsPage() {
           }
         }}
       >
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{previewMaterial?.title || previewMaterial?.file_name || 'Material Preview'}</DialogTitle>
             <DialogDescription>Preview metadata and document details</DialogDescription>
@@ -599,7 +599,7 @@ export default function TeacherMaterialsPage() {
       </Dialog>
 
       <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Upload Study Material</DialogTitle>
             <DialogDescription>Share study materials with your students.</DialogDescription>
@@ -626,7 +626,7 @@ export default function TeacherMaterialsPage() {
                     setSelectedSubject('')
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
@@ -646,7 +646,7 @@ export default function TeacherMaterialsPage() {
                   onValueChange={setSelectedSubject}
                   disabled={!selectedClassId || uploadSubjects.length === 0}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder={!selectedClassId ? 'Select class first' : 'Select subject'} />
                   </SelectTrigger>
                   <SelectContent>
@@ -687,14 +687,14 @@ export default function TeacherMaterialsPage() {
                 <div className="text-sm text-muted-foreground">
                   Allowed: {ACCEPTED_EXTENSIONS.join(', ').toUpperCase()} | Max 25MB
                 </div>
-                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                <Button className="w-full sm:w-auto" type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                   <Upload className="h-4 w-4 mr-2" />
                   Choose File
                 </Button>
               </div>
 
               {selectedFile ? (
-                <div className="mt-3 flex items-center justify-between rounded-md border p-3">
+                <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-md border p-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <File className="h-5 w-5 text-blue-600" />
                     <div className="min-w-0">

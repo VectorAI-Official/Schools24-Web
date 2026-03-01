@@ -390,9 +390,9 @@ export default function QuestionPapersPage() {
                                 className="pl-9"
                             />
                         </div>
-                        <div className="flex gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full md:w-auto">
                             <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                                <SelectTrigger className="w-[150px]">
+                                <SelectTrigger className="w-full sm:w-[150px]">
                                     <Filter className="h-4 w-4 mr-2" />
                                     <SelectValue placeholder="Subject" />
                                 </SelectTrigger>
@@ -404,7 +404,7 @@ export default function QuestionPapersPage() {
                                 </SelectContent>
                             </Select>
                             <Select value={classFilter} onValueChange={setClassFilter}>
-                                <SelectTrigger className="w-[150px]">
+                                <SelectTrigger className="w-full sm:w-[150px]">
                                     <GraduationCap className="h-4 w-4 mr-2" />
                                     <SelectValue placeholder="Class" />
                                 </SelectTrigger>

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -88,12 +87,9 @@ function deriveGrade(avg: number): string {
 
 export default function StudentPerformancePage() {
     const router = useRouter()
-    const [mounted, setMounted] = useState(false)
 
     const subjectPerfQuery = useStudentSubjectPerformance()
     const leaderboardQuery = useStudentAssessmentLeaderboard()
-
-    useEffect(() => { setMounted(true) }, [])
 
     const subjects = subjectPerfQuery.data?.subjects ?? []
     const className = subjectPerfQuery.data?.class_name ?? leaderboardQuery.data?.class_name ?? ''
@@ -135,7 +131,7 @@ export default function StudentPerformancePage() {
 
     return (
         <div className="min-h-screen bg-background p-4 md:p-6">
-            <div className="max-w-[1200px] mx-auto space-y-6">
+            <div className="w-full space-y-6">
 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -161,7 +157,7 @@ export default function StudentPerformancePage() {
                         </div>
                     </div>
                     <Button
-                        className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-sm tracking-wide border-0"
+                        className="w-full sm:w-auto bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-sm tracking-wide border-0"
                         onClick={() => router.push('/student/leaderboard')}
                     >
                         <Trophy className="w-4 h-4 mr-2" />
@@ -285,7 +281,7 @@ export default function StudentPerformancePage() {
                                     No assessment data yet.
                                 </div>
                             )}
-                            {mounted && hasSubjects && (
+                            {hasSubjects && (
                                 <div className="h-[320px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <RadarChart data={radarData}>

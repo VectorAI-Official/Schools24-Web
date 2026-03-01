@@ -233,19 +233,19 @@ export default function TeachersDetailsPage() {
                     <h1 className="text-xl md:text-3xl font-bold">Teachers Details</h1>
                     <p className="text-muted-foreground">View and manage all teaching staff</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" onClick={handleImport}>
+                <div className="flex flex-wrap gap-3">
+                    <Button variant="outline" onClick={handleImport} className="w-full sm:w-auto">
                         <Upload className="mr-2 h-4 w-4" />
                         Import
                     </Button>
-                    <Button variant="outline" onClick={exportTeachers}>
+                    <Button variant="outline" onClick={exportTeachers} className="w-full sm:w-auto">
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
                     {/* Only super admins can add teachers directly; normal admins use User Management */}
                     {isSuperAdmin && (
                         <Button
-                            className="bg-gradient-to-r from-green-600 to-teal-600 hover:opacity-90"
+                            className="bg-gradient-to-r from-green-600 to-teal-600 hover:opacity-90 w-full sm:w-auto"
                             onClick={() => setIsAddDialogOpen(true)}
                         >
                             <UserPlus className="mr-2 h-4 w-4" />
@@ -341,7 +341,7 @@ export default function TeachersDetailsPage() {
             < Card >
                 <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="relative flex-1 max-w-sm">
+                        <div className="relative w-full md:flex-1 md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search teachers..."
@@ -350,9 +350,9 @@ export default function TeachersDetailsPage() {
                                 className="pl-10"
                             />
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex w-full md:w-auto flex-wrap gap-3">
                             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                                <SelectTrigger className="w-[150px]">
+                                <SelectTrigger className="w-full sm:w-[150px]">
                                     <Filter className="mr-2 h-4 w-4" />
                                     <SelectValue placeholder="Department" />
                                 </SelectTrigger>
@@ -366,6 +366,7 @@ export default function TeachersDetailsPage() {
                             <Button
                                 variant="outline"
                                 size="icon"
+                                className="w-full sm:w-10"
                                 onClick={() => {
                                     setSearchQuery('')
                                     setDepartmentFilter('all')

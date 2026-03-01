@@ -389,11 +389,6 @@ export function Sidebar() {
     };
   }, []);
 
-  // Close mobile sidebar on route change
-  useEffect(() => {
-    if (isMobile) setMobileOpen(false);
-  }, [pathname, isMobile]);
-
   const getNavItems = (): NavItem[] => {
     switch (userRole) {
       case "admin":
@@ -474,7 +469,7 @@ export function Sidebar() {
       )}
       <aside
         className={cn(
-          "relative flex flex-col h-screen border-r transition-all duration-300 ease-in-out",
+          "relative flex flex-col h-[100dvh] border-r transition-all duration-300 ease-in-out",
           "bg-gradient-to-b from-background via-background to-background",
           "shadow-xl",
           isMobile
@@ -651,7 +646,7 @@ export function Sidebar() {
 
         {/* Collapse Button — hidden on mobile */}
         {!isMobile && (
-          <div className="relative border-t border-border/50 p-3">
+          <div className="relative border-t border-border/50 p-3 bg-transparent">
             <Button
               variant="ghost"
               size="sm"
@@ -675,7 +670,7 @@ export function Sidebar() {
         )}
         {/* Close button for mobile */}
         {isMobile && (
-          <div className="relative border-t border-border/50 p-3">
+          <div className="relative border-t border-border/50 p-3 bg-transparent">
             <Button
               variant="ghost"
               size="sm"

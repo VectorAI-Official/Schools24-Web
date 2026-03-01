@@ -396,15 +396,15 @@ export default function TeacherReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-xl md:text-3xl font-bold">Report Management</h1>
           <p className="text-muted-foreground">
             Upload marks and individual student reports.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setStudentUploaderOpen(true)}>
+        <div className="flex w-full sm:w-auto gap-2">
+          <Button className="w-full sm:w-auto" onClick={() => setStudentUploaderOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
             Upload Student Report
           </Button>
@@ -415,7 +415,7 @@ export default function TeacherReportsPage() {
         <CardHeader>
           <CardTitle>Select Assessment</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
+        <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div className="space-y-2">
             <Label>Academic Year</Label>
             <Input
@@ -434,7 +434,7 @@ export default function TeacherReportsPage() {
                 setDraftMarks({});
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select assessment" />
               </SelectTrigger>
               <SelectContent>
@@ -457,7 +457,7 @@ export default function TeacherReportsPage() {
               }}
               disabled={!selectedAssessmentID}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select class" />
               </SelectTrigger>
               <SelectContent>
@@ -479,7 +479,7 @@ export default function TeacherReportsPage() {
               }}
               disabled={!selectedClassID}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select subject" />
               </SelectTrigger>
               <SelectContent>
@@ -732,8 +732,9 @@ export default function TeacherReportsPage() {
                 );
               })()}
 
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-stretch sm:justify-end pt-1">
                 <Button
+                  className="w-full sm:w-auto"
                   onClick={() => saveMarksMutation.mutate()}
                   disabled={saveMarksMutation.isPending}
                 >
@@ -755,14 +756,14 @@ export default function TeacherReportsPage() {
       {/* Student Individual Reports Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <CardTitle>Student-wise Uploaded Reports</CardTitle>
             <div className="flex items-center gap-2">
               <Select
                 value={srFilterClassID || "__all__"}
                 onValueChange={(v) => setSrFilterClassID(v === "__all__" ? "" : v)}
               >
-                <SelectTrigger className="w-44">
+                <SelectTrigger className="w-full sm:w-44">
                   <SelectValue placeholder="Filter by class" />
                 </SelectTrigger>
                 <SelectContent>
@@ -854,7 +855,7 @@ export default function TeacherReportsPage() {
           if (studentReportFileRef.current) studentReportFileRef.current.value = "";
         }
       }}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="w-[95vw] max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Upload Student Report</DialogTitle>
             <DialogDescription>
@@ -867,7 +868,7 @@ export default function TeacherReportsPage() {
               <div className="space-y-2">
                 <Label>Class <span className="text-destructive">*</span></Label>
                 <Select value={srClassID} onValueChange={(v) => { setSrClassID(v); setSrStudentID(""); }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
@@ -881,7 +882,7 @@ export default function TeacherReportsPage() {
               <div className="space-y-2">
                 <Label>Student <span className="text-destructive">*</span></Label>
                 <Select value={srStudentID} onValueChange={setSrStudentID} disabled={!srClassID}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder={srClassID ? (classStudentsQuery.isLoading ? "Loading..." : "Select student") : "Select class first"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -908,7 +909,7 @@ export default function TeacherReportsPage() {
               <div className="space-y-2">
                 <Label>Report Type</Label>
                 <Select value={srReportType} onValueChange={setSrReportType}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -953,7 +954,7 @@ export default function TeacherReportsPage() {
               }}
             />
 
-            <div className="rounded-md border p-3 flex items-center justify-between gap-3">
+            <div className="rounded-md border p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="text-sm min-w-0">
                 {srFile ? (
                   <div className="min-w-0">
@@ -964,7 +965,7 @@ export default function TeacherReportsPage() {
                   <p className="text-muted-foreground">Allowed: PDF, DOC, DOCX, PPT, PPTX, TXT (max 25 MB)</p>
                 )}
               </div>
-              <Button variant="outline" onClick={() => studentReportFileRef.current?.click()}>
+              <Button className="w-full sm:w-auto" variant="outline" onClick={() => studentReportFileRef.current?.click()}>
                 <FileText className="h-4 w-4 mr-2" />
                 Choose File
               </Button>

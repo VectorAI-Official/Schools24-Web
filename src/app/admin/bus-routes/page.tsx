@@ -97,12 +97,6 @@ export default function BusRoutesPage() {
     const [formData, setFormData] = useState<RouteFormData>(initialFormData)
     const [selectedRoute, setSelectedRoute] = useState<BusRoute | null>(null)
 
-    useEffect(() => {
-        if (!isAddDialogOpen && !isEditDialogOpen) {
-            setDriverSearch('')
-        }
-    }, [isAddDialogOpen, isEditDialogOpen])
-
     const {
         data,
         isLoading,
@@ -315,7 +309,7 @@ export default function BusRoutesPage() {
                                 Add Route
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
+                        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2">
                                     <Bus className="h-5 w-5 text-indigo-500" />
@@ -365,7 +359,7 @@ export default function BusRoutesPage() {
                                             value={formData.driverStaffId}
                                             onValueChange={(value) => setFormData({ ...formData, driverStaffId: value })}
                                         >
-                                            <SelectTrigger id="add-driverName">
+                                            <SelectTrigger id="add-driverName" className="w-full">
                                                 <SelectValue placeholder="Select driver" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -426,15 +420,15 @@ export default function BusRoutesPage() {
                                     />
                                 </div>
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => {
+                            <DialogFooter className="flex-col sm:flex-row gap-2">
+                                <Button className="w-full sm:w-auto" variant="outline" onClick={() => {
                                     setFormData(initialFormData)
                                     setIsAddDialogOpen(false)
                                 }}>
                                     Cancel
                                 </Button>
                                 <Button
-                                    className="bg-gradient-to-r from-indigo-600 to-violet-600"
+                                    className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-violet-600"
                                     onClick={handleAddRoute}
                                 >
                                     Create Route
@@ -540,13 +534,14 @@ export default function BusRoutesPage() {
                                 className="pl-10"
                             />
                         </div>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setSearchQuery('')}
-                            >
-                                <RefreshCw className="h-4 w-4" />
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="w-full md:w-10"
+                            onClick={() => setSearchQuery('')}
+                        >
+                            <RefreshCw className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
@@ -716,7 +711,7 @@ export default function BusRoutesPage() {
                         </div>
                         <h3 className="text-lg font-semibold mb-2">No routes found</h3>
                         <p className="text-muted-foreground mb-4">
-                            Try adjusting your search or filter to find what you're looking for.
+                            Try adjusting your search or filter to find what you&apos;re looking for.
                         </p>
                         <Button
                             variant="outline"
@@ -734,7 +729,7 @@ export default function BusRoutesPage() {
             {/* Summary Footer */}
             <Card className="border-0 shadow-lg bg-gradient-to-r from-indigo-50 via-violet-50 to-purple-50 dark:from-indigo-950/30 dark:via-violet-950/30 dark:to-purple-950/30">
                 <CardContent className="p-4 md:p-6">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500 text-white">
                                 <Navigation className="h-5 w-5" />
@@ -746,7 +741,7 @@ export default function BusRoutesPage() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4 md:gap-6">
+                        <div className="grid grid-cols-3 gap-4 w-full md:w-auto">
                             <div className="text-center">
                                 <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stats.totalCapacity > 0 ? Math.round((stats.totalStudents / stats.totalCapacity) * 100) : 0}%</p>
                                 <p className="text-xs text-muted-foreground">Fleet Utilization</p>
@@ -774,7 +769,7 @@ export default function BusRoutesPage() {
                     }
                 }}
             >
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Edit className="h-5 w-5 text-indigo-500" />
@@ -824,7 +819,7 @@ export default function BusRoutesPage() {
                                     value={formData.driverStaffId}
                                     onValueChange={(value) => setFormData({ ...formData, driverStaffId: value })}
                                 >
-                                    <SelectTrigger id="edit-driverName">
+                                    <SelectTrigger id="edit-driverName" className="w-full">
                                         <SelectValue placeholder="Select driver" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -885,8 +880,8 @@ export default function BusRoutesPage() {
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => {
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => {
                             setFormData(initialFormData)
                             setSelectedRoute(null)
                             setIsEditDialogOpen(false)
@@ -894,7 +889,7 @@ export default function BusRoutesPage() {
                             Cancel
                         </Button>
                         <Button
-                            className="bg-gradient-to-r from-indigo-600 to-violet-600"
+                            className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-violet-600"
                             onClick={handleEditRoute}
                         >
                             Save Changes

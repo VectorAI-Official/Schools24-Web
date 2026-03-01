@@ -45,6 +45,7 @@ export default function WhiteboardPage() {
     const [snapshot, setSnapshot] = useState<ImageData | null>(null)
     const [history, setHistory] = useState<ImageData[]>([])
     const [historyStep, setHistoryStep] = useState(-1)
+    const [canvasMetrics, setCanvasMetrics] = useState({ width: 1, height: 1 })
 
     // Refs for state access in event listeners
     const historyRef = useRef<ImageData[]>([])
@@ -113,6 +114,7 @@ export default function WhiteboardPage() {
             // Resize
             canvas.width = container.offsetWidth
             canvas.height = container.offsetHeight
+            setCanvasMetrics({ width: canvas.width, height: canvas.height })
 
             // Fill with white background
             const ctx = canvas.getContext('2d')
@@ -134,6 +136,7 @@ export default function WhiteboardPage() {
         // Initial set
         canvas.width = container.offsetWidth
         canvas.height = container.offsetHeight
+        setCanvasMetrics({ width: canvas.width, height: canvas.height })
 
         // Initial history save setup
         const ctx = canvas.getContext('2d')
@@ -394,11 +397,11 @@ export default function WhiteboardPage() {
     return (
         <div
             ref={whiteboardRef}
-            className={`flex flex-col bg-background ${isFullscreen ? 'h-screen' : 'h-[calc(100vh-8rem)]'}`}
+            className={`flex flex-col bg-background ${isFullscreen ? 'h-screen' : 'h-[calc(100vh-6rem)] md:h-[calc(100vh-8rem)]'}`}
         >
             {/* Toolbar */}
-            <div className={`flex flex-wrap items-center justify-between p-4 border-b bg-card gap-4 ${isFullscreen ? 'bg-card/95 backdrop-blur-sm shadow-lg' : ''}` }>
-                <div className="flex items-center gap-4 flex-wrap">
+            <div className={`flex flex-wrap items-center justify-between p-2 sm:p-4 border-b bg-card gap-2 sm:gap-4 ${isFullscreen ? 'bg-card/95 backdrop-blur-sm shadow-lg' : ''}` }>
+                <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
                     {!isFullscreen && (
                         <Link href="/teacher/teach">
                             <Button variant="ghost" size="sm">
@@ -458,7 +461,7 @@ export default function WhiteboardPage() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
+                <div className="flex w-full sm:w-auto items-center gap-2 bg-muted/50 p-1 rounded-lg overflow-x-auto">
                     <Button
                         variant="ghost"
                         size="icon"
@@ -570,8 +573,8 @@ export default function WhiteboardPage() {
                         <div
                             className="absolute"
                             style={{
-                                left: textInput.x / (canvasRef.current?.width || 1) * 100 + '%',
-                                top: textInput.y / (canvasRef.current?.height || 1) * 100 + '%',
+                                left: (textInput.x / canvasMetrics.width) * 100 + '%',
+                                top: (textInput.y / canvasMetrics.height) * 100 + '%',
                                 transform: `translate(0, -50%) scale(${1 / zoom})`,
                                 transformOrigin: 'top left',
                                 zIndex: 20
@@ -579,7 +582,7 @@ export default function WhiteboardPage() {
                         >
                             <input
                                 autoFocus
-                                className="border border-primary/50 outline-none p-2 rounded min-w-[200px] shadow-lg bg-white"
+                                className="border border-primary/50 outline-none p-2 rounded min-w-[140px] sm:min-w-[200px] max-w-[80vw] shadow-lg bg-white"
                                 style={{
                                     fontSize: `${strokeWidth * 4 + 12}px`,
                                     color: activeColor

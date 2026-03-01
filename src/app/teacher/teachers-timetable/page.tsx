@@ -87,14 +87,14 @@ export default function TeachersTimetablePage() {
     }
 
     return (
-        <div className="h-[calc(100vh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
+        <div className="h-[calc(100dvh-4rem)] min-h-[calc(100dvh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 flex-shrink-0">
                 <div>
                     <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">My Timetable</h1>
                     <p className="text-xs text-muted-foreground hidden sm:block">Your teaching schedule</p>
                 </div>
-                <div className="flex items-center gap-1 flex-wrap">
+                <div className="flex items-center gap-1 flex-wrap w-full sm:w-auto">
                     <Badge variant="outline" className="h-7 sm:h-8 px-2 text-xs hidden sm:flex items-center">
                         <Calendar className="mr-1 h-3 w-3" />
                         2025-26
@@ -118,9 +118,9 @@ export default function TeachersTimetablePage() {
                     <div
                         className="h-full grid"
                         style={{
-                            gridTemplateColumns: `minmax(80px, 100px) repeat(${periodsConfig.length}, minmax(60px, 1fr))`,
-                            gridTemplateRows: `minmax(32px, 0.6fr) repeat(${dayConfigs.length}, minmax(0, 1fr))`,
-                            minWidth: `${80 + periodsConfig.length * 60}px`
+                            gridTemplateColumns: `minmax(96px, 120px) repeat(${periodsConfig.length}, minmax(170px, 1fr))`,
+                            gridTemplateRows: `minmax(56px, 56px) repeat(${dayConfigs.length}, minmax(96px, 1fr))`,
+                            minWidth: `${96 + periodsConfig.length * 170}px`
                         }}
                     >
                         {/* Header Row */}

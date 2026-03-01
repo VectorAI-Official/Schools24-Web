@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -114,7 +113,6 @@ function formatFileSize(bytes: number) {
 
 export default function StudentReportsPage() {
     const router = useRouter()
-    const [mounted, setMounted] = useState(false)
 
     const reportsQuery = useQuery({
         queryKey: ['student-report-documents'],
@@ -152,10 +150,6 @@ export default function StudentReportsPage() {
     const myRank = leaderboardQuery.data?.my_entry?.rank ?? null
     const totalStudents = leaderboardQuery.data?.total_students ?? null
     const attendancePct = attendanceData?.stats?.attendance_percent ?? null
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
 
     const fetchReportBlob = async (report: StudentReportDocument, action: 'view' | 'download') => {
         const token = getToken()
@@ -229,17 +223,17 @@ export default function StudentReportsPage() {
                         <p className="text-muted-foreground">Academic and performance reports</p>
                     </div>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" onClick={handlePrintReport}>
+                <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-3">
+                    <Button className="w-full sm:w-auto" variant="outline" onClick={handlePrintReport}>
                         <Printer className="mr-2 h-4 w-4" />
                         Print
                     </Button>
-                    <Button variant="outline" onClick={handleShareReport}>
+                    <Button className="w-full sm:w-auto" variant="outline" onClick={handleShareReport}>
                         <Share2 className="mr-2 h-4 w-4" />
                         Share
                     </Button>
                     <Button
-                        className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 border-0 shadow-lg shadow-blue-500/20"
+                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 border-0 shadow-lg shadow-blue-500/20"
                         onClick={() => {
                             const first = reportsQuery.data?.reports?.[0]
                             if (!first) {
@@ -339,7 +333,7 @@ export default function StudentReportsPage() {
                         {!subjectPerfQuery.isLoading && !subjectPerfQuery.isError && (subjectPerfQuery.data?.subjects ?? []).length === 0 && (
                             <div className="flex items-center justify-center h-[350px] text-sm text-muted-foreground">No assessment marks recorded yet.</div>
                         )}
-                        {mounted && !subjectPerfQuery.isLoading && (subjectPerfQuery.data?.subjects ?? []).length > 0 && (
+                        {!subjectPerfQuery.isLoading && (subjectPerfQuery.data?.subjects ?? []).length > 0 && (
                             <div className="h-[350px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={(subjectPerfQuery.data?.subjects ?? []).map(s => ({ name: s.subject_name, score: s.avg_percentage }))}>
@@ -454,12 +448,12 @@ export default function StudentReportsPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => void handleViewReport(report)}
-                                        className="hover:bg-blue-100 hover:text-blue-700 hover:border-blue-300"
+                                        className="w-full sm:w-auto hover:bg-blue-100 hover:text-blue-700 hover:border-blue-300"
                                     >
                                         <FileText className="h-4 w-4 mr-2" />
                                         View
@@ -468,7 +462,7 @@ export default function StudentReportsPage() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => void handleDownloadReport(report)}
-                                        className="hover:bg-green-100 hover:text-green-700 hover:border-green-300"
+                                        className="w-full sm:w-auto hover:bg-green-100 hover:text-green-700 hover:border-green-300"
                                     >
                                         <Download className="h-4 w-4 mr-2" />
                                         Download
@@ -495,7 +489,7 @@ export default function StudentReportsPage() {
                         </div>
                         <Button
                             size="lg"
-                            className="bg-white text-blue-600 hover:bg-blue-50 shadow-xl px-8"
+                            className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 shadow-xl px-8"
                             onClick={() => router.push('/student/performance')}
                         >
                             <TrendingUp className="mr-2 h-5 w-5" />

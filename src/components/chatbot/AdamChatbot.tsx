@@ -16,7 +16,7 @@ type AvatarColors = {
     eyeA: string; eyeB: string; eyeC: string
 }
 
-const AVATAR_COLORS: Record<'indigo' | 'orange' | 'green', AvatarColors> = {
+const AVATAR_COLORS: Record<'indigo' | 'orange' | 'green' | 'violet', AvatarColors> = {
     indigo: {
         ambGlow: '#818cf8',
         bodyA: '#c7d2fe', bodyB: '#a5b4fc', bodyC: '#818cf8',
@@ -40,6 +40,14 @@ const AVATAR_COLORS: Record<'indigo' | 'orange' | 'green', AvatarColors> = {
         visorA: '#059669', visorB: '#10b981', visorC: '#34d399',
         coreA: '#6ee7b7', coreB: '#34d399', coreC: '#059669',
         eyeA:  '#a7f3d0', eyeB:  '#34d399', eyeC:  '#065f46',
+    },
+    violet: {
+        ambGlow: '#a78bfa',
+        bodyA: '#ddd6fe', bodyB: '#c4b5fd', bodyC: '#8b5cf6',
+        faceB: '#f5f3ff', faceC: '#ede9fe',
+        visorA: '#7c3aed', visorB: '#8b5cf6', visorC: '#a78bfa',
+        coreA: '#c4b5fd', coreB: '#a78bfa', coreC: '#7c3aed',
+        eyeA:  '#ddd6fe', eyeB:  '#a78bfa', eyeC:  '#5b21b6',
     },
 }
 
@@ -151,7 +159,7 @@ export default function AdamChatbot() {
 
     const { userRole } = useAuth()
 
-    // Role-based colour theme: orange → student, green → teacher, indigo → everyone else
+    // Role-based colour theme: orange → student, green → teacher, violet → admin, indigo → everyone else
     const theme = userRole === 'student'
         ? {
             headerGrad:   'from-orange-500 via-amber-500 to-orange-500',
@@ -195,6 +203,28 @@ export default function AdamChatbot() {
             attachClose:  'hover:bg-emerald-200 text-emerald-500',
             msgFileIcon:  'text-emerald-500',
             avatarColors: AVATAR_COLORS.green,
+        }
+        : userRole === 'admin'
+        ? {
+            headerGrad:   'from-violet-600 via-purple-600 to-violet-600',
+            triggerGrad:  'from-violet-600 via-purple-600 to-violet-600',
+            triggerShadow:'shadow-[0_10px_30px_-10px_rgba(124,58,237,0.5)]',
+            triggerHoverShadow:'hover:shadow-[0_15px_35px_-10px_rgba(124,58,237,0.6)]',
+            statusBorder: 'border-violet-600',
+            iconBg:       'bg-violet-500/40',
+            userBubble:   'bg-violet-600',
+            chipColors:   'border-violet-100 bg-violet-50 text-violet-700 hover:bg-violet-100',
+            focusRing:    'focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/30',
+            sendActive:   'bg-violet-600 hover:bg-violet-700',
+            typingDot:    'bg-violet-400',
+            clip:         'hover:text-violet-600 hover:bg-violet-50',
+            attachWrap:   'bg-violet-50 border-violet-100',
+            attachText:   'text-violet-700',
+            attachMeta:   'text-violet-400',
+            attachIcon:   'text-violet-500',
+            attachClose:  'hover:bg-violet-200 text-violet-500',
+            msgFileIcon:  'text-violet-500',
+            avatarColors: AVATAR_COLORS.violet,
         }
         : {
             headerGrad:   'from-indigo-600 via-blue-600 to-indigo-600',

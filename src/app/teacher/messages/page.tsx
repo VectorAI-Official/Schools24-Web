@@ -159,8 +159,8 @@ export default function TeacherMessagesPage() {
                 <p className="text-muted-foreground">Class group conversations for your assigned classes</p>
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
-                <Card className="md:col-span-1">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
+                <Card className="lg:col-span-1">
                     <CardHeader className="pb-3">
                         <CardTitle className="text-lg">Class Groups</CardTitle>
                         <div className="relative">
@@ -216,9 +216,9 @@ export default function TeacherMessagesPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="md:col-span-2">
+                <Card className="lg:col-span-2">
                     <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="flex items-center gap-3">
                                 <Avatar>
                                     <AvatarFallback>
@@ -276,7 +276,7 @@ export default function TeacherMessagesPage() {
                                         const isMine = !!user?.id && user.id === message.sender_id
                                         return (
                                             <div key={message.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`max-w-[80%] rounded-lg px-3 py-2 ${isMine ? 'bg-primary text-primary-foreground' : 'bg-background border'}`}>
+                                                <div className={`max-w-[92%] sm:max-w-[80%] rounded-lg px-3 py-2 ${isMine ? 'bg-primary text-primary-foreground' : 'bg-background border'}`}>
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="text-xs font-semibold">{isMine ? 'You' : message.sender_name}</span>
                                                         <Badge variant="outline" className="text-[10px] capitalize">

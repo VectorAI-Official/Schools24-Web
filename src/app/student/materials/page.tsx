@@ -278,7 +278,7 @@ export default function StudentMaterialsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-4">
@@ -342,7 +342,7 @@ export default function StudentMaterialsPage() {
 
       <Card className="border-0 shadow-lg">
         <CardContent className="p-4 md:p-6">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -352,7 +352,7 @@ export default function StudentMaterialsPage() {
                 className="pl-12 h-12 rounded-xl border-2 focus:border-blue-500"
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 whitespace-nowrap">
+            <div className="flex w-full lg:w-auto gap-2 overflow-x-auto pb-1 lg:pb-0 whitespace-nowrap">
               {subjects.map((subject) => {
                 const value = subject === 'All' ? 'all' : subject
                 const active = selectedSubject === value
@@ -426,12 +426,12 @@ export default function StudentMaterialsPage() {
                     <span className="text-xs text-muted-foreground ml-auto">{formatFileSize(material.file_size)}</span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-muted-foreground mb-4 gap-1.5">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
                       <span>{new Date(material.uploaded_at).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex items-center gap-1 truncate max-w-[55%]">
+                    <div className="flex items-center gap-1 min-w-0 sm:max-w-[55%]">
                       <GraduationCap className="h-3.5 w-3.5 shrink-0" />
                       <span className="truncate">{material.uploader_name || material.teacher_name || '—'}</span>
                     </div>
@@ -457,7 +457,7 @@ export default function StudentMaterialsPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDownloadMaterial(material)}
-                      className="hover:bg-green-100 hover:text-green-700 hover:border-green-300"
+                      className="hover:bg-green-100 hover:text-green-700 hover:border-green-300 w-10 sm:w-auto"
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -507,7 +507,7 @@ export default function StudentMaterialsPage() {
           }
         }}
       >
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{previewMaterial?.title || previewMaterial?.file_name || 'Material Preview'}</DialogTitle>
             <DialogDescription>Preview metadata and document details</DialogDescription>
@@ -535,7 +535,7 @@ export default function StudentMaterialsPage() {
               </div>
 
               {isPdf(previewMaterial.mime_type, previewMaterial.file_name) ? (
-                <div className="border rounded-md overflow-hidden h-[65vh] bg-muted/20">
+                <div className="border rounded-md overflow-hidden h-[56vh] min-h-[300px] md:h-[65vh] bg-muted/20">
                   {previewLoading ? (
                     <div className="h-full flex items-center justify-center text-muted-foreground gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -550,7 +550,7 @@ export default function StudentMaterialsPage() {
                   )}
                 </div>
               ) : previewMaterial.mime_type.toLowerCase().startsWith('video/') && previewUrl ? (
-                <div className="border rounded-md overflow-hidden h-[65vh] bg-black/90">
+                <div className="border rounded-md overflow-hidden h-[56vh] min-h-[300px] md:h-[65vh] bg-black/90">
                   <video src={previewUrl} controls className="w-full h-full" />
                 </div>
               ) : (

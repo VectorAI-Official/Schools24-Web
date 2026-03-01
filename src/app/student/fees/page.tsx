@@ -57,13 +57,13 @@ export default function StudentFeesPage() {
                         <p className="text-muted-foreground">View and pay your school fees</p>
                     </div>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" onClick={handleViewStatement}>
+                <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                    <Button variant="outline" onClick={handleViewStatement} className="w-full sm:w-auto">
                         <FileText className="mr-2 h-4 w-4" />
                         View Statement
                     </Button>
                     <Button
-                        className="bg-gradient-to-r from-emerald-500 to-teal-600 border-0 shadow-lg shadow-emerald-500/20 opacity-60 cursor-not-allowed"
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 border-0 shadow-lg shadow-emerald-500/20 opacity-60 cursor-not-allowed w-full sm:w-auto"
                         onClick={handlePayNow}
                         aria-disabled="true"
                     >
@@ -172,12 +172,12 @@ export default function StudentFeesPage() {
                         {feeBreakdown.map((fee, index) => (
                             <div
                                 key={fee.id}
-                                className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${fee.status === 'paid' ? 'border-green-200 bg-green-50/50 dark:bg-green-950/20 hover:border-green-300' :
+                                className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${fee.status === 'paid' ? 'border-green-200 bg-green-50/50 dark:bg-green-950/20 hover:border-green-300' :
                                         fee.status === 'partial' ? 'border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20 hover:border-yellow-300' :
                                             'border-red-200 bg-red-50/50 dark:bg-red-950/20 hover:border-red-300'
                                     } stagger-${index + 1} animate-slide-up`}
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 min-w-0">
                                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl">
                                         <FileText className="h-5 w-5" />
                                     </div>
@@ -188,7 +188,7 @@ export default function StudentFeesPage() {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
                                     <div className="text-right">
                                         <p className="font-bold text-lg">{formatCurrency(fee.amount - fee.paid_amount)}</p>
                                         <p className="text-xs text-muted-foreground">Remaining</p>
@@ -236,9 +236,9 @@ export default function StudentFeesPage() {
                         {paymentHistory.map((payment, index) => (
                             <div
                                 key={payment.id}
-                                className={`flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 hover:shadow-md bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 stagger-${index + 1} animate-slide-up`}
+                                className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-2xl border transition-all duration-300 hover:shadow-md bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 stagger-${index + 1} animate-slide-up`}
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 min-w-0">
                                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/20">
                                         <Receipt className="h-6 w-6" />
                                     </div>
@@ -253,7 +253,7 @@ export default function StudentFeesPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
                                     <Badge variant="success" className="px-3 py-1">
                                         <Sparkles className="h-3 w-3 mr-1" />
                                         Success
@@ -262,7 +262,7 @@ export default function StudentFeesPage() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleDownloadReceipt(payment.receipt_number)}
-                                        className="hover:bg-green-100 hover:text-green-700 hover:border-green-300"
+                                        className="hover:bg-green-100 hover:text-green-700 hover:border-green-300 w-full sm:w-auto"
                                     >
                                         <Download className="h-4 w-4 mr-2" />
                                         Receipt
@@ -290,7 +290,7 @@ export default function StudentFeesPage() {
                             </div>
                             <Button
                                 size="lg"
-                                className="bg-white text-emerald-600 shadow-xl px-8 opacity-60 cursor-not-allowed"
+                                className="bg-white text-emerald-600 shadow-xl px-8 opacity-60 cursor-not-allowed w-full sm:w-auto"
                                 onClick={handlePayNow}
                                 aria-disabled="true"
                             >

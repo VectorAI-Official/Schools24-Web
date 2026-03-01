@@ -207,7 +207,7 @@ export default function StudentDashboard() {
 
     return (
         <div className="rounded-xl p-3 sm:p-4 md:p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 max-w-[1600px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 w-full">
                 {hasDataError && (
                     <div className="order-0 lg:col-span-12">
                         <Card className="border border-red-200 bg-red-50">
@@ -257,7 +257,7 @@ export default function StudentDashboard() {
                 <div className="order-2 lg:order-none lg:col-span-6 lg:col-start-4 lg:row-start-2">
                     <Card className="border-0 shadow-sm bg-card overflow-hidden">
                         <CardContent className="p-4 md:p-6">
-                            <div className="flex items-center justify-between mb-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
                                 <h3 className="font-bold text-foreground flex items-center gap-2 text-sm tracking-wide uppercase">
                                     <Zap className="w-4 h-4 text-amber-500" />
                                     Quick Actions
@@ -345,7 +345,7 @@ export default function StudentDashboard() {
                     <Card className="border-0 shadow-sm bg-card overflow-hidden">
                         <CardContent className="p-5">
                             {/* Leaderboard Header */}
-                            <div className="flex items-center justify-between mb-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
                                         <Crown className="w-5 h-5 text-white" />
@@ -443,7 +443,7 @@ export default function StudentDashboard() {
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-teal-200/50 via-transparent to-transparent" />
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-emerald-200/40 via-transparent to-transparent" />
                         <CardContent className="p-4 md:p-6 relative z-10">
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/30">
                                         <Target className="w-6 h-6 text-white" />
@@ -469,13 +469,13 @@ export default function StudentDashboard() {
                     </Card>
 
                     {/* Professional Seamless Assessment Tracker - Static In-Flow */}
-                    <div className="relative mt-16 w-full
+                    <div className="relative mt-16 w-full overflow-x-auto
                                     transition-all duration-500 ease-out 
                                     animate-in slide-in-from-bottom-5 fade-in
                                     group/tracker select-none">
 
                         {/* Inner Container for Padding */}
-                        <div className="px-0 pt-12">
+                        <div className="px-0 pt-12 min-w-[640px]">
                             {/* Floating Labels - Appear ABOVE the bar on hover */}
                             <div className="absolute top-0 left-0 w-full px-2 flex justify-between items-end z-20">
                                 {assessmentStages.map((exam) => (

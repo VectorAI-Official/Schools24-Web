@@ -201,11 +201,11 @@ export default function StudentLeaderboardPage() {
     const modeLabel = mode === 'quiz' ? 'Quiz' : mode === 'assessments' ? 'My Class' : 'Whole School'
 
     return (
-        <div className="min-h-screen bg-background p-4 md:p-6">
-            <div className="max-w-[1200px] mx-auto space-y-6">
+        <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6">
+            <div className="max-w-[1200px] mx-auto space-y-5 md:space-y-6">
 
                 {/* Header */}
-                <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-start sm:items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-4">
                         <div>
                             <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
@@ -226,13 +226,13 @@ export default function StudentLeaderboardPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         {/* Quiz & Assessments dropdown */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="outline"
-                                    className="border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-semibold px-4 py-2.5 rounded-xl text-sm"
+                                    className="w-full sm:w-auto border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-semibold px-4 py-2.5 rounded-xl text-sm"
                                 >
                                     {mode === 'quiz'
                                         ? <BookOpen className="w-4 h-4 mr-2" />
@@ -273,7 +273,7 @@ export default function StudentLeaderboardPage() {
                         </DropdownMenu>
 
                         <Button
-                            className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-sm tracking-wide border-0"
+                            className="w-full sm:w-auto bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-sm tracking-wide border-0"
                             onClick={() => router.push('/student/performance')}
                         >
                             <BarChart3 className="w-4 h-4 mr-2" />
@@ -357,7 +357,7 @@ export default function StudentLeaderboardPage() {
                                                 <div
                                                     key={entry.student_id}
                                                     className={cn(
-                                                        'flex items-center gap-4 p-3.5 rounded-xl border transition-all',
+                                                        'flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3.5 rounded-xl border transition-all',
                                                         entry.is_current_student
                                                             ? 'bg-teal-50 border-teal-200'
                                                             : 'bg-muted/50 border-transparent hover:bg-card hover:border-border'
@@ -371,7 +371,7 @@ export default function StudentLeaderboardPage() {
                                                             {getInitials(entry.student_name)}
                                                         </AvatarFallback>
                                                     </Avatar>
-                                                    <div className="flex-1 min-w-0">
+                                                    <div className="flex-1 min-w-0 w-full">
                                                         <div className="flex items-center gap-2">
                                                             <p className="font-semibold text-sm text-slate-800 truncate">{entry.student_name}</p>
                                                             {entry.is_current_student && (
@@ -382,7 +382,7 @@ export default function StudentLeaderboardPage() {
                                                             {entry.assessments_with_scores}/{entry.total_assessments} assessments
                                                         </p>
                                                     </div>
-                                                    <div className="text-right">
+                                                    <div className="text-left sm:text-right w-full sm:w-auto">
                                                         <p className={cn(
                                                             'text-lg font-bold',
                                                             entry.is_current_student ? 'text-teal-600' : 'text-slate-700'
@@ -478,7 +478,7 @@ export default function StudentLeaderboardPage() {
                                                 <div
                                                     key={entry.student_id}
                                                     className={cn(
-                                                        'flex items-center gap-4 p-3.5 rounded-xl border transition-all',
+                                                        'flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3.5 rounded-xl border transition-all',
                                                         entry.is_current_student
                                                             ? 'bg-teal-50 border-teal-200'
                                                             : 'bg-muted/50 border-transparent hover:bg-card hover:border-border'
@@ -500,7 +500,7 @@ export default function StudentLeaderboardPage() {
                                                             {getInitials(entry.student_name)}
                                                         </AvatarFallback>
                                                     </Avatar>
-                                                    <div className="flex-1 min-w-0">
+                                                    <div className="flex-1 min-w-0 w-full">
                                                         <div className="flex items-center gap-2">
                                                             <p className="font-semibold text-sm text-slate-800 truncate">{entry.student_name}</p>
                                                             {entry.is_current_student && (
@@ -511,7 +511,7 @@ export default function StudentLeaderboardPage() {
                                                             {entry.class_name} · {entry.assessments_with_scores} exam{entry.assessments_with_scores !== 1 ? 's' : ''}
                                                         </p>
                                                     </div>
-                                                    <div className="text-right">
+                                                    <div className="text-left sm:text-right w-full sm:w-auto">
                                                         <p className={cn(
                                                             'text-lg font-bold',
                                                             entry.is_current_student ? 'text-teal-600' : 'text-slate-700'
@@ -613,7 +613,7 @@ export default function StudentLeaderboardPage() {
 
                                 {/* Top 3 Podium */}
                                 {top3.length > 0 && (
-                                    <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                                         {top3.map((entry) => (
                                             <Card
                                                 key={entry.student_id}
@@ -668,7 +668,7 @@ export default function StudentLeaderboardPage() {
                                 {/* Full Rankings */}
                                 <Card className="border-0 shadow-sm bg-card overflow-hidden">
                                     <CardContent className="p-4 md:p-6">
-                                        <div className="flex items-center justify-between mb-6">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                                             <div className="flex items-center gap-2.5">
                                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
                                                     <Flame className="h-4.5 w-4.5 text-white" />
@@ -692,7 +692,7 @@ export default function StudentLeaderboardPage() {
                                                     <div
                                                         key={entry.student_id}
                                                         className={cn(
-                                                            'flex items-center gap-4 p-3.5 rounded-xl transition-all duration-300 hover:shadow-md cursor-pointer group',
+                                                            'flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3.5 rounded-xl transition-all duration-300 hover:shadow-md cursor-pointer group',
                                                             entry.is_current_student
                                                                 ? 'bg-gradient-to-r from-teal-50 via-emerald-50/60 to-cyan-50/40 border border-teal-200 shadow-sm'
                                                                 : isTop3
@@ -738,12 +738,12 @@ export default function StudentLeaderboardPage() {
                                                         </div>
 
                                                         {/* Rating */}
-                                                        <div className="flex items-center gap-3 flex-shrink-0">
-                                                            <div className="text-right">
+                                                        <div className="flex items-center gap-3 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                                                            <div className="text-left sm:text-right">
                                                                 <div className="flex items-center gap-1.5 justify-end">
                                                                     <StarRating rating={entry.rating} size="sm" />
                                                                     <p className={cn(
-                                                                        'text-lg font-bold min-w-[3.2rem] text-right',
+                                                                        'text-lg font-bold min-w-[2.8rem] sm:min-w-[3.2rem] text-right',
                                                                         entry.is_current_student ? 'text-teal-600' : isTop3 ? getScoreColor(entry.rank) : 'text-slate-700'
                                                                     )}>
                                                                         {entry.rating.toFixed(2)}
@@ -751,7 +751,7 @@ export default function StudentLeaderboardPage() {
                                                                 </div>
                                                                 <p className="text-[10px] text-slate-400 text-right">{entry.avg_best_pct.toFixed(1)}% avg</p>
                                                             </div>
-                                                            <ChevronRight className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            <ChevronRight className="hidden sm:block w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                                         </div>
                                                     </div>
                                                 )

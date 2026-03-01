@@ -95,7 +95,7 @@ export default function StudentEventsPage() {
                     </div>
                 </div>
                 <Button
-                    className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 border-0 shadow-lg shadow-blue-500/20"
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 border-0 shadow-lg shadow-blue-500/20"
                     onClick={() => router.push('/student/calendar')}
                 >
                     <Calendar className="mr-2 h-4 w-4" />
@@ -178,12 +178,12 @@ export default function StudentEventsPage() {
                                 key={event.id}
                                 className={`p-5 rounded-2xl border-2 border-transparent transition-all duration-300 hover:shadow-xl bg-gradient-to-r ${getEventBg(event.type)} stagger-${(index % 5) + 1} animate-slide-up`}
                             >
-                                <div className="flex gap-5">
+                                <div className="flex flex-col sm:flex-row gap-5">
                                     <div className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${getEventColor(event.type)} text-white shadow-lg`}>
                                         {getEventIcon(event.type)}
                                     </div>
                                     <div className="flex-1">
-                                        <div className="flex items-start justify-between mb-2">
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-2">
                                             <div>
                                                 <h3 className="font-bold text-lg">{event.title}</h3>
                                                 <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
@@ -212,12 +212,12 @@ export default function StudentEventsPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex gap-3 mt-4">
+                                        <div className="flex flex-col sm:flex-row gap-3 mt-4">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => handleSetReminder(event.title)}
-                                                className="hover:bg-blue-100 hover:text-blue-700 hover:border-blue-300"
+                                                className="w-full sm:w-auto hover:bg-blue-100 hover:text-blue-700 hover:border-blue-300"
                                             >
                                                 <Bell className="h-4 w-4 mr-2" />
                                                 Set Reminder
@@ -226,7 +226,7 @@ export default function StudentEventsPage() {
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => handleViewDetails(event.title)}
-                                                className="hover:bg-violet-100 hover:text-violet-700 hover:border-violet-300"
+                                                className="w-full sm:w-auto hover:bg-violet-100 hover:text-violet-700 hover:border-violet-300"
                                             >
                                                 <ExternalLink className="h-4 w-4 mr-2" />
                                                 View Details
@@ -255,7 +255,7 @@ export default function StudentEventsPage() {
                         </div>
                         <Button
                             size="lg"
-                            className="bg-white text-blue-600 hover:bg-blue-50 shadow-xl px-8"
+                            className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 shadow-xl px-8"
                             onClick={() => router.push('/student/calendar')}
                         >
                             <Calendar className="mr-2 h-5 w-5" />

@@ -139,37 +139,33 @@ export default function TeachPage() {
       .sort((a, b) => compareClassLabels(a.className, b.className))
   }, [timetableData?.timetable])
 
-  useEffect(() => {
-    if (classOptions.length > 0 && !selectedClassId) {
-      setSelectedClassId(classOptions[0].classID)
-    }
-  }, [classOptions, selectedClassId])
+  const effectiveSelectedClassId = selectedClassId || classOptions[0]?.classID || ""
 
   const subjectOptions = useMemo(() => {
-    if (!selectedClassId) return []
+    if (!effectiveSelectedClassId) return []
     const set = new Set<string>()
     for (const row of timetableData?.timetable || []) {
-      if (row.class_id !== selectedClassId) continue
+      if (row.class_id !== effectiveSelectedClassId) continue
       const subject = (row.subject_name || "").trim()
       if (subject) set.add(subject)
     }
     return [...set].sort((a, b) => a.localeCompare(b))
-  }, [selectedClassId, timetableData?.timetable])
+  }, [effectiveSelectedClassId, timetableData?.timetable])
 
   useEffect(() => {
-    if (!selectedClassId) {
+    if (!effectiveSelectedClassId) {
       setSelectedSubject("")
       return
     }
     if (!subjectOptions.includes(selectedSubject)) {
       setSelectedSubject(subjectOptions[0] || "")
     }
-  }, [selectedClassId, subjectOptions, selectedSubject])
+  }, [effectiveSelectedClassId, subjectOptions, selectedSubject])
 
   const selectedClassName = useMemo(() => {
-    const selected = classOptions.find((x) => x.classID === selectedClassId)
+    const selected = classOptions.find((x) => x.classID === effectiveSelectedClassId)
     return selected?.className || ""
-  }, [selectedClassId, classOptions])
+  }, [effectiveSelectedClassId, classOptions])
 
   const { data: materialsData, isLoading: isMaterialsLoading } = useQuery({
     queryKey: ["teacher-teach-materials", selectedClassName, selectedSubject, debouncedSearch],
@@ -271,14 +267,14 @@ export default function TeachPage() {
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
             <div className="flex flex-col md:flex-row gap-3 flex-1">
               <Select
-                value={selectedClassId}
+                value={effectiveSelectedClassId}
                 onValueChange={(value) => {
                   setSelectedClassId(value)
                   setSelectedSubject("")
                   setSelectedMaterial(null)
                 }}
               >
-                <SelectTrigger className="w-full md:w-[240px]">
+                <SelectTrigger className="w-full sm:w-[240px]">
                   <GraduationCap className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
@@ -291,10 +287,10 @@ export default function TeachPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={selectedSubject} onValueChange={setSelectedSubject} disabled={!selectedClassId}>
-                <SelectTrigger className="w-full md:w-[260px]">
+              <Select value={selectedSubject} onValueChange={setSelectedSubject} disabled={!effectiveSelectedClassId}>
+                <SelectTrigger className="w-full sm:w-[260px]">
                   <BookOpen className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder={selectedClassId ? "Select subject" : "Select class first"} />
+                  <SelectValue placeholder={effectiveSelectedClassId ? "Select subject" : "Select class first"} />
                 </SelectTrigger>
                 <SelectContent>
                   {subjectOptions.map((subject) => (
@@ -307,7 +303,7 @@ export default function TeachPage() {
             </div>
 
             <Link href="/teacher/teach/whiteboard" className="xl:ml-auto">
-              <Button className="w-full xl:w-auto">
+              <Button className="w-full sm:w-auto xl:w-auto">
                 <Monitor className="h-4 w-4 mr-2" />
                 Whiteboard
               </Button>
@@ -318,7 +314,7 @@ export default function TeachPage() {
 
       <div
         className={`grid gap-4 grid-cols-1 ${
-          listCollapsed ? "xl:grid-cols-[56px_minmax(0,1fr)]" : "xl:grid-cols-[360px_minmax(0,1fr)]"
+          listCollapsed ? "lg:grid-cols-[56px_minmax(0,1fr)]" : "lg:grid-cols-[360px_minmax(0,1fr)]"
         }`}
       >
         <Card className={listCollapsed ? "xl:col-span-1" : ""}>
@@ -378,12 +374,12 @@ export default function TeachPage() {
         <Card>
           <CardContent>
             {!selectedMaterial ? (
-              <div className="h-[600px] flex items-center justify-center text-muted-foreground border rounded-lg">
+              <div className="h-[52vh] min-h-[320px] md:h-[600px] flex items-center justify-center text-muted-foreground border rounded-lg">
                 Select a material to preview.
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="h-[650px] border rounded-lg overflow-hidden bg-muted/20">
+                <div className="h-[58vh] min-h-[360px] md:h-[650px] border rounded-lg overflow-hidden bg-muted/20">
                   {previewLoading ? (
                     <div className="h-full flex items-center justify-center text-muted-foreground gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" /> Loading preview...

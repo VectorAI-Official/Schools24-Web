@@ -23,11 +23,11 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="flex h-screen bg-background">
+        <div className="flex h-[100dvh] bg-background">
             <Sidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />
-                <main className="flex-1 overflow-auto p-3 md:p-6">
+                <main className="flex-1 overflow-auto p-2 sm:p-3 md:p-6">
                     <div className="mx-auto w-full max-w-[1600px]">
                         {children}
                     </div>

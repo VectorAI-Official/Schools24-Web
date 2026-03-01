@@ -543,7 +543,7 @@ export default function QuizSchedulerPage() {
             Create and schedule quizzes for your classes
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full sm:w-auto items-center gap-2 flex-wrap">
           <Dialog
             open={openSubjectManagement}
             onOpenChange={(open) => {
@@ -552,12 +552,12 @@ export default function QuizSchedulerPage() {
             }}
           >
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full sm:w-auto">
                 <BookOpen className="mr-2 h-4 w-4" />
                 Subject Management
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Subject Management</DialogTitle>
                 <DialogDescription>
@@ -577,7 +577,7 @@ export default function QuizSchedulerPage() {
                         setEditingChapterName("");
                       }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select class" />
                       </SelectTrigger>
                       <SelectContent>
@@ -600,7 +600,7 @@ export default function QuizSchedulerPage() {
                       }}
                       disabled={!managementClassID}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue
                           placeholder={
                             managementClassID
@@ -619,7 +619,7 @@ export default function QuizSchedulerPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     value={newChapterName}
                     onChange={(e) => setNewChapterName(e.target.value)}
@@ -627,6 +627,7 @@ export default function QuizSchedulerPage() {
                     disabled={!managementClassID || !managementSubjectID}
                   />
                   <Button
+                    className="w-full sm:w-auto"
                     type="button"
                     onClick={() => createChapterMutation.mutate()}
                     disabled={
@@ -655,7 +656,7 @@ export default function QuizSchedulerPage() {
                     managedChapters.map((chapter) => (
                       <div
                         key={chapter.id}
-                        className="flex items-center gap-2 border rounded-md p-2"
+                        className="flex flex-col sm:flex-row sm:items-center gap-2 border rounded-md p-2"
                       >
                         {editingChapterID === chapter.id ? (
                           <>
@@ -685,7 +686,7 @@ export default function QuizSchedulerPage() {
                           </>
                         ) : (
                           <>
-                            <span className="flex-1 flex items-center gap-2">
+                            <span className="flex-1 flex items-center gap-2 min-w-0 break-words">
                               {chapter.chapter_name}
                               {chapter.chapter_source === "platform" ? (
                                 <Badge variant="secondary">Platform</Badge>
@@ -729,12 +730,12 @@ export default function QuizSchedulerPage() {
           </Dialog>
           <Dialog open={openCreate} onOpenChange={setOpenCreate}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Quiz
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Quiz</DialogTitle>
                 <DialogDescription>
@@ -761,7 +762,7 @@ export default function QuizSchedulerPage() {
                         setChapterName("");
                       }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select class" />
                       </SelectTrigger>
                       <SelectContent>
@@ -783,7 +784,7 @@ export default function QuizSchedulerPage() {
                       }}
                       disabled={!classID}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue
                           placeholder={
                             classID ? "Select subject" : "Select class first"
@@ -806,7 +807,7 @@ export default function QuizSchedulerPage() {
                       onValueChange={setChapterName}
                       disabled={!classID || !subjectID}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue
                           placeholder={
                             subjectID
@@ -838,7 +839,7 @@ export default function QuizSchedulerPage() {
                   />
                   <Label htmlFor="create-anytime">AnyTime</Label>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="grid gap-2">
                     <Label>Date</Label>
                     <Input
@@ -893,7 +894,7 @@ export default function QuizSchedulerPage() {
                   {questions.map((q, qIdx) => (
                     <Card key={`q-${qIdx}`}>
                       <CardContent className="p-4 space-y-3">
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <Input
                             value={q.question_text}
                             onChange={(e) =>
@@ -902,7 +903,7 @@ export default function QuizSchedulerPage() {
                             placeholder={`Question ${qIdx + 1}`}
                           />
                           <Input
-                            className="w-24"
+                            className="w-full sm:w-24"
                             type="number"
                             min={1}
                             value={q.marks}
@@ -928,7 +929,7 @@ export default function QuizSchedulerPage() {
                           {q.options.map((opt, oIdx) => (
                             <div
                               key={`q-${qIdx}-o-${oIdx}`}
-                              className="flex items-center gap-2"
+                              className="flex flex-col sm:flex-row sm:items-center gap-2"
                             >
                               <input
                                 type="checkbox"
@@ -969,11 +970,12 @@ export default function QuizSchedulerPage() {
                   ))}
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpenCreate(false)}>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button className="w-full sm:w-auto" variant="outline" onClick={() => setOpenCreate(false)}>
                   Cancel
                 </Button>
                 <Button
+                  className="w-full sm:w-auto"
                   onClick={() => createMutation.mutate()}
                   disabled={createMutation.isPending}
                 >
@@ -1012,7 +1014,7 @@ export default function QuizSchedulerPage() {
                   setSubjectFilter("all");
                 }}
               >
-                <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <GraduationCap className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="All Classes" />
                 </SelectTrigger>
@@ -1030,7 +1032,7 @@ export default function QuizSchedulerPage() {
                 onValueChange={setSubjectFilter}
                 disabled={classFilter === "all"}
               >
-                <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <FileText className="h-4 w-4 mr-2" />
                   <SelectValue
                     placeholder={
@@ -1204,7 +1206,7 @@ export default function QuizSchedulerPage() {
 
       {/* ── Edit Quiz Dialog ── */}
       <Dialog open={openEdit} onOpenChange={(v) => { setOpenEdit(v); if (!v) setEditQuiz(null); }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Quiz</DialogTitle>
             <DialogDescription>Update the quiz details below.</DialogDescription>
@@ -1224,7 +1226,7 @@ export default function QuizSchedulerPage() {
               />
               <Label htmlFor="edit-anytime">AnyTime</Label>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Date</Label>
                 <Input type="date" value={editScheduledDate} onChange={(e) => setEditScheduledDate(e.target.value)} disabled={editIsAnytime} />
@@ -1239,9 +1241,10 @@ export default function QuizSchedulerPage() {
               <Input type="number" min={1} value={editDuration} onChange={(e) => setEditDuration(e.target.value)} />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancel</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button className="w-full sm:w-auto" variant="outline" onClick={() => setOpenEdit(false)}>Cancel</Button>
             <Button
+              className="w-full sm:w-auto"
               disabled={updateQuizMutation.isPending}
               onClick={() => {
                 if (!editQuiz) return;
@@ -1263,14 +1266,15 @@ export default function QuizSchedulerPage() {
 
       {/* ── Delete Confirm Dialog ── */}
       <Dialog open={!!deleteQuizId} onOpenChange={(v) => { if (!v) setDeleteQuizId(null); }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="w-[95vw] max-w-sm">
           <DialogHeader>
             <DialogTitle>Delete Quiz?</DialogTitle>
             <DialogDescription>This will permanently delete the quiz and all its questions. This action cannot be undone.</DialogDescription>
           </DialogHeader>
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setDeleteQuizId(null)}>Cancel</Button>
+          <DialogFooter className="mt-4 flex-col sm:flex-row gap-2">
+            <Button className="w-full sm:w-auto" variant="outline" onClick={() => setDeleteQuizId(null)}>Cancel</Button>
             <Button
+              className="w-full sm:w-auto"
               variant="destructive"
               disabled={deleteQuizMutation.isPending}
               onClick={() => { if (deleteQuizId) deleteQuizMutation.mutate(deleteQuizId); }}
@@ -1284,7 +1288,7 @@ export default function QuizSchedulerPage() {
 
       {/* ── Add Question Dialog ── */}
       <Dialog open={openAddQ} onOpenChange={(v) => { setOpenAddQ(v); if (!v) { resetAddQ(); setAddQQuizId(null); } }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Question</DialogTitle>
             <DialogDescription>Add a new question with options to this quiz.</DialogDescription>
@@ -1328,8 +1332,8 @@ export default function QuizSchedulerPage() {
               </Button>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setOpenAddQ(false); resetAddQ(); }}>Cancel</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button className="w-full sm:w-auto" variant="outline" onClick={() => { setOpenAddQ(false); resetAddQ(); }}>Cancel</Button>
             <Button disabled={addQuestionMutation.isPending} onClick={() => addQuestionMutation.mutate()}>
               {addQuestionMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Add Question

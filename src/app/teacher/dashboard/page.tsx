@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
     Users,
     BookOpen,
@@ -105,7 +105,7 @@ export default function TeacherDashboard() {
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-teal-700 to-emerald-600 dark:from-teal-400 dark:to-emerald-200 bg-clip-text text-transparent">Welcome back, {teacherName}!</h1>
                     <p className="text-muted-foreground mt-1">Here&apos;s what&apos;s on your schedule today.</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3 w-full sm:w-auto">
                     <Button variant="outline" className="hidden md:flex">
                         <Calendar className="mr-2 h-4 w-4" />
                         {new Date().toLocaleDateString('en-US', {
@@ -235,11 +235,11 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Bottom Row */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
                 {/* Upcoming Quizzes */}
                 <Card>
                     <CardHeader>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <CardTitle>Scheduled Quizzes</CardTitle>
                             <Button variant="ghost" size="sm" onClick={() => { window.location.href = '/teacher/quiz-scheduler' }}>View All</Button>
                         </div>
@@ -249,7 +249,7 @@ export default function TeacherDashboard() {
                             {upcomingQuizzes.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">No quizzes found</p>
                             ) : upcomingQuizzes.slice(0, 3).map((quiz) => (
-                                <div key={quiz.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted transition-colors">
+                                <div key={quiz.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 rounded-lg hover:bg-muted transition-colors">
                                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                         <FileText className="h-5 w-5" />
                                     </div>
@@ -257,7 +257,7 @@ export default function TeacherDashboard() {
                                         <p className="font-medium truncate">{quiz.title}</p>
                                         <p className="text-sm text-muted-foreground">{quiz.subject_name} • {quiz.class_name}</p>
                                     </div>
-                                    <div className="text-right shrink-0">
+                                    <div className="text-left sm:text-right shrink-0 w-full sm:w-auto">
                                         {quiz.is_anytime ? (
                                             <Badge variant="secondary">Anytime</Badge>
                                         ) : (
@@ -274,7 +274,7 @@ export default function TeacherDashboard() {
                 {/* Recent Student Activity */}
                 <Card>
                     <CardHeader>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <CardTitle>Student Activity</CardTitle>
                             <Button variant="ghost" size="sm" onClick={() => { window.location.href = '/teacher/homework' }}>View All</Button>
                         </div>
@@ -284,7 +284,7 @@ export default function TeacherDashboard() {
                             {recentActivity.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">No recent homework submissions</p>
                             ) : recentActivity.slice(0, 4).map((student) => (
-                                <div key={`${student.homework_id}-${student.student_id}-${student.submitted_at}`} className="flex items-center gap-4">
+                                <div key={`${student.homework_id}-${student.student_id}-${student.submitted_at}`} className="flex flex-col sm:flex-row sm:items-center gap-4">
                                     <Avatar>
                                         <AvatarFallback>{getInitials(student.student_name)}</AvatarFallback>
                                     </Avatar>
@@ -292,7 +292,7 @@ export default function TeacherDashboard() {
                                         <p className="font-medium">{student.student_name}</p>
                                         <p className="text-sm text-muted-foreground">{student.homework_title} • {new Date(student.submitted_at).toLocaleString()}</p>
                                     </div>
-                                    <Badge variant="success">
+                                    <Badge variant="success" className="w-full sm:w-auto justify-center">
                                         <CheckCircle className="h-3 w-3 mr-1" />
                                         {student.status === 'graded' ? 'Graded' : 'Submitted'}
                                     </Badge>

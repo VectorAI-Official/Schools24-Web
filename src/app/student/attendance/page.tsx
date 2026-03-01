@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar, CheckCircle, XCircle, Clock, Download, CalendarDays } from 'lucide-react'
@@ -24,15 +24,10 @@ type MonthlyRow = {
 }
 
 export default function StudentAttendancePage() {
-    const [mounted, setMounted] = useState(false)
     const { data, isLoading, isError } = useStudentAttendance({}, true)
 
-    useEffect(() => {
-        setMounted(true)
-    }, [])
-
     const stats = data?.stats
-    const records = data?.attendance ?? []
+    const records = useMemo(() => data?.attendance ?? [], [data?.attendance])
 
     const recentAttendance = useMemo(() => records.slice(0, 7), [records])
 
@@ -53,7 +48,7 @@ export default function StudentAttendancePage() {
         return Array.from(grouped.entries())
             .sort((a, b) => a[1].ts - b[1].ts)
             .slice(-6)
-            .map(([_, row]) => ({
+            .map(([, row]) => ({
                 month: new Date(row.ts).toLocaleDateString('en-US', { month: 'short' }),
                 present: row.present,
                 absent: row.absent,
@@ -81,7 +76,7 @@ export default function StudentAttendancePage() {
                         <p className="text-muted-foreground">Track your attendance record</p>
                     </div>
                 </div>
-                <Button disabled title="Coming soon" className="bg-gradient-to-r from-green-500 to-emerald-600 border-0 shadow-lg shadow-green-500/20 disabled:opacity-60">
+                <Button disabled title="Coming soon" className="bg-gradient-to-r from-green-500 to-emerald-600 border-0 shadow-lg shadow-green-500/20 disabled:opacity-60 w-full sm:w-auto">
                     <Download className="mr-2 h-4 w-4" />
                     Download Report
                 </Button>
@@ -166,8 +161,8 @@ export default function StudentAttendancePage() {
                     <CardDescription>Your attendance trend over the academic year</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {mounted && !isLoading && (
-                        <div className="h-[350px]">
+                    {!isLoading && (
+                        <div className="h-[280px] sm:h-[350px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={monthlyData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

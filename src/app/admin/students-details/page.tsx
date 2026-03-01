@@ -31,7 +31,7 @@ import {
     RefreshCw,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useStudents, useStudentMutations, useCreateStudent } from '@/hooks/useAdminStudents'
+import { useStudents, useStudentMutations, useCreateStudent, type Student, type CreateStudentPayload } from '@/hooks/useAdminStudents'
 import { useClasses } from '@/hooks/useClasses'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
@@ -65,10 +65,9 @@ export default function StudentsDetailsPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-        isLoading
     } = useStudents(debouncedSearch, 20, schoolId)
 
-    const { updateStudent, deleteStudent, isDeleting } = useStudentMutations()
+    const { updateStudent, deleteStudent } = useStudentMutations()
     const createStudent = useCreateStudent()
     const { data: classesData, isLoading: classesLoading } = useClasses()
 
@@ -96,7 +95,7 @@ export default function StudentsDetailsPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
-    const [selectedStudent, setSelectedStudent] = useState<any | null>(null)
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
     // Derived Logic (Client-side filtering for non-search fields for now)
     const filteredStudents = students.filter(student => {
@@ -139,18 +138,18 @@ export default function StudentsDetailsPage() {
     }))
 
     // Handlers
-    const handleAddStudent = (newStudentData: any) => {
+    const handleAddStudent = (newStudentData: CreateStudentPayload) => {
         createStudent.mutate(newStudentData, {
             onSuccess: () => setIsAddDialogOpen(false)
         })
     }
 
-    const handleEditStudent = async (id: string, data: any) => {
+    const handleEditStudent = async (id: string, data: Partial<Student>) => {
         try {
             await updateStudent({ id, data })
             setIsEditDialogOpen(false)
             setSelectedStudent(null)
-        } catch (error) {
+        } catch {
             // Toast handled by mutation
         }
     }
@@ -163,7 +162,7 @@ export default function StudentsDetailsPage() {
             setIsDeleteDialogOpen(false)
             setSelectedStudent(null)
             // Toast handled in mutation onSuccess
-        } catch (error) {
+        } catch {
             // Toast handled in mutation onError
         }
     }
@@ -189,7 +188,7 @@ export default function StudentsDetailsPage() {
         toast.success('Export completed')
     }
 
-    const handleToggleFeeStatus = (student: any) => {
+    const handleToggleFeeStatus = () => {
         toast.info('Fee management coming soon')
     }
 
@@ -229,17 +228,17 @@ export default function StudentsDetailsPage() {
                     <h1 className="text-xl md:text-3xl font-bold">Students Details</h1>
                     <p className="text-muted-foreground">View and manage all student records</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" onClick={handleImport}>
+                <div className="flex flex-wrap gap-3">
+                    <Button variant="outline" onClick={handleImport} className="w-full sm:w-auto">
                         <Upload className="mr-2 h-4 w-4" />
                         Import
                     </Button>
-                    <Button variant="outline" onClick={exportStudents}>
+                    <Button variant="outline" onClick={exportStudents} className="w-full sm:w-auto">
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
                     <Button
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90"
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 w-full sm:w-auto"
                         onClick={() => setIsAddDialogOpen(true)}
                     >
                         <UserPlus className="mr-2 h-4 w-4" />
@@ -255,7 +254,7 @@ export default function StudentsDetailsPage() {
             <Card>
                 <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="relative flex-1 max-w-sm">
+                        <div className="relative w-full md:flex-1 md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search students..."
@@ -264,21 +263,21 @@ export default function StudentsDetailsPage() {
                                 className="pl-10"
                             />
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex w-full md:w-auto flex-wrap gap-3">
                             <Select value={classFilter} onValueChange={setClassFilter}>
-                                <SelectTrigger className="w-[130px]">
+                                <SelectTrigger className="w-full sm:w-[130px]">
                                     <Filter className="mr-2 h-4 w-4" />
                                     <SelectValue placeholder="Class" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Classes</SelectItem>
-                                    {classes.map((c: any) => (
+                                    {classes.map((c) => (
                                         <SelectItem key={c} value={c}>Class {c}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <Select value={feeFilter} onValueChange={setFeeFilter}>
-                                <SelectTrigger className="w-[130px]">
+                                <SelectTrigger className="w-full sm:w-[130px]">
                                     <SelectValue placeholder="Fee Status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -291,6 +290,7 @@ export default function StudentsDetailsPage() {
                             <Button
                                 variant="outline"
                                 size="icon"
+                                className="w-full sm:w-10"
                                 onClick={() => {
                                     setSearchQuery('')
                                     setClassFilter('all')
@@ -308,9 +308,9 @@ export default function StudentsDetailsPage() {
                         totalStudents={stats.total}
                         fetchTriggerIndex={fetchTriggerIndex}
                         fetchTriggerRef={scrollRef}
-                        onView={(s: any) => { setSelectedStudent(s); setIsViewDialogOpen(true) }}
-                        onEdit={(s: any) => { setSelectedStudent(s); setIsEditDialogOpen(true) }}
-                        onDelete={(s: any) => { setSelectedStudent(s); setIsDeleteDialogOpen(true) }}
+                        onView={(s: Student) => { setSelectedStudent(s); setIsViewDialogOpen(true) }}
+                        onEdit={(s: Student) => { setSelectedStudent(s); setIsEditDialogOpen(true) }}
+                        onDelete={(s: Student) => { setSelectedStudent(s); setIsDeleteDialogOpen(true) }}
                         onToggleFee={handleToggleFeeStatus}
                     />
                     <div className="flex items-center justify-between mt-4">

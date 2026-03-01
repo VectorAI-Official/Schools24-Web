@@ -135,7 +135,7 @@ export default function SchoolConsolePage() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm min-w-[260px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm min-w-0 w-full md:w-auto md:min-w-[260px]">
                 <div className="rounded-lg border border-border bg-muted/30 p-3">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">School Slug</p>
                   <p className="mt-1 font-medium text-foreground">{school.slug || 'N/A'}</p>
@@ -149,44 +149,44 @@ export default function SchoolConsolePage() {
           </CardContent>
         </Card>
 
-        <Tabs value={currentTab} onValueChange={handleTabChange} orientation="vertical" className="flex flex-col md:flex-row gap-3">
-          <aside className={`${isCollapsed ? 'w-12' : 'w-56'} flex-shrink-0 transition-all duration-300 ease-in-out`}>
-            <div className="mb-2 flex justify-end">
+        <Tabs value={currentTab} onValueChange={handleTabChange} orientation="vertical" className="flex flex-col lg:flex-row gap-3">
+          <aside className={`w-full ${isCollapsed ? 'lg:w-12' : 'lg:w-56'} lg:flex-shrink-0 transition-all duration-300 ease-in-out`}>
+            <div className="mb-2 hidden lg:flex justify-end">
               <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:bg-muted hover:text-indigo-600" onClick={() => setIsCollapsed(!isCollapsed)}>
                 {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
               </Button>
             </div>
-            <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 gap-1.5 items-stretch justify-start">
-              <TabsTrigger value="overview" className={`justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
-                <SchoolIcon className={`h-4 w-4 ${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && 'Overview'}
+            <TabsList className="flex lg:flex-col h-auto w-full bg-transparent p-0 gap-1.5 items-stretch justify-start overflow-x-auto lg:overflow-visible">
+              <TabsTrigger value="overview" className={`flex-none lg:flex-auto justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+                <SchoolIcon className={`h-4 w-4 ${isCollapsed ? 'lg:mr-0 mr-3' : 'mr-3'}`} />
+                <span className={isCollapsed ? 'lg:hidden' : ''}>Overview</span>
               </TabsTrigger>
-              <TabsTrigger value="admins" className={`justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
-                <Users className={`h-4 w-4 ${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && 'Admins'}
-                {!isCollapsed && (school.stats?.admins ?? 0) > 0 && (<Badge variant="secondary" className="ml-auto text-xs h-5 px-1.5 min-w-[1.25rem] justify-center">{school.stats?.admins ?? 0}</Badge>)}
+              <TabsTrigger value="admins" className={`flex-none lg:flex-auto justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+                <Users className={`h-4 w-4 ${isCollapsed ? 'lg:mr-0 mr-3' : 'mr-3'}`} />
+                <span className={isCollapsed ? 'lg:hidden' : ''}>Admins</span>
+                {(school.stats?.admins ?? 0) > 0 && (<Badge variant="secondary" className={`ml-auto text-xs h-5 px-1.5 min-w-[1.25rem] justify-center ${isCollapsed ? 'lg:hidden' : ''}`}>{school.stats?.admins ?? 0}</Badge>)}
               </TabsTrigger>
-              <TabsTrigger value="teachers" className={`justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
-                <BookOpen className={`h-4 w-4 ${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && 'Teachers'}
-                {!isCollapsed && (school.stats?.teachers ?? 0) > 0 && (<Badge variant="secondary" className="ml-auto text-xs h-5 px-1.5 min-w-[1.25rem] justify-center">{school.stats?.teachers ?? 0}</Badge>)}
+              <TabsTrigger value="teachers" className={`flex-none lg:flex-auto justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+                <BookOpen className={`h-4 w-4 ${isCollapsed ? 'lg:mr-0 mr-3' : 'mr-3'}`} />
+                <span className={isCollapsed ? 'lg:hidden' : ''}>Teachers</span>
+                {(school.stats?.teachers ?? 0) > 0 && (<Badge variant="secondary" className={`ml-auto text-xs h-5 px-1.5 min-w-[1.25rem] justify-center ${isCollapsed ? 'lg:hidden' : ''}`}>{school.stats?.teachers ?? 0}</Badge>)}
               </TabsTrigger>
-              <TabsTrigger value="students" className={`justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
-                <GraduationCap className={`h-4 w-4 ${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && 'Students'}
-                {!isCollapsed && (school.stats?.students ?? 0) > 0 && (<Badge variant="secondary" className="ml-auto text-xs h-5 px-1.5 min-w-[1.25rem] justify-center">{school.stats?.students ?? 0}</Badge>)}
+              <TabsTrigger value="students" className={`flex-none lg:flex-auto justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+                <GraduationCap className={`h-4 w-4 ${isCollapsed ? 'lg:mr-0 mr-3' : 'mr-3'}`} />
+                <span className={isCollapsed ? 'lg:hidden' : ''}>Students</span>
+                {(school.stats?.students ?? 0) > 0 && (<Badge variant="secondary" className={`ml-auto text-xs h-5 px-1.5 min-w-[1.25rem] justify-center ${isCollapsed ? 'lg:hidden' : ''}`}>{school.stats?.students ?? 0}</Badge>)}
               </TabsTrigger>
-              <TabsTrigger value="staff" className={`justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'justify-center px-0' : ''}`}>
-                <UserCog className={`h-4 w-4 ${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && 'Staff'}
-                {!isCollapsed && (school.stats?.staff ?? 0) > 0 && (<Badge variant="secondary" className="ml-auto text-xs h-5 px-1.5 min-w-[1.25rem] justify-center">{school.stats?.staff ?? 0}</Badge>)}
+              <TabsTrigger value="staff" className={`flex-none lg:flex-auto justify-start px-3 py-2 h-9 text-sm font-medium data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none bg-card border border-border/70 data-[state=active]:border-indigo-100 hover:bg-muted/40 transition-colors ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+                <UserCog className={`h-4 w-4 ${isCollapsed ? 'lg:mr-0 mr-3' : 'mr-3'}`} />
+                <span className={isCollapsed ? 'lg:hidden' : ''}>Staff</span>
+                {(school.stats?.staff ?? 0) > 0 && (<Badge variant="secondary" className={`ml-auto text-xs h-5 px-1.5 min-w-[1.25rem] justify-center ${isCollapsed ? 'lg:hidden' : ''}`}>{school.stats?.staff ?? 0}</Badge>)}
               </TabsTrigger>
             </TabsList>
           </aside>
 
           <div className="flex-1 min-w-0">
             <TabsContent value="overview" className="mt-0 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 <Card className="border-slate-200/80 dark:border-slate-800">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Admins</CardTitle>
@@ -249,7 +249,7 @@ export default function SchoolConsolePage() {
                       <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                         <Hash className="h-4 w-4" /> System Metadata
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                         <div className="rounded-md bg-muted p-3"><p className="text-muted-foreground">School ID</p><p className="mt-1 font-mono text-xs break-all">{school.id}</p></div>
                         <div className="rounded-md bg-muted p-3"><p className="text-muted-foreground">School Slug</p><p className="mt-1 font-mono text-xs">{school.slug || 'N/A'}</p></div>
                         <div className="rounded-md bg-muted p-3"><p className="text-muted-foreground inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> Created At</p><p className="mt-1 font-medium text-xs">{new Date(school.created_at).toLocaleString()}</p></div>

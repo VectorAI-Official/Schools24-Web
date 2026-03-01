@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -57,14 +57,9 @@ export default function TeacherStudentsTimetablePage() {
     const classOptions = useMemo(() => sortTeacherClassRows(classesData?.classes || []), [classesData?.classes])
     const [selectedClassId, setSelectedClassId] = useState('')
     const hasClasses = classOptions.length > 0
+    const effectiveSelectedClassId = selectedClassId || classOptions[0]?.class_id || ''
 
-    useEffect(() => {
-        if (!selectedClassId && classOptions.length > 0) {
-            setSelectedClassId(classOptions[0].class_id)
-        }
-    }, [classOptions, selectedClassId])
-
-    const { data: timetableData } = useTeacherClassTimetable(selectedClassId, academicYear, { enabled: !!selectedClassId })
+    const { data: timetableData } = useTeacherClassTimetable(effectiveSelectedClassId, academicYear, { enabled: !!effectiveSelectedClassId })
     const timetableEntries = timetableData?.timetable || []
 
     const dayConfigs = useMemo(() => {
@@ -86,14 +81,14 @@ export default function TeacherStudentsTimetablePage() {
     }, [periodsConfig])
 
     const handlePrint = () => {
-        if (!selectedClassId) return
+        if (!effectiveSelectedClassId) return
         window.print()
-        const selectedClass = classOptions.find(cls => cls.class_id === selectedClassId)
+        const selectedClass = classOptions.find(cls => cls.class_id === effectiveSelectedClassId)
         toast.success('Print dialog opened', { description: `Printing timetable for Class ${selectedClass?.class_name || ''}` })
     }
 
     const handleExport = () => {
-        if (!selectedClassId) return
+        if (!effectiveSelectedClassId) return
         const csvContent = [
             ['Time', ...dayConfigs.map(d => d.day_name)].join(','),
             ...timeSlots.map(slot =>
@@ -107,23 +102,23 @@ export default function TeacherStudentsTimetablePage() {
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        const selectedClass = classOptions.find(cls => cls.class_id === selectedClassId)
+        const selectedClass = classOptions.find(cls => cls.class_id === effectiveSelectedClassId)
         a.download = `timetable-${selectedClass?.class_name || 'class'}.csv`
         a.click()
         toast.success('Export completed', { description: `Timetable for Class ${selectedClass?.class_name || ''} exported to CSV` })
     }
 
     return (
-        <div className="h-[calc(100vh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
+        <div className="h-[calc(100dvh-4rem)] min-h-[calc(100dvh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 flex-shrink-0">
                 <div>
                     <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Students Timetable</h1>
                     <p className="text-xs text-muted-foreground hidden sm:block">View class timetables (Read-only)</p>
                 </div>
-                <div className="flex items-center gap-1 flex-wrap">
-                    <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-                        <SelectTrigger className="w-[90px] sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs" disabled={!hasClasses}>
+                <div className="flex items-center gap-1 flex-wrap w-full sm:w-auto">
+                    <Select value={effectiveSelectedClassId} onValueChange={setSelectedClassId}>
+                        <SelectTrigger className="w-full sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs" disabled={!hasClasses}>
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent>
@@ -165,9 +160,9 @@ export default function TeacherStudentsTimetablePage() {
                     <div
                         className="h-full grid"
                         style={{
-                            gridTemplateColumns: `minmax(80px, 100px) repeat(${periodsConfig.length}, minmax(60px, 1fr))`,
-                            gridTemplateRows: `minmax(32px, 0.6fr) repeat(${dayConfigs.length}, minmax(0, 1fr))`,
-                            minWidth: `${80 + periodsConfig.length * 60}px`
+                            gridTemplateColumns: `minmax(96px, 120px) repeat(${periodsConfig.length}, minmax(170px, 1fr))`,
+                            gridTemplateRows: `minmax(56px, 56px) repeat(${dayConfigs.length}, minmax(96px, 1fr))`,
+                            minWidth: `${96 + periodsConfig.length * 170}px`
                         }}
                     >
                         {/* Header Row */}

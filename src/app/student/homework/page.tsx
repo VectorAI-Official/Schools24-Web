@@ -334,7 +334,7 @@ export default function StudentHomeworkPage() {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
                 {[
                     { icon: <BookOpen className="h-7 w-7" />, value: totalCount,     label: 'Total',      from: 'from-blue-500',   to: 'to-indigo-600',  shadow: 'shadow-blue-500/30',   valueColor: 'text-blue-700 dark:text-blue-400',     bg: 'from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50'   },
                     { icon: <CheckCircle2 className="h-7 w-7" />, value: completedCount, label: 'Done',   from: 'from-green-500',  to: 'to-emerald-600', shadow: 'shadow-green-500/30',  valueColor: 'text-green-700 dark:text-green-400',   bg: 'from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50' },
@@ -437,7 +437,7 @@ export default function StudentHomeworkPage() {
             </Card>
 
             <Dialog open={isSubjectDialogOpen} onOpenChange={setIsSubjectDialogOpen}>
-                <DialogContent>
+                <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Select subject</DialogTitle>
                     </DialogHeader>
@@ -491,7 +491,7 @@ export default function StudentHomeworkPage() {
                         >
                             <CardContent className="p-4 md:p-6">
                                 {/* Main Row */}
-                                <div className="flex items-center gap-4 flex-wrap md:flex-nowrap">
+                                <div className="flex items-start gap-4 flex-wrap md:flex-nowrap">
                                     {/* Done circle */}
                                     <button
                                         onClick={() => toggleStatus(hw)}
@@ -556,13 +556,13 @@ export default function StudentHomeworkPage() {
                                     </div>
 
                                     {/* Action buttons */}
-                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                    <div className="flex w-full sm:w-auto items-center gap-2 flex-shrink-0">
                                         <Button
                                             variant={hw.status === 'completed' ? 'default' : 'outline'}
                                             size="sm"
                                             onClick={() => toggleStatus(hw)}
                                             disabled={isSubmitting}
-                                            className={`rounded-xl ${hw.status === 'completed'
+                                            className={`rounded-xl w-full sm:w-auto ${hw.status === 'completed'
                                                 ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 text-white'
                                                 : 'hover:bg-green-100 hover:text-green-700 hover:border-green-300'
                                             }`}
@@ -625,17 +625,18 @@ export default function StudentHomeworkPage() {
                                                 </h4>
                                                 <div className="space-y-2">
                                                     {hw.attachmentDetails.map(att => (
-                                                        <div key={att.id} className="flex items-center justify-between gap-2 text-sm border rounded-lg p-2">
+                                                        <div key={att.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm border rounded-lg p-2">
                                                             <div className="min-w-0">
                                                                 <p className="font-medium truncate">{att.file_name}</p>
                                                                 <p className="text-xs text-muted-foreground">{att.mime_type} | {(att.file_size / 1024).toFixed(1)} KB</p>
                                                             </div>
-                                                            <div className="flex gap-2">
+                                                            <div className="flex gap-2 w-full sm:w-auto">
                                                                 <Button
                                                                     size="icon"
                                                                     variant="outline"
                                                                     onClick={() => handlePreviewAttachment(hw.id, att)}
                                                                     disabled={previewLoading}
+                                                                    className="w-full sm:w-9"
                                                                 >
                                                                     <Eye className="h-4 w-4" />
                                                                 </Button>
@@ -643,6 +644,7 @@ export default function StudentHomeworkPage() {
                                                                     size="icon"
                                                                     variant="outline"
                                                                     onClick={() => handleDownloadAttachment(hw.id, att)}
+                                                                    className="w-full sm:w-9"
                                                                 >
                                                                     <Download className="h-4 w-4" />
                                                                 </Button>
@@ -655,7 +657,7 @@ export default function StudentHomeworkPage() {
 
                                         {/* Notes */}
                                         <div className="p-4 rounded-xl bg-background/60">
-                                            <div className="flex items-center justify-between mb-2">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
                                                 <h4 className="font-semibold flex items-center gap-2">
                                                     <StickyNote className="h-4 w-4 text-yellow-500" />My Notes
                                                 </h4>
@@ -707,11 +709,11 @@ export default function StudentHomeworkPage() {
                     }
                 }}
             >
-                <DialogContent className="max-w-4xl">
+                <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="truncate">{previewTitle || 'Attachment Preview'}</DialogTitle>
                     </DialogHeader>
-                    <div className="h-[70vh] rounded-xl border bg-muted/20 overflow-hidden">
+                    <div className="h-[58vh] min-h-[320px] md:h-[70vh] rounded-xl border bg-muted/20 overflow-hidden">
                         {!previewUrl ? (
                             <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No preview available</div>
                         ) : previewMimeType.includes('pdf') ? (

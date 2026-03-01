@@ -200,8 +200,8 @@ function SchoolsSection() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 rounded-xl border border-border/60 bg-card/50 backdrop-blur-xl p-4 md:p-5 shadow-sm">
-                <div className="relative w-full md:w-[400px]">
+            <div className="flex flex-col md:flex-row justify-between md:items-center items-stretch gap-4 rounded-xl border border-border/60 bg-card/50 backdrop-blur-xl p-4 md:p-5 shadow-sm">
+                <div className="relative w-full md:max-w-[400px]">
                     <Search className="absolute left-3.5 top-3 h-4 w-4 text-indigo-500/70" />
                     <Input
                         placeholder="Search schools by name or contact email..."
@@ -218,7 +218,7 @@ function SchoolsSection() {
                             Add New School
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-border">
+                    <DialogContent className="w-[95vw] sm:max-w-[600px] p-0 overflow-hidden border-border max-h-[92vh]">
                         <div className="h-2 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"></div>
                         <div className="px-6 pt-6 pb-2">
                             <DialogHeader>
@@ -358,11 +358,11 @@ function SchoolsSection() {
                                 </div>
                             </div>
                         </div>
-                        <div className="p-4 border-t border-border bg-muted/50 flex justify-end gap-3">
-                            <Button variant="outline" onClick={() => setIsAddSchoolOpen(false)}>
+                        <div className="p-4 border-t border-border bg-muted/50 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                            <Button variant="outline" onClick={() => setIsAddSchoolOpen(false)} className="w-full sm:w-auto">
                                 Cancel
                             </Button>
-                            <Button onClick={handleCreateSchool} disabled={createSchool.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 min-w-[140px]">
+                            <Button onClick={handleCreateSchool} disabled={createSchool.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 w-full sm:w-auto sm:min-w-[140px]">
                                 {createSchool.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                                 {createSchool.isPending ? "Provisioning..." : "Provision School"}
                             </Button>
@@ -388,7 +388,7 @@ function SchoolsSection() {
                             <SchoolIcon className="h-12 w-12 text-indigo-300 dark:text-indigo-700" />
                         </div>
                         <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2">No schools found</h3>
-                        <p className="text-sm text-slate-500 max-w-sm">We couldn't find any schools matching your search. Click "Add New School" to provision a new tenant.</p>
+                        <p className="text-sm text-slate-500 max-w-sm">We couldn&apos;t find any schools matching your search. Click &quot;Add New School&quot; to provision a new tenant.</p>
                     </div>
                 ) : (
                     filteredSchools.map((school) => (
@@ -491,7 +491,7 @@ function SchoolsSection() {
 
             {/* ── Edit School Dialog ──────────────────────────────────────────── */}
             <Dialog open={!!editSchool} onOpenChange={(open) => { if (!open) setEditSchool(null) }}>
-                <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                <DialogContent className="w-[95vw] sm:max-w-[500px] p-0 overflow-hidden border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
                     <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500" />
                     <div className="px-6 pt-5 pb-2">
                         <DialogHeader>
@@ -540,14 +540,14 @@ function SchoolsSection() {
                             </div>
                         </div>
                     </div>
-                    <div className="px-6 pb-5 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
-                        <Button variant="outline" onClick={() => setEditSchool(null)} className="border-slate-200 dark:border-slate-700">
+                    <div className="px-6 pb-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+                        <Button variant="outline" onClick={() => setEditSchool(null)} className="w-full sm:w-auto border-slate-200 dark:border-slate-700">
                             Cancel
                         </Button>
                         <Button
                             onClick={handleEditSave}
                             disabled={updateSchool.isPending}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 min-w-[120px]"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 w-full sm:w-auto sm:min-w-[120px]"
                         >
                             {updateSchool.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                             {updateSchool.isPending ? "Saving..." : "Save Changes"}
@@ -833,7 +833,7 @@ function CatalogSection() {
                 {/* Classes Panel */}
                 <Card className="flex flex-col border-indigo-100 dark:border-indigo-900/50 shadow-sm bg-card overflow-hidden">
                     <CardHeader className="bg-indigo-50/50 dark:bg-indigo-950/20 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
                                 <CardTitle className="text-lg text-indigo-900 dark:text-indigo-100">Manage Classes</CardTitle>
                                 <CardDescription>Create and maintain centralized class levels</CardDescription>
@@ -954,7 +954,7 @@ function CatalogSection() {
                 {/* Subjects Panel */}
                 <Card className="flex flex-col border-fuchsia-100 dark:border-fuchsia-900/50 shadow-sm bg-card overflow-hidden">
                     <CardHeader className="bg-fuchsia-50/50 dark:bg-fuchsia-950/20 border-b border-fuchsia-100 dark:border-fuchsia-900/50 pb-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
                                 <CardTitle className="text-lg text-fuchsia-900 dark:text-fuchsia-100">Manage Subjects</CardTitle>
                                 <CardDescription>Create and maintain centralized subjects</CardDescription>
@@ -1166,7 +1166,7 @@ function CatalogSection() {
                             }}
                             disabled={!effectiveSelectedClassId || isBusy}
                             size="lg"
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none min-w-[200px] transition-all"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none w-full sm:w-auto sm:min-w-[200px] transition-all"
                         >
                             {isBusy ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
                             Save Configuration
@@ -1176,7 +1176,7 @@ function CatalogSection() {
             </Card>
 
             <Dialog open={showClassesDialog} onOpenChange={setShowClassesDialog}>
-                <DialogContent className="max-w-xl">
+                <DialogContent className="w-[95vw] max-w-xl">
                     <DialogHeader>
                         <DialogTitle>All Classes</DialogTitle>
                         <DialogDescription>Loaded from centralized DB catalog</DialogDescription>
@@ -1199,7 +1199,7 @@ function CatalogSection() {
             </Dialog>
 
             <Dialog open={showSubjectsDialog} onOpenChange={setShowSubjectsDialog}>
-                <DialogContent className="max-w-xl">
+                <DialogContent className="w-[95vw] max-w-xl">
                     <DialogHeader>
                         <DialogTitle>All Subjects</DialogTitle>
                         <DialogDescription>Loaded from centralized DB catalog</DialogDescription>
@@ -1253,11 +1253,11 @@ function SuperAdminPageContent() {
     if (!user || user.role !== "super_admin") return null
 
     return (
-        <div className="flex h-screen bg-background">
+        <div className="flex h-[100dvh] bg-background">
             <Sidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />
-                <main className="flex-1 overflow-auto p-4 md:p-6 space-y-6">
+                <main className="flex-1 overflow-auto p-2 sm:p-4 md:p-6 space-y-6">
                     <div className="mx-auto w-full max-w-[1600px]">
                         {tab === "schools" && <SchoolsSection />}
                         {tab === "catalog" && <CatalogSection />}

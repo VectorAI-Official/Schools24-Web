@@ -350,18 +350,18 @@ export default function FeesPage() {
                     <h1 className="text-xl md:text-3xl font-bold">Fee Management</h1>
                     <p className="text-muted-foreground">Manage student fees and payments</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" onClick={handleExport}>
+                <div className="flex flex-wrap gap-3">
+                    <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
                         <Download className="mr-2 h-4 w-4" />
                         Export
                     </Button>
                     <Dialog open={isPurposeDialogOpen} onOpenChange={setIsPurposeDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline">
+                            <Button variant="outline" className="w-full sm:w-auto">
                                 Demand Management
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-2xl">
+                        <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Demand Management</DialogTitle>
                                 <DialogDescription>
@@ -425,18 +425,18 @@ export default function FeesPage() {
                             </div>
                         </DialogContent>
                     </Dialog>
-                    <Button variant="outline" onClick={handleSendReminders}>
+                    <Button variant="outline" onClick={handleSendReminders} className="w-full sm:w-auto">
                         <Send className="mr-2 h-4 w-4" />
                         Send Reminders
                     </Button>
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button>
+                            <Button className="w-full sm:w-auto">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add Fee Entry
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Add Fee Entry</DialogTitle>
                                 <DialogDescription>
@@ -454,7 +454,7 @@ export default function FeesPage() {
                                                 setStudentSearchQuery('')
                                             }}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Select class" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -473,7 +473,7 @@ export default function FeesPage() {
                                             onValueChange={(value) => setFormData({ ...formData, studentId: value })}
                                             disabled={!formData.classId}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder={formData.classId ? "Select student" : "Select class first"} />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -508,7 +508,7 @@ export default function FeesPage() {
                                             value={formData.purposeId}
                                             onValueChange={(value) => setFormData({ ...formData, purposeId: value })}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Select purpose" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -617,7 +617,7 @@ export default function FeesPage() {
             <Card>
                 <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <Button
                                 variant={statusFilter === 'all' ? 'default' : 'outline'}
                                 size="sm"
@@ -658,7 +658,7 @@ export default function FeesPage() {
                                 Overdue
                             </Button>
                         </div>
-                        <div className="relative max-w-sm">
+                        <div className="relative w-full md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search by student name..."
@@ -668,7 +668,7 @@ export default function FeesPage() {
                             />
                         </div>
                         <Select value={academicYear} onValueChange={setAcademicYear}>
-                            <SelectTrigger className="w-[130px]">
+                            <SelectTrigger className="w-full sm:w-[130px]">
                                 <SelectValue placeholder="Academic year" />
                             </SelectTrigger>
                             <SelectContent>
@@ -765,7 +765,7 @@ export default function FeesPage() {
 
             {/* Payment Dialog */}
             <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-                <DialogContent>
+                <DialogContent className="w-[95vw] sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Record Payment</DialogTitle>
                         <DialogDescription>
@@ -849,7 +849,7 @@ export default function FeesPage() {
 
             {/* Receipt Dialog */}
             <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
-                <DialogContent>
+                <DialogContent className="w-[95vw] sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Payment Receipt</DialogTitle>
                         <DialogDescription>

@@ -31,7 +31,7 @@ export function Header() {
     return (
         <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6">
             {/* Left Side: Mobile menu + School Name */}
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
                 {/* Hamburger — mobile only */}
                 <Button
                     variant="ghost"
@@ -44,7 +44,7 @@ export function Header() {
                 </Button>
 
                 {user?.school_name && (
-                    <div className="relative flex items-center gap-2.5 px-4 py-2 rounded-xl overflow-hidden">
+                    <div className="relative flex min-w-0 max-w-[62vw] sm:max-w-none items-center gap-2.5 px-4 py-2 rounded-xl overflow-hidden">
                         {/* Colored gradient background layer */}
                         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/45 via-purple-400/40 to-fuchsia-400/45 dark:from-violet-500/55 dark:via-purple-400/50 dark:to-fuchsia-400/55" />
                         {/* Blur/Glass effect */}
@@ -56,7 +56,7 @@ export function Header() {
                         <div className="relative z-10 hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-primary dark:bg-primary/30">
                             <School className="h-5 w-5" />
                         </div>
-                        <span className="relative z-10 text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                        <span className="relative z-10 text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 truncate">
                             {user.school_name}
                         </span>
                     </div>
@@ -64,10 +64,11 @@ export function Header() {
             </div>
 
             {/* Right Side: Role Badge & Profile */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
                 {/* Role Badge */}
                 {user?.role && (
                     <div className={`
+                        hidden sm:block
                         px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide
                         ${user.role === 'super_admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : ''}
                         ${user.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : ''}

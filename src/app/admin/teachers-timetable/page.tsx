@@ -169,7 +169,7 @@ export default function TeachersTimetablePage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
+        <div className="h-[calc(100dvh-4rem)] min-h-[calc(100dvh-4rem)] flex flex-col animate-fade-in p-1 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 flex-shrink-0">
                 <div>
                     <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Teachers Timetable</h1>
@@ -237,9 +237,9 @@ export default function TeachersTimetablePage() {
                     <div
                         className="h-full grid"
                         style={{
-                            gridTemplateColumns: `minmax(80px, 100px) repeat(${periodsConfig.length}, minmax(60px, 1fr))`,
-                            gridTemplateRows: `minmax(32px, 0.6fr) repeat(${dayConfigs.length}, minmax(0, 1fr))`,
-                            minWidth: `${80 + periodsConfig.length * 60}px`
+                            gridTemplateColumns: `minmax(96px, 120px) repeat(${periodsConfig.length}, minmax(170px, 1fr))`,
+                            gridTemplateRows: `minmax(56px, 56px) repeat(${dayConfigs.length}, minmax(96px, 1fr))`,
+                            minWidth: `${96 + periodsConfig.length * 170}px`
                         }}
                     >
                         <div className="border bg-muted flex items-center justify-center font-bold" style={{ fontSize: 'clamp(8px, 1.5vw, 14px)' }}>Day</div>
@@ -289,7 +289,7 @@ export default function TeachersTimetablePage() {
             </Card>
 
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent>
+                <DialogContent className="w-[95vw] sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>{selectedSlot?.entryId ? 'Edit Slot' : 'Assign Class'}</DialogTitle>
                         <DialogDescription>{selectedDayLabel} • {selectedPeriodDisplay}</DialogDescription>
@@ -310,7 +310,7 @@ export default function TeachersTimetablePage() {
                                 </TooltipProvider>
                             </div>
                             <Select value={formData.classId} onValueChange={(v) => setFormData({ ...formData, classId: v })}>
-                                <SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger>
+                                <SelectTrigger className="w-full"><SelectValue placeholder="Select Class" /></SelectTrigger>
                                 <SelectContent>
                                     {classOptions.map((c) => (
                                         <SelectItem key={c.id} value={c.id}>{formatSchoolClassLabel(c)}</SelectItem>
@@ -321,7 +321,7 @@ export default function TeachersTimetablePage() {
                         <div className="grid gap-2">
                             <Label>Subject</Label>
                             <Select value={formData.subjectId} onValueChange={(v) => setFormData({ ...formData, subjectId: v })}>
-                                <SelectTrigger><SelectValue placeholder="Select Subject" /></SelectTrigger>
+                                <SelectTrigger className="w-full"><SelectValue placeholder="Select Subject" /></SelectTrigger>
                                 <SelectContent>
                                     {subjects.map((subject) => (
                                         <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
@@ -331,10 +331,10 @@ export default function TeachersTimetablePage() {
                         </div>
                         <div className="grid gap-2"><Label>Room</Label><Input placeholder="e.g. 101" value={formData.room} onChange={(e) => setFormData({ ...formData, room: e.target.value })} /></div>
                     </div>
-                    <DialogFooter className="gap-2">
-                        {selectedSlot?.entryId && <Button variant="destructive" onClick={handleDeleteSlot} className="sm:mr-auto"><Trash2 className="mr-2 h-4 w-4" />Clear</Button>}
-                        <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSaveSlot}><Save className="mr-2 h-4 w-4" />Save</Button>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        {selectedSlot?.entryId && <Button variant="destructive" onClick={handleDeleteSlot} className="w-full sm:w-auto sm:mr-auto"><Trash2 className="mr-2 h-4 w-4" />Clear</Button>}
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                        <Button className="w-full sm:w-auto" onClick={handleSaveSlot}><Save className="mr-2 h-4 w-4" />Save</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

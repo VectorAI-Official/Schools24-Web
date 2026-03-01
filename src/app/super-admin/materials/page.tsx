@@ -414,7 +414,7 @@ export function SuperAdminMaterialsForm() {
                   materials.map((material) => (
                     <TableRow key={material.id} className="group hover:bg-muted/50 transition-colors border-b border-border/60">
                       <TableCell className="px-6 py-4">
-                        <div className="flex items-center gap-3 min-w-[200px]">
+                        <div className="flex items-center gap-3 min-w-0">
                           <div className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center shadow-sm ${isPdf(material.mime_type, material.file_name) ? 'bg-rose-50 text-rose-500 dark:bg-rose-500/10' :
                             ['doc', 'docx'].some(ext => material.file_name.toLowerCase().endsWith(ext)) ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/10' :
                               ['ppt', 'pptx'].some(ext => material.file_name.toLowerCase().endsWith(ext)) ? 'bg-amber-50 text-amber-500 dark:bg-amber-500/10' :

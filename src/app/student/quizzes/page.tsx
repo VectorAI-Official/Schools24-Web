@@ -431,7 +431,7 @@ export default function StudentQuizzesPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-wrap items-center justify-end gap-3">
                             <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-lg font-bold ${isLowTime ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-muted text-foreground'}`}>
                                 <Timer className="w-5 h-5" />
                                 {formatTime(timeLeft)}
@@ -491,8 +491,8 @@ export default function StudentQuizzesPage() {
                         </Card>
 
                         {/* Bottom Actions */}
-                        <div className="flex items-center justify-between mt-4 bg-card rounded-xl border border-border shadow-sm p-3">
-                            <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-4 bg-card rounded-xl border border-border shadow-sm p-3">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <Button variant="outline" size="sm" disabled={currentQ === 0}
                                     onClick={() => goToQuestion(currentQ - 1)}
                                     className="border-orange-200 text-orange-600 hover:bg-orange-50">
@@ -511,11 +511,12 @@ export default function StudentQuizzesPage() {
                                 </Button>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                                 <Button variant="ghost" size="sm" onClick={clearAnswer} className="text-slate-500 hover:text-red-600">
                                     <XCircle className="w-4 h-4 mr-1" /> Clear
                                 </Button>
-                                <div className="flex items-center gap-1 border border-border rounded-lg px-1 py-0.5">
+                                <div className="max-w-full overflow-x-auto">
+                                    <div className="flex items-center gap-1 border border-border rounded-lg px-1 py-0.5 w-max">
                                     {question.options.map((opt) => {
                                         const letter = String.fromCharCode(64 + opt.order_index)
                                         const isSelected = selectedOptionId === opt.id
@@ -529,6 +530,7 @@ export default function StudentQuizzesPage() {
                                             </button>
                                         )
                                     })}
+                                    </div>
                                 </div>
                                 <Button size="sm" onClick={saveAndNext}
                                     className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md"
@@ -546,8 +548,8 @@ export default function StudentQuizzesPage() {
                     </div>
 
                     {/* Sidebar — Question Navigation */}
-                    <div className="w-[240px] flex-shrink-0">
-                        <Card className="border-0 shadow-lg sticky top-4">
+                    <div className="w-full lg:w-[240px] flex-shrink-0">
+                        <Card className="border-0 shadow-lg lg:sticky lg:top-4">
                             <CardContent className="p-4">
                                 <div className="space-y-2 mb-5">
                                     {[
@@ -567,7 +569,7 @@ export default function StudentQuizzesPage() {
 
                                 <div className="h-px bg-border mb-4" />
 
-                                <div className="grid grid-cols-5 gap-2">
+                                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                                     {activeAttempt.questions.map((q, idx) => {
                                         const status = statuses[idx]
                                         const isCurrent = idx === currentQ
@@ -746,7 +748,7 @@ export default function StudentQuizzesPage() {
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
                         Practice &amp; Quizzes
@@ -799,7 +801,7 @@ export default function StudentQuizzesPage() {
             )}
 
             {!isLoading && !isError && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
 
                     {/* ── LEFT: Subject Selector + Chapters ── */}
                     <div className="space-y-4">
@@ -807,7 +809,7 @@ export default function StudentQuizzesPage() {
                         {/* Subject Selector */}
                         <Card className="border-0 shadow-lg">
                             <CardContent className="p-5">
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                                     <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Select Subject</h3>
                                     {subjects.length > 0 && (
                                         <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
@@ -863,7 +865,7 @@ export default function StudentQuizzesPage() {
                         {selectedSubjectName_ && (
                             <Card className="border-0 shadow-lg">
                                 <CardContent className="p-5">
-                                    <div className="flex items-center justify-between mb-1">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
                                         <h3 className="font-bold text-slate-700">All Chapters</h3>
                                         <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                                             {sortedGroupedChapters.length} chapter{sortedGroupedChapters.length !== 1 ? 's' : ''}
@@ -946,7 +948,7 @@ export default function StudentQuizzesPage() {
                         {selectedChapter && (
                             <Card className="border-0 shadow-lg">
                                 <CardContent className="p-5">
-                                    <div className="flex items-center justify-between mb-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                                         <div className="flex items-center gap-2">
                                             <div className="w-1.5 h-6 rounded-full flex-shrink-0" style={{ backgroundColor: selectedPalette.color }} />
                                             <h3 className="font-bold text-slate-700">{selectedChapter.name}</h3>
@@ -963,7 +965,7 @@ export default function StudentQuizzesPage() {
                                             const isActing = startMutation.isPending && actingQuizId === quiz.id
                                             const isLoadingResult = resultMutation.isPending && actingQuizId === quiz.id
                                             return (
-                                                <div key={quiz.id} className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:shadow-md transition-all">
+                                                <div key={quiz.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border border-border bg-card hover:shadow-md transition-all">
                                                     <div className="w-2 h-10 rounded-full flex-shrink-0" style={{ backgroundColor: selectedPalette.color + '50' }} />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="font-semibold text-sm text-slate-800 truncate">{quiz.title}</p>
@@ -975,7 +977,7 @@ export default function StudentQuizzesPage() {
                                                         </p>
                                                         <p className="text-[11px] text-slate-400 mt-0.5">By {quiz.creator_name} ({quiz.creator_role === 'super_admin' ? 'Super Admin' : 'Teacher'})</p>
                                                     </div>
-                                                    <div className="flex-shrink-0">
+                                                    <div className="flex-shrink-0 w-full sm:w-auto">
                                                         {canStart ? (
                                                             <button
                                                                 onClick={() => { setActingQuizId(quiz.id); startMutation.mutate(quiz.id) }}
@@ -1069,7 +1071,7 @@ export default function StudentQuizzesPage() {
                                             const gradClass = pct >= 70 ? 'from-green-500 to-emerald-600' : pct >= 50 ? 'from-amber-500 to-orange-600' : 'from-red-500 to-rose-600'
                                             const scoreColor = pct >= 70 ? 'text-green-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600'
                                             return (
-                                                <div key={quiz.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-gradient-to-r from-white to-slate-50/50 hover:shadow-md transition-all">
+                                                <div key={quiz.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border border-slate-100 bg-gradient-to-r from-white to-slate-50/50 hover:shadow-md transition-all">
                                                     <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md bg-gradient-to-br flex-shrink-0', gradClass)}>
                                                         <Award className="w-6 h-6" />
                                                     </div>
@@ -1083,8 +1085,8 @@ export default function StudentQuizzesPage() {
                                                             <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{quiz.attempt_count} attempt{quiz.attempt_count !== 1 ? 's' : ''}</span>
                                                         </div>
                                                     </div>
-                                                    <div className="text-right flex-shrink-0">
-                                                        <div className="flex items-center gap-2">
+                                                    <div className="text-left sm:text-right flex-shrink-0 w-full sm:w-auto">
+                                                        <div className="flex items-center gap-2 justify-start sm:justify-end">
                                                             <Progress value={pct} className="w-20 h-2" />
                                                             <span className={cn('font-bold text-sm', scoreColor)}>{pct.toFixed(0)}%</span>
                                                         </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -44,7 +44,7 @@ export default function AttendanceUploadPage() {
     const [selectedClassId, setSelectedClassId] = useState("")
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
     const [searchQuery, setSearchQuery] = useState("")
-    const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({})
+    const [attendanceOverrides, setAttendanceOverrides] = useState<Record<string, AttendanceStatus>>({})
 
     const { data: classesData, isLoading: classesLoading } = useQuery({
         queryKey: ["teacher-attendance-classes"],
@@ -64,47 +64,42 @@ export default function AttendanceUploadPage() {
         return sortTeacherClassRows(unique)
     }, [classesData])
 
-    useEffect(() => {
-        if (!selectedClassId && classOptions.length > 0) {
-            setSelectedClassId(classOptions[0].class_id)
-        }
-    }, [classOptions, selectedClassId])
+    const effectiveSelectedClassId = selectedClassId || classOptions[0]?.class_id || ""
 
     const { data: studentsData, isLoading: studentsLoading } = useQuery({
-        queryKey: ["teacher-attendance-students", selectedClassId],
-        queryFn: () => api.getOrEmpty<{ students: ClassStudent[] }>(`/teacher/classes/${selectedClassId}/students`, { students: [] }),
-        enabled: !!selectedClassId,
+        queryKey: ["teacher-attendance-students", effectiveSelectedClassId],
+        queryFn: () => api.getOrEmpty<{ students: ClassStudent[] }>(`/teacher/classes/${effectiveSelectedClassId}/students`, { students: [] }),
+        enabled: !!effectiveSelectedClassId,
         staleTime: 10 * 1000,
     })
 
-    const students = studentsData?.students || []
+    const students = useMemo(() => studentsData?.students || [], [studentsData?.students])
 
     const { data: existingAttendanceData, isLoading: existingAttendanceLoading } = useQuery({
-        queryKey: ["teacher-attendance-existing", selectedClassId, selectedDate],
-        enabled: !!selectedClassId && !!selectedDate,
+        queryKey: ["teacher-attendance-existing", effectiveSelectedClassId, selectedDate],
+        enabled: !!effectiveSelectedClassId && !!selectedDate,
         queryFn: () =>
             api.getOrEmpty<{ class_id: string; date: string; students: AttendanceStudentRecord[] }>(
-                `/teacher/attendance?class_id=${selectedClassId}&date=${selectedDate}`,
+                `/teacher/attendance?class_id=${effectiveSelectedClassId}&date=${selectedDate}`,
                 { class_id: '', date: '', students: [] }
             ),
         staleTime: 0,
     })
 
-    useEffect(() => {
-        setAttendance({})
-    }, [selectedClassId, selectedDate])
-
-    useEffect(() => {
-        if (!existingAttendanceData?.students) return
-
+    const existingAttendanceMap = useMemo(() => {
         const next: Record<string, AttendanceStatus> = {}
-        for (const row of existingAttendanceData.students) {
+        for (const row of existingAttendanceData?.students || []) {
             if (row.status === "present" || row.status === "absent" || row.status === "late") {
                 next[row.student_id] = row.status
             }
         }
-        setAttendance(next)
-    }, [existingAttendanceData])
+        return next
+    }, [existingAttendanceData?.students])
+
+    const attendance = useMemo(
+        () => ({ ...existingAttendanceMap, ...attendanceOverrides }),
+        [existingAttendanceMap, attendanceOverrides]
+    )
 
     const filteredStudents = useMemo(() => {
         const query = searchQuery.trim().toLowerCase()
@@ -123,24 +118,26 @@ export default function AttendanceUploadPage() {
             }))
 
             return api.post("/teacher/attendance", {
-                class_id: selectedClassId,
+                class_id: effectiveSelectedClassId,
                 date: selectedDate,
                 attendance: JSON.stringify(rows),
             })
         },
         onSuccess: () => {
             toast.success("Attendance saved successfully")
-            queryClient.invalidateQueries({ queryKey: ["teacher-attendance-existing", selectedClassId, selectedDate] })
+            setAttendanceOverrides({})
+            queryClient.invalidateQueries({ queryKey: ["teacher-attendance-existing", effectiveSelectedClassId, selectedDate] })
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+            const message = error instanceof Error ? error.message : "Please try again"
             toast.error("Failed to save attendance", {
-                description: error?.message || "Please try again",
+                description: message,
             })
         },
     })
 
     const handleAttendanceChange = (studentId: string, status: AttendanceStatus) => {
-        setAttendance((prev) => ({
+        setAttendanceOverrides((prev) => ({
             ...prev,
             [studentId]: status,
         }))
@@ -151,7 +148,7 @@ export default function AttendanceUploadPage() {
         for (const student of students) {
             next[student.id] = "present"
         }
-        setAttendance(next)
+        setAttendanceOverrides(next)
     }
 
     const handleMarkAllAbsent = () => {
@@ -159,7 +156,7 @@ export default function AttendanceUploadPage() {
         for (const student of students) {
             next[student.id] = "absent"
         }
-        setAttendance(next)
+        setAttendanceOverrides(next)
     }
 
     const presentCount = Object.values(attendance).filter((s) => s === "present").length
@@ -168,7 +165,7 @@ export default function AttendanceUploadPage() {
     const totalCount = students.length
     const notMarkedCount = Math.max(totalCount - presentCount - absentCount - lateCount, 0)
 
-    const canSave = selectedClassId && Object.keys(attendance).length > 0 && !markAttendanceMutation.isPending
+    const canSave = !!effectiveSelectedClassId && Object.keys(attendance).length > 0 && !markAttendanceMutation.isPending
 
     return (
         <div className="space-y-6">
@@ -190,8 +187,15 @@ export default function AttendanceUploadPage() {
             </div>
 
             <div className="flex gap-4 flex-wrap">
-                <Select value={selectedClassId} onValueChange={setSelectedClassId} disabled={classesLoading || classOptions.length === 0}>
-                    <SelectTrigger className="w-[220px]">
+                <Select
+                    value={effectiveSelectedClassId}
+                    onValueChange={(value) => {
+                        setSelectedClassId(value)
+                        setAttendanceOverrides({})
+                    }}
+                    disabled={classesLoading || classOptions.length === 0}
+                >
+                    <SelectTrigger className="w-full sm:w-[220px]">
                         <SelectValue placeholder={classesLoading ? "Loading classes..." : "Select Class"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -205,8 +209,11 @@ export default function AttendanceUploadPage() {
                 <Input
                     type="date"
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-[180px]"
+                    onChange={(e) => {
+                        setSelectedDate(e.target.value)
+                        setAttendanceOverrides({})
+                    }}
+                    className="w-full sm:w-[180px]"
                 />
             </div>
 
@@ -271,7 +278,7 @@ export default function AttendanceUploadPage() {
                                     placeholder="Search students..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 w-[220px]"
+                                    className="pl-9 w-full sm:w-[220px]"
                                 />
                             </div>
                             <Button variant="outline" size="sm" onClick={handleMarkAllPresent} disabled={!students.length}>

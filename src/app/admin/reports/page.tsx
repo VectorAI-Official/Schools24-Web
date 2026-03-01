@@ -445,9 +445,9 @@ export default function ReportsPage() {
             Generate and view school reports
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Select Year" />
             </SelectTrigger>
             <SelectContent>
@@ -460,11 +460,12 @@ export default function ReportsPage() {
           </Select>
           <Button
             variant="outline"
+            className="w-full sm:w-auto"
             onClick={() => setIsAssessmentDialogOpen(true)}
           >
             Exam Management
           </Button>
-          <Button onClick={handleExportAll}>
+          <Button className="w-full sm:w-auto" onClick={handleExportAll}>
             <Download className="mr-2 h-4 w-4" />
             Export All Reports
           </Button>
@@ -518,14 +519,14 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Revenue Collected</CardTitle>
             <CardDescription>Monthly fee collections this year</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[220px] sm:h-[260px] md:h-[300px]">
               {revenueChartData.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No payment data yet.</div>
               ) : (
@@ -632,7 +633,7 @@ export default function ReportsPage() {
           <CardDescription>Present vs Absent students</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
+          <div className="h-[220px] sm:h-[260px] md:h-[300px]">
             {attendanceChartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No attendance data for this week yet.</div>
             ) : (
@@ -672,7 +673,7 @@ export default function ReportsPage() {
         open={isAssessmentDialogOpen}
         onOpenChange={setIsAssessmentDialogOpen}
       >
-        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Exam Management</DialogTitle>
             <DialogDescription>
@@ -682,7 +683,7 @@ export default function ReportsPage() {
           </DialogHeader>
 
           <div className="flex justify-end">
-            <Button onClick={openCreateAssessment}>
+            <Button onClick={openCreateAssessment} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-1" />
               Add Assessment
             </Button>
@@ -701,7 +702,7 @@ export default function ReportsPage() {
               assessments.map((item) => (
                 <Card key={item.id}>
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="space-y-1">
                         <p className="font-semibold">{item.name}</p>
                         <p className="text-sm text-muted-foreground">
@@ -730,10 +731,11 @@ export default function ReportsPage() {
                           </div>
                         ) : null}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="icon"
+                          className="w-full sm:w-9"
                           onClick={() => openEditAssessment(item)}
                         >
                           <Pencil className="h-4 w-4" />
@@ -741,7 +743,7 @@ export default function ReportsPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="text-destructive"
+                          className="w-full sm:w-9 text-destructive"
                           onClick={() => {
                             const confirmed = window.confirm(
                               "Delete this assessment?",
@@ -773,7 +775,7 @@ export default function ReportsPage() {
           }
         }}
       >
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingAssessment ? "Edit Assessment" : "Add Assessment"}
@@ -786,7 +788,7 @@ export default function ReportsPage() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-2">
               <Label>Classes</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 rounded-md border p-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 rounded-md border p-3">
                 {classGradeOptions.map((item) => {
                   const checked = form.class_grades.includes(item.grade);
                   return (
@@ -904,6 +906,7 @@ export default function ReportsPage() {
                           type="button"
                           variant="outline"
                           size="sm"
+                          className="w-full sm:w-auto"
                           onClick={() =>
                             setForm((prev) => ({
                               ...prev,
@@ -998,7 +1001,7 @@ export default function ReportsPage() {
                           type="button"
                           variant="outline"
                           size="icon"
-                          className="text-destructive"
+                          className="text-destructive w-full sm:w-9"
                           onClick={() =>
                             setForm((prev) => ({
                               ...prev,
@@ -1090,14 +1093,16 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() => setIsAssessmentFormOpen(false)}
             >
               Cancel
             </Button>
             <Button
+              className="w-full sm:w-auto"
               onClick={submitAssessment}
               disabled={
                 createAssessmentMutation.isPending ||

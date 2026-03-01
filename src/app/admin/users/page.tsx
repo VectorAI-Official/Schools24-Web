@@ -666,9 +666,9 @@ export default function UsersPage() {
                                 className="pl-10"
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                             <Select value={roleFilter} onValueChange={setRoleFilter}>
-                                <SelectTrigger className="w-full md:w-[160px]">
+                                <SelectTrigger className="w-full sm:w-[180px]">
                                     <Filter className="mr-2 h-4 w-4" />
                                     <SelectValue placeholder="Role" />
                                 </SelectTrigger>
@@ -682,7 +682,7 @@ export default function UsersPage() {
                             <Button
                                 variant="outline"
                                 size="icon"
-                                className="w-full md:w-10"
+                                className="w-full sm:w-10"
                                 onClick={() => {
                                     setSearchQuery('')
                                     setRoleFilter('all')
@@ -746,7 +746,7 @@ export default function UsersPage() {
                                             <TableCell>
                                                 {user.role === 'teacher' ? (
                                                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">
-                                                        {(user as any).rating || '0.0'} ★
+                                                        {((user as AdminUser & { rating?: string | number }).rating ?? '0.0')} ★
                                                     </Badge>
                                                 ) : (
                                                     <span className="text-muted-foreground">-</span>
@@ -818,7 +818,7 @@ export default function UsersPage() {
 
             {/* Class Management Dialog */}
             <Dialog open={isClassDialogOpen} onOpenChange={setIsClassDialogOpen}>
-                <DialogContent className="sm:max-w-[900px]">
+                <DialogContent className="w-[95vw] sm:max-w-[900px] max-h-[90vh] overflow-hidden">
                     <DialogHeader>
                         <DialogTitle>Class Management</DialogTitle>
                         <DialogDescription>
@@ -826,13 +826,13 @@ export default function UsersPage() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="academic-year">Academic Year</Label>
-                            <Select value={academicYear} onValueChange={setAcademicYear}>
-                                <SelectTrigger id="academic-year" className="w-[160px]">
-                                    <SelectValue />
-                                </SelectTrigger>
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Label htmlFor="academic-year">Academic Year</Label>
+                                <Select value={academicYear} onValueChange={setAcademicYear}>
+                                    <SelectTrigger id="academic-year" className="w-full sm:w-[160px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
                                 <SelectContent>
                                     {academicYears.map(year => (
                                         <SelectItem key={year} value={year}>{year}</SelectItem>
@@ -841,12 +841,12 @@ export default function UsersPage() {
                             </Select>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <Select
                                 value={newGrade ? newGrade.toString() : ''}
                                 onValueChange={(value) => setNewGrade(parseInt(value, 10))}
                             >
-                                <SelectTrigger className="w-[140px]">
+                                <SelectTrigger className="w-full sm:w-[140px]">
                                     <SelectValue placeholder="Add Class" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -873,7 +873,7 @@ export default function UsersPage() {
                         Class options are loaded from centralized backend catalog.
                     </p>
 
-                    <ScrollArea className="h-[420px] pr-4">
+                    <ScrollArea className="h-[50vh] sm:h-[420px] pr-4">
                         <div className="space-y-4">
                             {classesLoading ? (
                                 <div className="flex items-center justify-center py-12 text-muted-foreground">
@@ -920,7 +920,7 @@ export default function UsersPage() {
 
                                             <div className="mt-4 flex flex-wrap gap-2">
                                                 {gradeClasses.map((cls) => (
-                                                    <div key={cls.id} className="flex items-center gap-3 rounded-lg border px-3 py-2 text-sm">
+                                                    <div key={cls.id} className="flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 text-sm">
                                                         {editingSection?.id === cls.id ? (
                                                             <>
                                                                 <Input
@@ -983,8 +983,8 @@ export default function UsersPage() {
                         </div>
                     </ScrollArea>
 
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsClassDialogOpen(false)}>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsClassDialogOpen(false)}>
                             Close
                         </Button>
                     </DialogFooter>
@@ -1000,7 +1000,7 @@ export default function UsersPage() {
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-[560px]">
+                <DialogContent className="w-[95vw] sm:max-w-[560px]">
                     <DialogHeader>
                         <DialogTitle>Assign Class Incharge</DialogTitle>
                         <DialogDescription>
@@ -1034,7 +1034,7 @@ export default function UsersPage() {
                                     </div>
                                 ) : (
                                     classInchargeTeachers.map((teacher) => (
-                                        <div key={teacher.id} className="flex items-center justify-between rounded-md border p-3">
+                                        <div key={teacher.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-md border p-3">
                                             <div>
                                                 <p className="font-medium">{teacher.name}</p>
                                                 <p className="text-xs text-muted-foreground">{teacher.email}</p>
@@ -1053,9 +1053,10 @@ export default function UsersPage() {
                         </ScrollArea>
                     </div>
 
-                    <DialogFooter className="gap-2">
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
                         {selectedClassForIncharge?.class_teacher_id && (
                             <Button
+                                className="w-full sm:w-auto"
                                 variant="outline"
                                 onClick={handleClearIncharge}
                                 disabled={updateClass.isPending}
@@ -1063,7 +1064,7 @@ export default function UsersPage() {
                                 Not Assigned
                             </Button>
                         )}
-                        <Button variant="outline" onClick={() => setIsInchargeDialogOpen(false)}>
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsInchargeDialogOpen(false)}>
                             Close
                         </Button>
                     </DialogFooter>
@@ -1072,7 +1073,7 @@ export default function UsersPage() {
 
             {/* View Dialog */}
             <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-                <DialogContent>
+                <DialogContent className="w-[95vw] sm:max-w-[520px]">
                     <DialogHeader>
                         <DialogTitle>User Details</DialogTitle>
                     </DialogHeader>
@@ -1108,8 +1109,8 @@ export default function UsersPage() {
                             </div>
                         </div>
                     )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsViewDialogOpen(false)}>
                             Close
                         </Button>
                     </DialogFooter>
@@ -1127,7 +1128,7 @@ export default function UsersPage() {
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="w-[95vw] sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Edit User</DialogTitle>
                         <DialogDescription>
@@ -1161,7 +1162,7 @@ export default function UsersPage() {
                                         setSelectedUser({ ...selectedUser, role: value })
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="w-full">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1214,11 +1215,11 @@ export default function UsersPage() {
                             </div>
                         </div>
                     )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={handleEditUser}>Save Changes</Button>
+                        <Button className="w-full sm:w-auto" onClick={handleEditUser}>Save Changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -1230,15 +1231,15 @@ export default function UsersPage() {
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete{' '}
-                            <span className="font-semibold">{selectedUser?.full_name}</span>'s account and
+                            <span className="font-semibold">{selectedUser?.full_name}</span>&apos;s account and
                             remove all associated data.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                        <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteUser}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             Delete User
                         </AlertDialogAction>
@@ -1254,7 +1255,7 @@ export default function UsersPage() {
                     if (!open) setShowAddPassword(false)
                 }}
             >
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="w-[95vw] sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Add New User</DialogTitle>
                         <DialogDescription>
@@ -1285,11 +1286,11 @@ export default function UsersPage() {
                             <Label htmlFor="add-role">Role</Label>
                             <Select
                                 value={newUser.role}
-                                onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}
+                                onValueChange={(value) => setNewUser({ ...newUser, role: value })}
                             >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue />
+                                    </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="admin">Admin</SelectItem>
                                     <SelectItem value="teacher">Teacher</SelectItem>
@@ -1331,11 +1332,11 @@ export default function UsersPage() {
                             </div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={handleAddUser}>Create User</Button>
+                        <Button className="w-full sm:w-auto" onClick={handleAddUser}>Create User</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

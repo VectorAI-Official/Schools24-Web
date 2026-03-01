@@ -376,12 +376,12 @@ export default function HomeworkPage() {
         </div>
         <Dialog open={openAssign} onOpenChange={setOpenAssign}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Assign Homework
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Assign New Homework</DialogTitle>
               <DialogDescription>Create a new homework assignment for your students.</DialogDescription>
@@ -401,7 +401,7 @@ export default function HomeworkPage() {
                       setSubjectId("")
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select class" />
                     </SelectTrigger>
                     <SelectContent>
@@ -416,7 +416,7 @@ export default function HomeworkPage() {
                 <div className="grid gap-2">
                   <Label>Subject</Label>
                   <Select value={subjectId} onValueChange={setSubjectId} disabled={!classId}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder={classId ? "Select subject" : "Select class first"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -483,11 +483,11 @@ export default function HomeworkPage() {
                 ) : null}
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setOpenAssign(false)}>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button className="w-full sm:w-auto" variant="outline" onClick={() => setOpenAssign(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
+              <Button className="w-full sm:w-auto" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
                 {createMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -505,7 +505,7 @@ export default function HomeworkPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-            <div className="relative flex-1 min-w-[280px]">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={searchQuery}
@@ -514,7 +514,7 @@ export default function HomeworkPage() {
                 placeholder="Search by title or description"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 xl:w-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xl:w-auto">
               <Select
                 value={classFilter}
                 onValueChange={(value) => {
@@ -616,26 +616,26 @@ export default function HomeworkPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 sm:gap-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 w-full sm:w-auto">
                     <div className="text-center px-6">
                       <p className="text-2xl font-bold">
                         {homework.submissions_count}/{homework.students_count}
                       </p>
                       <p className="text-sm text-muted-foreground">Submitted</p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setViewHomework(homework)}>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <Button className="w-full sm:w-auto" variant="outline" size="sm" onClick={() => setViewHomework(homework)}>
                         <Eye className="mr-1.5 h-4 w-4" />
                         View
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(homework)}>
+                      <Button className="w-full sm:w-auto" variant="outline" size="sm" onClick={() => openEditDialog(homework)}>
                         <Pencil className="mr-1.5 h-4 w-4" />
                         Edit
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+                        className="w-full sm:w-auto text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
                         onClick={() => setDeleteTarget(homework)}
                       >
                         <Trash2 className="mr-1.5 h-4 w-4" />
@@ -652,7 +652,7 @@ export default function HomeworkPage() {
 
       {/* ── View / Submissions dialog ─────────────────────────────────────── */}
       <Dialog open={!!viewHomework} onOpenChange={(open) => !open && setViewHomework(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{viewHomework?.title}</DialogTitle>
             <DialogDescription>
@@ -723,7 +723,7 @@ export default function HomeworkPage() {
                   <p className="text-sm text-muted-foreground py-2">No submissions yet.</p>
                 )}
                 {submissionsQuery.isSuccess && submissionsQuery.data.submissions.length > 0 && (
-                  <div className="rounded-lg border overflow-hidden">
+                  <div className="rounded-lg border overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-muted/50">
@@ -784,7 +784,7 @@ export default function HomeworkPage() {
 
       {/* ── Edit dialog ───────────────────────────────────────────────────── */}
       <Dialog open={!!editHomework} onOpenChange={(open) => !open && setEditHomework(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Homework</DialogTitle>
             <DialogDescription>Update the details below. Class and subject cannot be changed.</DialogDescription>
@@ -820,11 +820,11 @@ export default function HomeworkPage() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditHomework(null)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button className="w-full sm:w-auto" variant="outline" onClick={() => setEditHomework(null)}>
               Cancel
             </Button>
-            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+            <Button className="w-full sm:w-auto" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
               {updateMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

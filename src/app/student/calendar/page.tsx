@@ -91,10 +91,10 @@ export default function StudentCalendarPage() {
                 </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
-                <div className="md:col-span-2">
+            <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2">
                     <Card className="overflow-hidden shadow-xl border-0">
-                        <CardContent className="p-5 md:p-4 md:p-6">
+                        <CardContent className="p-5 md:p-6">
                         {/* Calendar widget area */}
                         <div className="bg-gradient-to-br from-slate-50/80 via-white to-indigo-50/30 dark:from-slate-900/50 dark:via-slate-800/30 dark:to-indigo-950/10 rounded-2xl p-3 md:p-4 border border-slate-200/50 dark:border-slate-700/30 shadow-inner">
                             <style jsx>{`
@@ -221,7 +221,7 @@ export default function StudentCalendarPage() {
                                     {/* Selected Date Header */}
                                     <div className="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/8 to-pink-500/10 border border-indigo-200/40 dark:border-indigo-800/30">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-500/5 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-                                        <div className="relative z-10 flex items-center justify-between">
+                                        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                             <div>
                                                 <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-bold mb-1.5">Selected Date</p>
                                                 <p className="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent tracking-tight">
@@ -325,7 +325,7 @@ export default function StudentCalendarPage() {
                     </Card>
                 </div>
 
-                <Card className="md:col-span-1 flex flex-col h-[600px] border-0 shadow-lg">
+                <Card className="lg:col-span-1 flex flex-col h-auto lg:h-[600px] border-0 shadow-lg">
                     <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-b shrink-0">
                         <div className="flex items-center justify-between">
                             <div>
