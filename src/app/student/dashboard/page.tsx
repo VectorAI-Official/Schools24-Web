@@ -266,7 +266,7 @@ export default function StudentDashboard() {
                                     6 shortcuts
                                 </Badge>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                                 {quickActions.map((action) => (
                                     <button
                                         key={action.label}
@@ -475,7 +475,7 @@ export default function StudentDashboard() {
                                     group/tracker select-none">
 
                         {/* Inner Container for Padding */}
-                        <div className="px-0 pt-12 min-w-[640px]">
+                        <div className="px-0 pt-12 min-w-[560px] sm:min-w-[640px]">
                             {/* Floating Labels - Appear ABOVE the bar on hover */}
                             <div className="absolute top-0 left-0 w-full px-2 flex justify-between items-end z-20">
                                 {assessmentStages.map((exam) => (

@@ -447,7 +447,7 @@ export default function ReportsPage() {
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-full sm:w-[150px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Select Year" />
             </SelectTrigger>
             <SelectContent>
@@ -519,7 +519,7 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Revenue Collected</CardTitle>
@@ -788,7 +788,7 @@ export default function ReportsPage() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-2">
               <Label>Classes</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 rounded-md border p-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 rounded-md border p-3">
                 {classGradeOptions.map((item) => {
                   const checked = form.class_grades.includes(item.grade);
                   return (
@@ -820,7 +820,7 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Assessment Name</Label>
                 <Input
@@ -853,7 +853,7 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Scheduled Date</Label>
                 <Input
@@ -878,7 +878,7 @@ export default function ReportsPage() {
                 };
                 return (
                   <div className="border rounded-md p-3 space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-[180px_auto] gap-3 items-end">
+                    <div className="grid grid-cols-1 lg:grid-cols-[180px_auto] gap-3 items-end">
                       <div className="grid gap-1">
                         <Label className="text-xs">Total Marks</Label>
                         <Input
@@ -934,7 +934,7 @@ export default function ReportsPage() {
                     {(row.breakdowns || []).map((breakdown, breakdownIdx) => (
                       <div
                         key={`breakdown-${breakdownIdx}`}
-                        className="grid grid-cols-1 md:grid-cols-[1fr_140px_44px] gap-2 items-end"
+                        className="grid grid-cols-1 lg:grid-cols-[1fr_140px_44px] gap-2 items-end"
                       >
                         <div className="grid gap-1">
                           <Label className="text-xs">Breakdown Title</Label>

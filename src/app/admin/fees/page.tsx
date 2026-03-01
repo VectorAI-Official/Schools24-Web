@@ -559,7 +559,7 @@ export default function FeesPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                 <Card>
                     <CardContent className="p-4 md:p-6">
                         <div className="flex items-center gap-4">
@@ -616,7 +616,7 @@ export default function FeesPage() {
 
             <Card>
                 <CardHeader>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                         <div className="flex flex-wrap gap-2">
                             <Button
                                 variant={statusFilter === 'all' ? 'default' : 'outline'}

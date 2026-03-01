@@ -371,7 +371,7 @@ function SchoolsSection() {
                 </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {isSchoolsLoading ? (
                     Array(4).fill(0).map((_, i) => (
                         <Card key={i} className="animate-pulse rounded-2xl border-slate-200/60 dark:border-slate-800/60 overflow-hidden">
@@ -446,7 +446,7 @@ function SchoolsSection() {
                                     <span className="truncate font-medium">{school.contact_email || "No contact email"}</span>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-100/50 dark:border-indigo-500/20 transition-all duration-300 group-hover:bg-indigo-100/50 dark:group-hover:bg-indigo-500/20">
                                         <p className="text-[10px] uppercase font-bold tracking-wider text-indigo-600/70 dark:text-indigo-400/70 mb-1">Admins</p>
                                         <p className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{school.stats?.admins || school.admin_count || 0}</p>
@@ -829,7 +829,7 @@ function CatalogSection() {
                 </Card>
             ) : null}
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 {/* Classes Panel */}
                 <Card className="flex flex-col border-indigo-100 dark:border-indigo-900/50 shadow-sm bg-card overflow-hidden">
                     <CardHeader className="bg-indigo-50/50 dark:bg-indigo-950/20 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">

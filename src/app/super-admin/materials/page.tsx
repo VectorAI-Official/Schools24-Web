@@ -478,7 +478,7 @@ export function SuperAdminMaterialsForm() {
         </div>
 
         <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Upload Study Material</DialogTitle>
               <DialogDescription>Share study materials for catalog classes and subjects.</DialogDescription>
@@ -543,7 +543,7 @@ export function SuperAdminMaterialsForm() {
             }
           }
         }}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{previewMaterial?.title || previewMaterial?.file_name || 'Material Preview'}</DialogTitle>
               <DialogDescription>Preview metadata and document details</DialogDescription>

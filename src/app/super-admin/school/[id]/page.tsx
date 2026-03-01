@@ -45,7 +45,7 @@ export default function SchoolConsolePage() {
 
   if (!isLoading && !isSuperAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Access denied</h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -62,7 +62,7 @@ export default function SchoolConsolePage() {
 
   if (isSchoolLoading || !school) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-[100dvh] bg-background p-3 sm:p-4">
         <div className="flex items-center gap-2 mb-4">
           <Skeleton className="h-4 w-4 rounded-full" />
           <Skeleton className="h-4 w-32" />
@@ -76,8 +76,8 @@ export default function SchoolConsolePage() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-2">
-          <aside className="w-52 flex-shrink-0 space-y-2">
+        <div className="flex flex-col lg:flex-row gap-2">
+          <aside className="w-full lg:w-52 flex-shrink-0 space-y-2">
             <Skeleton className="h-6 w-6 ml-auto mb-2" />
             <div className="space-y-1">
               {[1, 2, 3, 4].map((i) => (
@@ -87,7 +87,7 @@ export default function SchoolConsolePage() {
           </aside>
 
           <div className="flex-1 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-32 rounded-xl" />
               ))}
@@ -100,7 +100,7 @@ export default function SchoolConsolePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
+    <div className="min-h-[100dvh] bg-background p-3 sm:p-4 md:p-6">
       <div className="mx-auto w-full max-w-[1440px] space-y-6">
         <div className="flex items-center justify-between">
           <Button

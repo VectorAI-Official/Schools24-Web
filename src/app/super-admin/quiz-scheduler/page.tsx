@@ -716,7 +716,7 @@ export default function SuperAdminQuizSchedulerPage() {
                       <Label className="text-slate-700 dark:text-slate-300">Quiz Title</Label>
                       <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Mid-Term Geometry Exam" className="h-11 bg-muted/50 rounded-xl" />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div className="grid gap-3">
                         <Label className="text-slate-700 dark:text-slate-300">Class Level</Label>
                         <Select value={classID} onValueChange={(value) => { setClassID(value); setSubjectID(""); setChapterName(""); }}>
@@ -944,7 +944,7 @@ export default function SuperAdminQuizSchedulerPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
         {quizzesQuery.isLoading || classesQuery.isLoading || assignmentsQuery.isLoading || subjectsQuery.isLoading ? (
           <div className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-20 bg-card/30 rounded-2xl border border-border/50 backdrop-blur-sm">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-4" />

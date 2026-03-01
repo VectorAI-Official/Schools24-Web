@@ -864,7 +864,7 @@ export default function TeacherReportsPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Class <span className="text-destructive">*</span></Label>
                 <Select value={srClassID} onValueChange={(v) => { setSrClassID(v); setSrStudentID(""); }}>
@@ -905,7 +905,7 @@ export default function TeacherReportsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Report Type</Label>
                 <Select value={srReportType} onValueChange={setSrReportType}>

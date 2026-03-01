@@ -387,7 +387,7 @@ export function QuestionUploaderForm() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                                 <div className="grid gap-2">
                                     <Label className="text-slate-700 dark:text-slate-300 font-medium">Academic Class</Label>
                                     <Select value={classId} onValueChange={(value) => {

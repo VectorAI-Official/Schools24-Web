@@ -223,7 +223,7 @@ export default function StudentsDetailsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold">Students Details</h1>
                     <p className="text-muted-foreground">View and manage all student records</p>
@@ -253,7 +253,7 @@ export default function StudentsDetailsPage() {
             {/* Students Table Section */}
             <Card>
                 <CardHeader>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                         <div className="relative w-full md:flex-1 md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input

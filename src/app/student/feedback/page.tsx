@@ -80,7 +80,7 @@ export default function StudentFeedbackPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50">
                     <CardContent className="p-4 md:p-6 text-center">
                         <MessageCircle className="h-8 w-8 mx-auto mb-2 text-violet-500" />

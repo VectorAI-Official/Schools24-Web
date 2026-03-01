@@ -201,7 +201,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-[100dvh] flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
@@ -217,7 +217,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
     superAdmins.some(sa => sa.email.toLowerCase() === newSuperAdmin.email.toLowerCase())
 
   return (
-    <div className={embedded ? "space-y-6" : "min-h-screen bg-background p-6"}>
+    <div className={embedded ? "space-y-6" : "min-h-[100dvh] bg-background p-3 sm:p-4 md:p-6"}>
       <div className={embedded ? "space-y-6" : "max-w-4xl mx-auto space-y-6"}>
         {/* Header */}
         {!embedded && (
@@ -240,10 +240,10 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
 
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex w-full md:w-auto p-1 bg-muted/80 rounded-2xl border border-border/50 backdrop-blur-sm self-start max-w-xl mx-auto md:mx-0">
-            <TabsTrigger value="profile" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Profile</TabsTrigger>
-            <TabsTrigger value="security" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Security</TabsTrigger>
-            <TabsTrigger value="super-admins" className="flex-1 md:flex-none rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-6 py-2.5 transition-all">Super Admins</TabsTrigger>
+          <TabsList className="flex w-full md:w-auto p-1 bg-muted/80 rounded-2xl border border-border/50 backdrop-blur-sm self-start max-w-xl mx-auto md:mx-0 overflow-x-auto">
+            <TabsTrigger value="profile" className="flex-1 md:flex-none shrink-0 whitespace-nowrap rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-4 sm:px-6 py-2.5 transition-all">Profile</TabsTrigger>
+            <TabsTrigger value="security" className="flex-1 md:flex-none shrink-0 whitespace-nowrap rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-4 sm:px-6 py-2.5 transition-all">Security</TabsTrigger>
+            <TabsTrigger value="super-admins" className="flex-1 md:flex-none shrink-0 whitespace-nowrap rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 font-medium px-4 sm:px-6 py-2.5 transition-all">Super Admins</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}

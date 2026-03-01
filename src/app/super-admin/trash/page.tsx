@@ -103,7 +103,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
   if (authLoading || !isSuperAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
         </div>
@@ -112,10 +112,10 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
   }
 
   return (
-    <div className={embedded ? "space-y-8" : "min-h-screen bg-background"}>
+    <div className={embedded ? "space-y-8" : "min-h-[100dvh] bg-background"}>
       {!embedded && (
         <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
-          <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="container mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-orange-600 rounded-lg">
                 <Trash2 className="h-6 w-6 text-white" />
@@ -138,7 +138,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
         </header>
       )}
 
-      <main className={embedded ? "space-y-8" : "container mx-auto px-6 py-8 space-y-8"}>
+      <main className={embedded ? "space-y-8" : "container mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8"}>
         {/* Back Button and Info Alert */}
         <div className="flex flex-col gap-4">
           {!embedded && (
@@ -152,7 +152,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
             </Button>
           )}
 
-          <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border border-orange-200/50 dark:border-orange-800/50 rounded-2xl p-6 shadow-sm">
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border border-orange-200/50 dark:border-orange-800/50 rounded-2xl p-4 sm:p-6 shadow-sm">
             <div className="flex gap-4">
               <div className="h-10 w-10 shrink-0 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
                 <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
@@ -218,7 +218,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
 
         {/* Deleted Schools Grid */}
         {!isLoadingDeleted && filteredSchools.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {filteredSchools.map((school) => {
               const hoursRemaining = getHoursRemaining(school.deleted_at!)
               const urgency = getUrgencyLevel(hoursRemaining)
@@ -349,7 +349,7 @@ export function SuperAdminTrashPanel({ embedded = false }: { embedded?: boolean 
               No schools match your search
             </h3>
             <p className="text-slate-500 max-w-sm">
-              We couldn't find any deleted schools matching "{searchQuery}". Try a different search term.
+              We couldn&apos;t find any deleted schools matching &quot;{searchQuery}&quot;. Try a different search term.
             </p>
           </div>
         )}

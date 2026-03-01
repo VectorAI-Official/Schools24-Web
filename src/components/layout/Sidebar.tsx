@@ -48,6 +48,7 @@ import {
   FileCheck,
   Trash2,
   Bot,
+  TrendingUp,
 } from "lucide-react";
 
 interface NavItem {
@@ -319,6 +320,12 @@ const superAdminNavItems: NavItem[] = [
     href: "/super-admin?tab=schools",
     icon: <School className="h-5 w-5" />,
     category: "Overview",
+  },
+  {
+    title: "User Growth",
+    href: "/super-admin/users",
+    icon: <TrendingUp className="h-5 w-5" />,
+    category: "Analytics",
   },
   {
     title: "Catalog",

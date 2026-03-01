@@ -386,9 +386,9 @@ export default function EventsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-3">
                 {/* Calendar */}
-                <Card className="lg:col-span-2 overflow-hidden min-h-[420px] md:min-h-[600px]">
+                <Card className="xl:col-span-2 overflow-hidden min-h-[420px] md:min-h-[600px]">
 
                     <CardContent className="p-4 md:p-6">
                         <div className="bg-gradient-to-br from-background to-muted/30 rounded-xl p-4 md:p-6 border shadow-inner">

@@ -159,8 +159,8 @@ export default function TeacherMessagesPage() {
                 <p className="text-muted-foreground">Class group conversations for your assigned classes</p>
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
-                <Card className="lg:col-span-1">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-3">
+                <Card className="xl:col-span-1">
                     <CardHeader className="pb-3">
                         <CardTitle className="text-lg">Class Groups</CardTitle>
                         <div className="relative">
@@ -216,7 +216,7 @@ export default function TeacherMessagesPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="lg:col-span-2">
+                <Card className="xl:col-span-2">
                     <CardHeader className="pb-3">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="flex items-center gap-3">

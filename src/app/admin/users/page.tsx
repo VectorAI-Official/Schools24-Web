@@ -818,7 +818,7 @@ export default function UsersPage() {
 
             {/* Class Management Dialog */}
             <Dialog open={isClassDialogOpen} onOpenChange={setIsClassDialogOpen}>
-                <DialogContent className="w-[95vw] sm:max-w-[900px] max-h-[90vh] overflow-hidden">
+                <DialogContent className="w-[95vw] sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Class Management</DialogTitle>
                         <DialogDescription>
@@ -826,7 +826,7 @@ export default function UsersPage() {
                         </DialogDescription>
                     </DialogHeader>
 
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                             <div className="flex flex-wrap items-center gap-2">
                                 <Label htmlFor="academic-year">Academic Year</Label>
                                 <Select value={academicYear} onValueChange={setAcademicYear}>
@@ -1000,7 +1000,7 @@ export default function UsersPage() {
                     }
                 }}
             >
-                <DialogContent className="w-[95vw] sm:max-w-[560px]">
+                <DialogContent className="w-[95vw] sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Assign Class Incharge</DialogTitle>
                         <DialogDescription>
@@ -1073,7 +1073,7 @@ export default function UsersPage() {
 
             {/* View Dialog */}
             <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-                <DialogContent className="w-[95vw] sm:max-w-[520px]">
+                <DialogContent className="w-[95vw] sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>User Details</DialogTitle>
                     </DialogHeader>
@@ -1128,7 +1128,7 @@ export default function UsersPage() {
                     }
                 }}
             >
-                <DialogContent className="w-[95vw] sm:max-w-[500px]">
+                <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit User</DialogTitle>
                         <DialogDescription>
@@ -1255,7 +1255,7 @@ export default function UsersPage() {
                     if (!open) setShowAddPassword(false)
                 }}
             >
-                <DialogContent className="w-[95vw] sm:max-w-[500px]">
+                <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Add New User</DialogTitle>
                         <DialogDescription>

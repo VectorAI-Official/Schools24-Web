@@ -299,7 +299,7 @@ export default function QuestionPapersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                         Question Papers
@@ -316,7 +316,7 @@ export default function QuestionPapersPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                 <Card className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-transparent" />
                     <CardContent className="p-4 md:p-6">
@@ -380,7 +380,7 @@ export default function QuestionPapersPage() {
 
             <Card>
                 <CardContent className="p-4">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input

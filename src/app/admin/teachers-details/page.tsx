@@ -256,7 +256,7 @@ export default function TeachersDetailsPage() {
             </div>
 
             {/* Stats Cards */}
-            < div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6" >
+            < div className="grid gap-4 grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6" >
                 <Card className="bg-gradient-to-br from-green-500 to-teal-600 border-0">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
@@ -340,7 +340,7 @@ export default function TeachersDetailsPage() {
             {/* Teachers Table */}
             < Card >
                 <CardHeader>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="relative w-full md:flex-1 md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -495,7 +495,7 @@ export default function TeachersDetailsPage() {
 
             {/* View Dialog */}
             < Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen} >
-                <DialogContent className="sm:max-w-[700px]">
+                <DialogContent className="w-[95vw] sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Teacher Details</DialogTitle>
                     </DialogHeader>

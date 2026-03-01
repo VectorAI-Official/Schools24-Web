@@ -548,7 +548,7 @@ export default function StudentQuizzesPage() {
                     </div>
 
                     {/* Sidebar — Question Navigation */}
-                    <div className="w-full lg:w-[240px] flex-shrink-0">
+                    <div className="w-full lg:w-[220px] xl:w-[240px] flex-shrink-0">
                         <Card className="border-0 shadow-lg lg:sticky lg:top-4">
                             <CardContent className="p-4">
                                 <div className="space-y-2 mb-5">
@@ -631,7 +631,7 @@ export default function StudentQuizzesPage() {
                 </div>
 
                 {/* Score Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-blue-50 col-span-2 md:col-span-1">
                         <CardContent className="p-5 text-center">
                             <div className="relative w-24 h-24 mx-auto mb-3">
@@ -801,7 +801,7 @@ export default function StudentQuizzesPage() {
             )}
 
             {!isLoading && !isError && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
 
                     {/* ── LEFT: Subject Selector + Chapters ── */}
                     <div className="space-y-4">

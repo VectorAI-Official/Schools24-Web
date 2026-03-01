@@ -334,7 +334,7 @@ export default function StudentHomeworkPage() {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {[
                     { icon: <BookOpen className="h-7 w-7" />, value: totalCount,     label: 'Total',      from: 'from-blue-500',   to: 'to-indigo-600',  shadow: 'shadow-blue-500/30',   valueColor: 'text-blue-700 dark:text-blue-400',     bg: 'from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50'   },
                     { icon: <CheckCircle2 className="h-7 w-7" />, value: completedCount, label: 'Done',   from: 'from-green-500',  to: 'to-emerald-600', shadow: 'shadow-green-500/30',  valueColor: 'text-green-700 dark:text-green-400',   bg: 'from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50' },
@@ -363,7 +363,7 @@ export default function StudentHomeworkPage() {
             {subjectProgress.length > 0 && (
                 <Card className="border-0 shadow-lg overflow-hidden">
                     <CardContent className="p-4 md:p-6">
-                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                             {subjectProgress.map(sp => {
                                 const colors = getSubjectColor(sp.subject)
                                 return (

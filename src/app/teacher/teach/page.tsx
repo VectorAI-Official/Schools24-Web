@@ -264,8 +264,8 @@ export default function TeachPage() {
     <div className="space-y-6">
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-            <div className="flex flex-col md:flex-row gap-3 flex-1">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="flex flex-col lg:flex-row gap-3 flex-1">
               <Select
                 value={effectiveSelectedClassId}
                 onValueChange={(value) => {
@@ -302,8 +302,8 @@ export default function TeachPage() {
               </Select>
             </div>
 
-            <Link href="/teacher/teach/whiteboard" className="xl:ml-auto">
-              <Button className="w-full sm:w-auto xl:w-auto">
+            <Link href="/teacher/teach/whiteboard" className="lg:ml-auto">
+              <Button className="w-full sm:w-auto lg:w-auto">
                 <Monitor className="h-4 w-4 mr-2" />
                 Whiteboard
               </Button>

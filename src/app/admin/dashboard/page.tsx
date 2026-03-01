@@ -172,7 +172,7 @@ export default function AdminDashboard() {
     return (
         <div className="space-y-6">
             {/* Welcome Section */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
                         Welcome back, Admin!
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
                 <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600">
                     <CardContent className="p-4 md:p-6">
                         <div className="flex items-center justify-between">
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">
                 {quickActions.map((action, index) => {
                     const Icon = action.icon
                     return (
@@ -311,9 +311,9 @@ export default function AdminDashboard() {
             </div>
 
             {/* Charts Row */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-3">
                 {/* Revenue Chart */}
-                <div className="md:col-span-2">
+                <div className="xl:col-span-2">
                     <Card>
                         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
@@ -470,7 +470,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Attendance & Performance */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-2">
                 {/* Weekly Attendance */}
                 <Card>
                     <CardHeader>
@@ -572,7 +572,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Events & Recent Activity */}
-            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-2">
                 {/* Upcoming Events */}
                 <Card>
                     <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

@@ -839,7 +839,7 @@ export default function QuizSchedulerPage() {
                   />
                   <Label htmlFor="create-anytime">AnyTime</Label>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                   <div className="grid gap-2">
                     <Label>Date</Label>
                     <Input
@@ -996,7 +996,7 @@ export default function QuizSchedulerPage() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -1006,7 +1006,7 @@ export default function QuizSchedulerPage() {
                 placeholder="Search by title, class or subject"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xl:w-auto w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:w-auto w-full">
               <Select
                 value={classFilter}
                 onValueChange={(value) => {
@@ -1091,7 +1091,7 @@ export default function QuizSchedulerPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
         {quizzesQuery.isLoading ? (
           <Card className="md:col-span-2 lg:col-span-3">
             <CardContent className="p-4 md:p-8 text-center text-muted-foreground">

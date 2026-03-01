@@ -250,7 +250,7 @@ export default function StudentReportsPage() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50 overflow-hidden">
                     <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-20 h-20 bg-violet-500/10 rounded-full -translate-y-10 translate-x-10" />
@@ -313,7 +313,7 @@ export default function StudentReportsPage() {
             </div>
 
             {/* Subject Performance Chart + Subject-wise Breakdown — 2 column layout */}
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
                 {/* Subject Performance Chart */}
                 <Card className="border-0 shadow-lg overflow-hidden">
                     <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
