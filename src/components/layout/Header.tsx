@@ -52,7 +52,7 @@ export function Header() {
                 </Button>
 
                 {user?.school_name && (
-                    <div className="relative flex min-w-0 max-w-[62vw] sm:max-w-none items-center gap-2.5 px-4 py-2 rounded-xl overflow-hidden">
+                    <div className="relative flex min-w-0 max-w-[42vw] sm:max-w-[220px] md:max-w-[280px] lg:max-w-[380px] items-center gap-2.5 px-4 py-2 rounded-xl overflow-hidden">
                         {/* Colored gradient background layer */}
                         <div className={`absolute inset-0 bg-gradient-to-r ${rolePill.grad}`} />
                         {/* Blur/Glass effect */}
@@ -61,10 +61,10 @@ export function Header() {
                         <div className={`absolute inset-0 rounded-xl border ${rolePill.border}`} />
 
                         {/* Content */}
-                        <div className={`relative z-10 hidden md:flex h-8 w-8 items-center justify-center rounded-lg ${rolePill.icon}`}>
+                        <div className={`relative z-10 hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${rolePill.icon}`}>
                             <School className="h-5 w-5" />
                         </div>
-                        <span className="relative z-10 text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 truncate">
+                        <span className="relative z-10 min-w-0 block truncate text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
                             {user.school_name}
                         </span>
                     </div>
