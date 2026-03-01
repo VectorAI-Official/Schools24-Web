@@ -539,7 +539,7 @@ export function QuestionUploaderForm() {
                                         <FileText className="h-10 w-10 text-slate-300 dark:text-slate-600" />
                                     </div>
                                     <h4 className="font-medium text-slate-700 dark:text-slate-300 mb-1">Awaiting Transmission</h4>
-                                    <p className="text-sm text-slate-500 px-4">Your uploaded document's manifest will appear here upon completion</p>
+                                    <p className="text-sm text-slate-500 px-4">Your uploaded document&apos;s manifest will appear here upon completion</p>
                                 </div>
                             ) : (
                                 <div className="p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -820,7 +820,7 @@ function SuperAdminQuestionDocumentsList() {
             <AlertDialog open onOpenChange={open => !open && setDeleteTarget(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete "{deleteTarget.title}"?</AlertDialogTitle>
+                        <AlertDialogTitle>Delete &quot;{deleteTarget.title}&quot;?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This permanently removes the question paper and cannot be undone.
                         </AlertDialogDescription>
