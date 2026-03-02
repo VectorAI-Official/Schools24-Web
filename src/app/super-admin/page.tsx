@@ -635,7 +635,7 @@ function CatalogSection() {
     const classes = useMemo(() => classesQuery.data?.classes || [], [classesQuery.data?.classes])
     const subjects = useMemo(() => subjectsQuery.data?.subjects || [], [subjectsQuery.data?.subjects])
     const assignments = useMemo(() => assignmentsQuery.data?.assignments || [], [assignmentsQuery.data?.assignments])
-    const effectiveSelectedClassId = selectedClassId || classes[0]?.id || ""
+    const effectiveSelectedClassId = selectedClassId
     const defaultAssignedSubjectIds = useMemo(() => {
         if (!effectiveSelectedClassId) return []
         const current = assignments.find((item) => item.class.id === effectiveSelectedClassId)
