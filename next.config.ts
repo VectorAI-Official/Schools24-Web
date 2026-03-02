@@ -16,9 +16,6 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
   },
   
-  // Optimize output
-  output: 'standalone',
-  
   // Experimental features for better performance
   experimental: {
     // Keep heavy optimizations for production builds; prioritize dev compile speed locally.
