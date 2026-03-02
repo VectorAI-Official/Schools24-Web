@@ -54,6 +54,7 @@ import {
   Shield,
 } from 'lucide-react'
 import { useTicketList, useUpdateTicketStatus, useDeleteTicket } from '@/hooks/useSupport'
+import { useSupportWS } from '@/hooks/useSupportWS'
 import { SupportTicket } from '@/services/supportService'
 import { format } from 'date-fns'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -180,10 +181,12 @@ function TicketDetailDialog({
               <Ticket className="h-5 w-5" />
               Ticket #{ticket.ticket_number}
             </DialogTitle>
-            <DialogDescription className="flex flex-wrap items-center gap-2 pt-1">
+            <DialogDescription asChild>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
               <StatusBadge status={ticket.status} />
               <PriorityBadge priority={ticket.priority} />
               <Badge variant="outline" className="capitalize text-xs">{ticket.category}</Badge>
+              </div>
             </DialogDescription>
           </DialogHeader>
 
@@ -324,6 +327,9 @@ export function SAHelpCenterSection() {
   const [category, setCategory] = useState('')
   const [page, setPage]         = useState(1)
   const [selected, setSelected] = useState<SupportTicket | null>(null)
+
+  // Real-time ticket updates via Gorilla WebSocket
+  useSupportWS(true)
 
   const debouncedSearch = useDebounce(search, 350)
 
