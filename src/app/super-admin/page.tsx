@@ -39,7 +39,7 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { useInfiniteSchools, useCreateSchool, useDeleteSchool, useUpdateSchool, CreateSchoolParams, UpdateSchoolParams } from "@/hooks/useSchools"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
-import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit, Layers3, BookOpenCheck, Check, X, Shield, Sparkles, CheckCircle2, Save, ArrowRight } from "lucide-react"
+import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit, Layers3, BookOpenCheck, Check, X, Shield, Sparkles, CheckCircle2, Save, ArrowRight, ArrowUp, ArrowDown } from "lucide-react"
 
 type SuperAdminTab = "schools" | "catalog" | "question-uploader" | "quiz-scheduler" | "materials" | "settings" | "trash" | "users"
 
@@ -609,7 +609,6 @@ function CatalogSection() {
     const [assignedByClass, setAssignedByClass] = useState<Record<string, string[]>>({})
     const [editingClassId, setEditingClassId] = useState<string | null>(null)
     const [editingClassName, setEditingClassName] = useState("")
-    const [editingClassSort, setEditingClassSort] = useState("0")
     const [editingSubjectId, setEditingSubjectId] = useState<string | null>(null)
     const [editingSubjectName, setEditingSubjectName] = useState("")
     const [editingSubjectCode, setEditingSubjectCode] = useState("")
@@ -691,6 +690,27 @@ function CatalogSection() {
         },
     })
 
+    const reorderClassMutation = useMutation({
+        mutationFn: (items: { id: string; sort_order: number }[]) =>
+            api.put("/super-admin/catalog/classes/reorder", { items }),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["super-admin-catalog-classes"] })
+        },
+        onError: (error) => {
+            toast.error("Failed to reorder classes", { description: error instanceof Error ? error.message : "Unexpected error" })
+        },
+    })
+
+    const moveClass = (index: number, direction: "up" | "down") => {
+        const sorted = [...classes]
+        const targetIndex = direction === "up" ? index - 1 : index + 1
+        if (targetIndex < 0 || targetIndex >= sorted.length) return
+        const newOrder = [...sorted]
+        ;[newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]]
+        const items = newOrder.map((c, i) => ({ id: c.id, sort_order: i + 1 }))
+        reorderClassMutation.mutate(items)
+    }
+
     const createSubjectMutation = useMutation({
         mutationFn: (payload: { name: string; code: string }) => api.post<{ subject: GlobalSubject }>("/super-admin/catalog/subjects", payload),
         onSuccess: async () => {
@@ -744,6 +764,7 @@ function CatalogSection() {
         createClassMutation.isPending ||
         updateClassMutation.isPending ||
         deleteClassMutation.isPending ||
+        reorderClassMutation.isPending ||
         createSubjectMutation.isPending ||
         updateSubjectMutation.isPending ||
         deleteSubjectMutation.isPending ||
@@ -874,12 +895,11 @@ function CatalogSection() {
                                 ) : classes.length === 0 ? (
                                     <div className="text-center pt-6 pb-4 text-slate-400 italic">No classes added yet.</div>
                                 ) : (
-                                    classes.map((item) => (
+                                    classes.map((item, index) => (
                                         <div key={item.id} className="group flex items-center gap-3 border border-border/60 rounded-xl p-3 bg-card hover:bg-muted/50 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all duration-300">
                                             {editingClassId === item.id ? (
                                                 <div className="flex-1 flex items-center gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
                                                     <Input value={editingClassName} onChange={(e) => setEditingClassName(e.target.value)} className="h-9" autoFocus />
-                                                    <Input type="number" value={editingClassSort} onChange={(e) => setEditingClassSort(e.target.value)} className="h-9 w-20" />
                                                     <Button
                                                         size="sm"
                                                         className="h-9 px-3 bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -887,7 +907,7 @@ function CatalogSection() {
                                                             updateClassMutation.mutate({
                                                                 id: item.id,
                                                                 name: editingClassName.trim(),
-                                                                sort_order: Number(editingClassSort || "0"),
+                                                                sort_order: item.sort_order,
                                                             })
                                                         }
                                                         disabled={!editingClassName.trim() || isBusy}
@@ -900,6 +920,29 @@ function CatalogSection() {
                                                 </div>
                                             ) : (
                                                 <>
+                                                    <div className="flex flex-col gap-0.5 mr-0.5">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-5 w-5 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 disabled:opacity-20"
+                                                            disabled={index === 0 || reorderClassMutation.isPending}
+                                                            onClick={() => moveClass(index, "up")}
+                                                            tabIndex={-1}
+                                                        >
+                                                            <ArrowUp className="h-3 w-3" />
+                                                        </Button>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-5 w-5 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 disabled:opacity-20"
+                                                            disabled={index === classes.length - 1 || reorderClassMutation.isPending}
+                                                            onClick={() => moveClass(index, "down")}
+                                                            tabIndex={-1}
+                                                        >
+                                                            <ArrowDown className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+
                                                     <button
                                                         type="button"
                                                         className={`flex-1 text-left flex items-center gap-3 py-1 ${effectiveSelectedClassId === item.id ? "text-indigo-700 dark:text-indigo-400 font-semibold" : "text-slate-700 dark:text-slate-300 font-medium"}`}
@@ -909,10 +952,6 @@ function CatalogSection() {
                                                         <span>{item.name}</span>
                                                     </button>
 
-                                                    <span className="flex-shrink-0 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-md">
-                                                        Sort {item.sort_order}
-                                                    </span>
-
                                                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Button
                                                             size="icon"
@@ -921,7 +960,6 @@ function CatalogSection() {
                                                             onClick={() => {
                                                                 setEditingClassId(item.id)
                                                                 setEditingClassName(item.name)
-                                                                setEditingClassSort(String(item.sort_order))
                                                             }}
                                                         >
                                                             <Edit className="h-4 w-4" />
