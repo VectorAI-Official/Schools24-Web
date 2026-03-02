@@ -23,7 +23,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="flex min-h-[100dvh] bg-background">
+        <div className="flex h-[100dvh] bg-background">
             <Sidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />

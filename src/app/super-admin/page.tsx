@@ -1286,7 +1286,7 @@ function SuperAdminPageContent() {
     if (!user || user.role !== "super_admin") return null
 
     return (
-        <div className="flex min-h-[100dvh] bg-background">
+        <div className="flex h-[100dvh] bg-background">
             <Sidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />

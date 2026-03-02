@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts"
-import { Users, GraduationCap, BookOpen, TrendingUp, Calendar, ChevronDown } from "lucide-react"
+import { Users, GraduationCap, BookOpen, TrendingUp, Calendar, ChevronDown, ShieldCheck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +21,7 @@ interface MonthlyUserStat {
     students: number
     teachers: number
     admins: number
+    super_admins: number
 }
 
 interface MonthlyUsersResponse {
@@ -31,6 +32,7 @@ interface MonthlyUsersResponse {
         total_students: number
         total_teachers: number
         total_admins: number
+        total_super_admins: number
         peak_month: number
         peak_count: number
     }
@@ -72,10 +74,10 @@ export function UserGrowthSection() {
         Students: m.students,
         Teachers: m.teachers,
         Admins: m.admins,
+        "Super Admins": m.super_admins,
     }))
 
     const summary = data?.summary
-    const peakLabel = summary?.peak_month ? MONTH_LABELS[summary.peak_month - 1] : "—"
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -106,7 +108,7 @@ export function UserGrowthSection() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
                 <StatCard
                     label="Total New Users"
                     value={summary?.total_new_users ?? 0}
@@ -127,11 +129,16 @@ export function UserGrowthSection() {
                     color="bg-gradient-to-br from-emerald-500 to-emerald-600"
                 />
                 <StatCard
-                    label="Peak Month"
-                    value={summary?.peak_count ?? 0}
+                    label="New Admins"
+                    value={summary?.total_admins ?? 0}
+                    icon={<ShieldCheck className="w-6 h-6 text-white" />}
+                    color="bg-gradient-to-br from-violet-500 to-purple-600"
+                />
+                <StatCard
+                    label="Super Admins"
+                    value={summary?.total_super_admins ?? 0}
                     icon={<TrendingUp className="w-6 h-6 text-white" />}
-                    color="bg-gradient-to-br from-amber-500 to-orange-500"
-                    sub={peakLabel}
+                    color="bg-gradient-to-br from-rose-500 to-red-600"
                 />
             </div>
 
@@ -168,6 +175,7 @@ export function UserGrowthSection() {
                                 <Bar dataKey="Students" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={32} />
                                 <Bar dataKey="Teachers" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={32} />
                                 <Bar dataKey="Admins" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={32} />
+                                <Bar dataKey="Super Admins" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={32} />
                             </BarChart>
                         </ResponsiveContainer>
                     )}
@@ -201,6 +209,7 @@ export function UserGrowthSection() {
                                         <th className="text-right px-6 py-3 font-semibold text-muted-foreground">Students</th>
                                         <th className="text-right px-6 py-3 font-semibold text-muted-foreground">Teachers</th>
                                         <th className="text-right px-6 py-3 font-semibold text-muted-foreground">Admins</th>
+                                        <th className="text-right px-6 py-3 font-semibold text-muted-foreground">Super Admins</th>
                                         <th className="text-right px-6 py-3 font-semibold text-muted-foreground">Total</th>
                                     </tr>
                                 </thead>
@@ -220,6 +229,7 @@ export function UserGrowthSection() {
                                                 <td className="px-6 py-3 text-right text-blue-600 dark:text-blue-400 font-medium">{m.students}</td>
                                                 <td className="px-6 py-3 text-right text-emerald-600 dark:text-emerald-400 font-medium">{m.teachers}</td>
                                                 <td className="px-6 py-3 text-right text-violet-600 dark:text-violet-400 font-medium">{m.admins}</td>
+                                                <td className="px-6 py-3 text-right text-rose-600 dark:text-rose-400 font-medium">{m.super_admins}</td>
                                                 <td className="px-6 py-3 text-right font-bold text-foreground">{m.total}</td>
                                             </tr>
                                         )
@@ -230,6 +240,7 @@ export function UserGrowthSection() {
                                         <td className="px-6 py-3 text-right text-blue-600 dark:text-blue-400">{summary?.total_students ?? 0}</td>
                                         <td className="px-6 py-3 text-right text-emerald-600 dark:text-emerald-400">{summary?.total_teachers ?? 0}</td>
                                         <td className="px-6 py-3 text-right text-violet-600 dark:text-violet-400">{summary?.total_admins ?? 0}</td>
+                                        <td className="px-6 py-3 text-right text-rose-600 dark:text-rose-400">{summary?.total_super_admins ?? 0}</td>
                                         <td className="px-6 py-3 text-right text-foreground">{summary?.total_new_users ?? 0}</td>
                                     </tr>
                                 </tbody>
