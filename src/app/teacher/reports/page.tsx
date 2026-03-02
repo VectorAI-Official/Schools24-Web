@@ -25,14 +25,14 @@ interface TeacherReportAssessment {
   assessment_type: string;
   academic_year: string;
   total_marks: number;
-  class_grades: number[];
+  class_ids: string[];
   scheduled_date?: string;
 }
 
 interface TeacherReportClass {
   class_id: string;
   class_name: string;
-  grade: number;
+  grade?: number | null;
   subjects?: { subject_id: string; subject_name: string }[];
 }
 
@@ -185,7 +185,7 @@ export default function TeacherReportsPage() {
     const classes = optionsQuery.data?.classes || [];
     if (!selectedAssessment) return classes;
     return classes.filter((item) =>
-      (selectedAssessment.class_grades || []).includes(item.grade),
+      (selectedAssessment.class_ids || []).includes(item.class_id),
     );
   }, [optionsQuery.data?.classes, selectedAssessment]);
   const filteredSubjects = useMemo(() => {
@@ -396,14 +396,14 @@ export default function TeacherReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+      <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-3">
         <div>
           <h1 className="text-xl md:text-3xl font-bold">Report Management</h1>
           <p className="text-muted-foreground">
             Upload marks and individual student reports.
           </p>
         </div>
-        <div className="flex w-full sm:w-auto gap-2">
+          <div className="flex w-full lg:w-auto gap-2">
           <Button className="w-full sm:w-auto" onClick={() => setStudentUploaderOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
             Upload Student Report
@@ -994,4 +994,5 @@ export default function TeacherReportsPage() {
     </div>
   );
 }
+
 

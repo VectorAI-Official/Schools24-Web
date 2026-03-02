@@ -261,7 +261,7 @@ export default function StudentCalendarPage() {
                                                     {eventsOnDate.length}
                                                 </Badge>
                                             </div>
-                                            <div className="grid gap-3 sm:grid-cols-2 grid-cols-1 md:grid-cols-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                                            <div className="grid gap-3 sm:grid-cols-2 grid-cols-1 lg:grid-cols-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
                                                 {eventsOnDate.map((event, index) => (
                                                     <div
                                                         key={event.id}

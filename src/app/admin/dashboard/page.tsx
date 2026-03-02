@@ -172,7 +172,7 @@ export default function AdminDashboard() {
     return (
         <div className="space-y-6">
             {/* Welcome Section */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
                         Welcome back, Admin!

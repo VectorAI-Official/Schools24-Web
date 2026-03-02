@@ -254,7 +254,7 @@ export default function StudentsDetailsPage() {
             <Card>
                 <CardHeader>
                     <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                        <div className="relative w-full md:flex-1 md:max-w-sm">
+                        <div className="relative w-full xl:flex-1 xl:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search students..."
@@ -263,7 +263,7 @@ export default function StudentsDetailsPage() {
                                 className="pl-10"
                             />
                         </div>
-                        <div className="flex w-full md:w-auto flex-wrap gap-3">
+                        <div className="flex w-full xl:w-auto flex-wrap gap-3">
                             <Select value={classFilter} onValueChange={setClassFilter}>
                                 <SelectTrigger className="w-full sm:w-[130px]">
                                     <Filter className="mr-2 h-4 w-4" />

@@ -245,7 +245,7 @@ export default function StudentEventsPage() {
                 <CardContent className="p-4 md:p-8 relative">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16" />
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+                    <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-4 xl:gap-6">
                         <div className="text-center md:text-left">
                             <h3 className="text-2xl font-bold mb-2 flex items-center gap-2 justify-center md:justify-start">
                                 <CalendarDays className="h-7 w-7" />

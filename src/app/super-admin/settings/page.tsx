@@ -9,10 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ArrowLeft, Loader2, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Eye, EyeOff, Plus, Trash2, Lock, Unlock } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { useUpdateProfile, useChangePassword } from '@/hooks/useProfile'
-import { useSuperAdmins, useCreateSuperAdmin, useDeleteSuperAdmin } from '@/hooks/useSuperAdmins'
+import { useSuperAdmins, useCreateSuperAdmin, useDeleteSuperAdmin, useSuspendSuperAdmin, useUnsuspendSuperAdmin } from '@/hooks/useSuperAdmins'
 import { PasswordPromptDialog } from '@/components/super-admin/PasswordPromptDialog'
 import { toast } from 'sonner'
 
@@ -28,6 +28,8 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
   const { data: superAdmins = [], isLoading: isSuperAdminsLoading } = useSuperAdmins(true)
   const createSuperAdmin = useCreateSuperAdmin()
   const deleteSuperAdmin = useDeleteSuperAdmin()
+  const suspendSuperAdmin = useSuspendSuperAdmin()
+  const unsuspendSuperAdmin = useUnsuspendSuperAdmin()
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -56,6 +58,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
   const [showNewAdminPassword, setShowNewAdminPassword] = useState(false)
   const [showCreatePasswordPrompt, setShowCreatePasswordPrompt] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ id: string; name: string } | null>(null)
+  const [suspendConfirmation, setSuspendConfirmation] = useState<{ id: string; name: string; action: 'suspend' | 'unsuspend' } | null>(null)
 
   // Load user data into form
   useEffect(() => {
@@ -195,6 +198,31 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
       setDeleteConfirmation(null)
     } catch (error) {
       // Error handled by hook and PasswordPromptDialog
+      throw error
+    }
+  }
+
+  const handleSASuspendAction = (id: string, name: string, action: 'suspend' | 'unsuspend') => {
+    setSuspendConfirmation({ id, name, action })
+  }
+
+  const confirmSASuspendAction = async (password: string) => {
+    if (!suspendConfirmation) return
+
+    try {
+      if (suspendConfirmation.action === 'suspend') {
+        await suspendSuperAdmin.mutateAsync({ id: suspendConfirmation.id, password })
+        toast.success('Super Admin Suspended', {
+          description: `${suspendConfirmation.name} has been suspended and cannot log in.`
+        })
+      } else {
+        await unsuspendSuperAdmin.mutateAsync({ id: suspendConfirmation.id, password })
+        toast.success('Suspension Removed', {
+          description: `${suspendConfirmation.name} can now log in again.`
+        })
+      }
+      setSuspendConfirmation(null)
+    } catch (error) {
       throw error
     }
   }
@@ -427,7 +455,7 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
           {/* Super Admins Tab */}
           <TabsContent value="super-admins" className="m-0 focus-visible:outline-none focus-visible:ring-0">
             <div className="bg-card/60 backdrop-blur-xl rounded-2xl border border-border/60 overflow-hidden shadow-sm">
-              <div className="p-6 md:p-8 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="p-6 md:p-8 border-b border-border flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                     Super Admin Management
@@ -561,20 +589,39 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
                                 {sa.id === user.id && (
                                   <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider shrink-0">You</span>
                                 )}
+                                {sa.is_suspended && (
+                                  <span className="px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 text-[10px] font-bold uppercase tracking-wider shrink-0">Suspended</span>
+                                )}
                               </p>
                               <p className="text-xs text-slate-500 mt-0.5 truncate">{sa.email}</p>
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={sa.id === user.id || deleteSuperAdmin.isPending}
-                            onClick={() => handleDeleteSuperAdmin(sa.id, sa.full_name)}
-                            className="h-9 w-9 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/40 opacity-40 group-hover:opacity-100 transition-all disabled:opacity-30 disabled:hover:bg-transparent shrink-0 ml-2"
-                            title={sa.id === user.id ? "Cannot delete yourself" : "Delete Admin"}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1 shrink-0 ml-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={sa.id === user.id || suspendSuperAdmin.isPending || unsuspendSuperAdmin.isPending}
+                              onClick={() => handleSASuspendAction(sa.id, sa.full_name, sa.is_suspended ? 'unsuspend' : 'suspend')}
+                              className={`h-9 w-9 opacity-40 group-hover:opacity-100 transition-all disabled:opacity-30 disabled:hover:bg-transparent ${
+                                sa.is_suspended
+                                  ? 'text-orange-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/40'
+                                  : 'text-slate-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/40'
+                              }`}
+                              title={sa.id === user.id ? 'Cannot suspend yourself' : sa.is_suspended ? 'Remove Suspension' : 'Suspend Admin'}
+                            >
+                              {sa.is_suspended ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={sa.id === user.id || deleteSuperAdmin.isPending}
+                              onClick={() => handleDeleteSuperAdmin(sa.id, sa.full_name)}
+                              className="h-9 w-9 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/40 opacity-40 group-hover:opacity-100 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                              title={sa.id === user.id ? "Cannot delete yourself" : "Delete Admin"}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -608,6 +655,22 @@ export function SuperAdminSettingsPanel({ embedded = false }: { embedded?: boole
         actionVariant="destructive"
         warningMessage="⚠️ This will permanently remove the super admin's access. They will no longer be able to manage schools or other super admins."
       />
+
+      {/* Password Prompt for Suspend / Unsuspend Super Admin */}
+      <PasswordPromptDialog
+        open={!!suspendConfirmation}
+        onOpenChange={(open) => !open && setSuspendConfirmation(null)}
+        onConfirm={confirmSASuspendAction}
+        title={suspendConfirmation?.action === 'suspend' ? `Suspend Super Admin: ${suspendConfirmation?.name}` : `Remove Suspension: ${suspendConfirmation?.name}`}
+        description={
+          suspendConfirmation?.action === 'suspend'
+            ? `Enter your password to suspend ${suspendConfirmation?.name}. They will be unable to log in until the suspension is removed.`
+            : `Enter your password to remove the suspension from ${suspendConfirmation?.name}. They will be able to log in again.`
+        }
+        actionLabel={suspendConfirmation?.action === 'suspend' ? 'Suspend' : 'Remove Suspension'}
+        actionVariant={suspendConfirmation?.action === 'suspend' ? 'destructive' : 'default'}
+        warningMessage={suspendConfirmation?.action === 'suspend' ? '⚠️ The suspended admin will see "invalid credentials" when attempting to log in.' : undefined}
+      />
     </div>
   )
 }
@@ -619,3 +682,4 @@ export default function SuperAdminSettingsPage() {
   }, [router])
   return null
 }
+

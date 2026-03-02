@@ -162,7 +162,7 @@ export default function TeacherFeesPage() {
                     )}
 
                     {loadingFees && (
-                        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                             {[0, 1, 2].map((i) => (
                                 <Skeleton key={i} className="h-28 rounded-2xl" />
                             ))}
@@ -180,7 +180,7 @@ export default function TeacherFeesPage() {
                     {!loadingFees && !feeError && feeData && (
                         <>
                             {/* Fee Summary Cards */}
-                            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 overflow-hidden">
                                     <CardContent className="p-4 md:p-6 relative">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full -translate-y-12 translate-x-12" />

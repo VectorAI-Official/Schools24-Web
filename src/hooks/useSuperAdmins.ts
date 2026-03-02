@@ -12,6 +12,8 @@ export interface SuperAdmin {
   last_login_at?: string
   created_at: string
   updated_at: string
+  is_suspended?: boolean
+  suspended_at?: string
 }
 
 interface SuperAdminsResponse {
@@ -81,6 +83,42 @@ export function useDeleteSuperAdmin() {
       toast.error('Failed to remove super admin', {
         description: message
       })
+    },
+  })
+}
+
+export function useSuspendSuperAdmin() {
+  const queryClient = useQueryClient()
+
+  return useMutation<void, Error, { id: string; password: string }>({
+    mutationFn: async ({ id, password }) => {
+      await api.put(`/super-admins/${id}/suspend`, { password })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['super-admins'] })
+      toast.success('Super admin suspended')
+    },
+    onError: (error: any) => {
+      const message = error.message || 'Failed to suspend super admin'
+      toast.error('Failed to suspend super admin', { description: message })
+    },
+  })
+}
+
+export function useUnsuspendSuperAdmin() {
+  const queryClient = useQueryClient()
+
+  return useMutation<void, Error, { id: string; password: string }>({
+    mutationFn: async ({ id, password }) => {
+      await api.put(`/super-admins/${id}/unsuspend`, { password })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['super-admins'] })
+      toast.success('Suspension removed')
+    },
+    onError: (error: any) => {
+      const message = error.message || 'Failed to remove suspension'
+      toast.error('Failed to remove suspension', { description: message })
     },
   })
 }

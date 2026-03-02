@@ -201,7 +201,7 @@ export default function StudentLeaderboardPage() {
     const modeLabel = mode === 'quiz' ? 'Quiz' : mode === 'assessments' ? 'My Class' : 'Whole School'
 
     return (
-        <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6">
+        <div className="min-h-[100dvh] bg-background p-3 sm:p-4 md:p-6">
             <div className="max-w-[1200px] mx-auto space-y-5 md:space-y-6">
 
                 {/* Header */}
@@ -613,7 +613,7 @@ export default function StudentLeaderboardPage() {
 
                                 {/* Top 3 Podium */}
                                 {top3.length > 0 && (
-                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                                         {top3.map((entry) => (
                                             <Card
                                                 key={entry.student_id}

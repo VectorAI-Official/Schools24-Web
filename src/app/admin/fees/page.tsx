@@ -658,7 +658,7 @@ export default function FeesPage() {
                                 Overdue
                             </Button>
                         </div>
-                        <div className="relative w-full md:max-w-sm">
+                        <div className="relative w-full xl:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search by student name..."

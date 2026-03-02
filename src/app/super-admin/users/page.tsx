@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts"
-import { Users, GraduationCap, BookOpen, Shield, TrendingUp, Calendar, ChevronDown } from "lucide-react"
+import { Users, GraduationCap, BookOpen, TrendingUp, Calendar, ChevronDown } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -240,4 +240,8 @@ export function UserGrowthSection() {
             </Card>
         </div>
     )
+}
+
+export default function SuperAdminUsersPage() {
+    return <UserGrowthSection />
 }

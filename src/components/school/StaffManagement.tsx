@@ -59,7 +59,6 @@ import {
     Eye,
     UserCog,
     DollarSign,
-    Filter,
     Loader2,
 } from 'lucide-react'
 import { Staff } from '@/types'
@@ -75,8 +74,6 @@ interface StaffManagementProps {
 
 export function StaffManagement({ schoolId, enabled = true }: StaffManagementProps) {
     const [searchQuery, setSearchQuery] = useState('')
-    const [departmentFilter, setDepartmentFilter] = useState<string>('all')
-    const [staffTypeFilter, setStaffTypeFilter] = useState<string>('all')
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -87,8 +84,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
         email: '',
         phone: '',
         employeeId: '',
-        staffType: 'non-teaching' as 'teaching' | 'non-teaching',
-        department: '',
         designation: '',
         subjects: '',
         salary: '',
@@ -129,14 +124,14 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
     const deleteMutation = useDeleteStaff()
 
     const handleAddStaff = () => {
-        if (!newStaff.name || !newStaff.email || !newStaff.department || !newStaff.designation) {
+        if (!newStaff.name || !newStaff.email || !newStaff.designation) {
             toast.error('Please fill in all required fields')
             return
         }
 
         const payload = {
             ...newStaff,
-            fullName: newStaff.name,
+            full_name: newStaff.name,
             salary: parseFloat(newStaff.salary) || 0,
             experience: parseInt(newStaff.experience) || 0,
             subjects: newStaff.subjects ? newStaff.subjects.split(',').map(s => s.trim()) : [],
@@ -157,8 +152,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
             email: '',
             phone: '',
             employeeId: '',
-            staffType: 'non-teaching',
-            department: '',
             designation: '',
             subjects: '',
             salary: '',
@@ -179,8 +172,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
             email: staff.email,
             phone: staff.phone || '',
             employeeId: staff.employeeId,
-            staffType: staff.staffType as 'teaching' | 'non-teaching',
-            department: staff.department,
             designation: staff.designation,
             subjects: '', // Subjects not easily available in list view, might need detail fetch or just empty
             salary: staff.salary?.toString() || '',
@@ -196,7 +187,7 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
 
     const handleUpdateStaff = () => {
         if (!selectedStaff) return
-        if (!newStaff.name || !newStaff.department || !newStaff.designation) {
+        if (!newStaff.name || !newStaff.designation) {
             toast.error('Please fill in required fields')
             return
         }
@@ -205,8 +196,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
             full_name: newStaff.name,
             phone: newStaff.phone,
             avatar: '',
-            staffType: newStaff.staffType,
-            department: newStaff.department,
             designation: newStaff.designation,
             qualification: newStaff.qualification,
             experience: parseInt(newStaff.experience) || 0,
@@ -236,15 +225,13 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
 
     const handleExport = () => {
         const csvContent = [
-            ['Name', 'Email', 'Employee ID', 'Department', 'Designation', 'Staff Type', 'Salary'].join(','),
+            ['Name', 'Email', 'Employee ID', 'Designation', 'Salary'].join(','),
             ...filteredStaff.map((s: Staff) =>
                 [
                     s.name,
                     s.email,
                     s.employeeId,
-                    s.department,
                     s.designation,
-                    s.staffType,
                     s.salary || 0
                 ].join(',')
             )
@@ -261,13 +248,9 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
 
     const filteredStaff = useMemo(() => {
         return staffList
-            .filter((member: Staff) => {
-                const matchesDepartment = departmentFilter === 'all' || member.department === departmentFilter
-                const matchesStaffType = staffTypeFilter === 'all' || member.staffType === staffTypeFilter
-                return matchesDepartment && matchesStaffType
-            })
+            .slice()
             .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
-    }, [staffList, departmentFilter, staffTypeFilter])
+    }, [staffList])
 
     const fetchTriggerIndex = filteredStaff.length > 0 ? Math.max(0, Math.floor(filteredStaff.length * 0.8) - 1) : -1
 
@@ -279,7 +262,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
         total: data?.pages[0]?.total || 0,
         totalSalary: totalSalary,
         avgSalary: staffList.length > 0 ? totalSalary / staffList.length : 0,
-        departmentsCount: new Set(staffList.map((s: Staff) => s?.department).filter(Boolean)).size,
     }
 
     if (isLoading) {
@@ -297,7 +279,7 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
     return (
         <div className="space-y-6">
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
@@ -320,19 +302,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                             <div>
                                 <p className="text-2xl font-bold">{formatCurrency(stats.totalSalary)}</p>
                                 <p className="text-sm text-muted-foreground">Total Salary</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30">
-                                <Filter className="h-6 w-6 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                                <p className="text-3xl font-bold">{stats.departmentsCount}</p>
-                                <p className="text-sm text-muted-foreground">Departments</p>
                             </div>
                         </div>
                     </CardContent>
@@ -392,7 +361,7 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                                     <DialogHeader>
                                         <DialogTitle>Add New Staff Member</DialogTitle>
                                         <DialogDescription>
-                                            Add a new teaching or non-teaching staff member to the school.
+                                            Add a new non-teaching staff member to the school.
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-4 max-h-[65vh] overflow-y-auto">
@@ -418,37 +387,16 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                                                 />
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="staffType">Staff Type *</Label>
-                                                <Select
-                                                    value={newStaff.staffType}
-                                                    onValueChange={(val: any) => setNewStaff({ ...newStaff, staffType: val })}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select type" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="teaching">Teaching Staff</SelectItem>
-                                                        <SelectItem value="non-teaching">Non-Teaching Staff</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="employeeId">Employee ID (Optional)</Label>
-                                                <Input
-                                                    id="employeeId"
-                                                    value={newStaff.employeeId}
-                                                    onChange={(e) => setNewStaff({ ...newStaff, employeeId: e.target.value })}
-                                                    placeholder="Auto-generated if empty"
-                                                />
-                                            </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="employeeId">Employee ID (Optional)</Label>
+                                            <Input
+                                                id="employeeId"
+                                                value={newStaff.employeeId}
+                                                onChange={(e) => setNewStaff({ ...newStaff, employeeId: e.target.value })}
+                                                placeholder="Auto-generated if empty"
+                                            />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="department">Department *</Label>
-                                                <Input id="department" value={newStaff.department} onChange={(e) => setNewStaff({ ...newStaff, department: e.target.value })} />
-                                            </div>
                                             <div className="grid gap-2">
                                                 <Label htmlFor="designation">Designation *</Label>
                                                 <Select
@@ -504,7 +452,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                                 <TableRow>
                                     <TableHead>Staff Member</TableHead>
                                     <TableHead>Employee ID</TableHead>
-                                    <TableHead>Department</TableHead>
                                     <TableHead>Designation</TableHead>
                                     <TableHead>Salary</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
@@ -535,11 +482,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                                                 </div>
                                             </TableCell>
                                             <TableCell className="font-mono text-sm">{member.employeeId}</TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline" className="font-medium">
-                                                    {member.department}
-                                                </Badge>
-                                            </TableCell>
                                             <TableCell className="text-sm">{member.designation}</TableCell>
                                             <TableCell className="font-medium">{formatCurrency(member.salary)}</TableCell>
                                             <TableCell className="text-right">
@@ -600,7 +542,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                                     <div className="flex items-center gap-2 mt-2">
                                         <Badge>{selectedStaff.designation}</Badge>
                                         <Badge variant="outline">{selectedStaff.department}</Badge>
-                                        <Badge variant="secondary" className="capitalize">{selectedStaff.staffType}</Badge>
                                     </div>
                                 </div>
                             </div>
@@ -667,10 +608,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-department">Department *</Label>
-                                <Input id="edit-department" value={newStaff.department} onChange={(e) => setNewStaff({ ...newStaff, department: e.target.value })} />
-                            </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-designation">Designation *</Label>
                                 <Select

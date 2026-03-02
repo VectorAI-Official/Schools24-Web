@@ -12,7 +12,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-[100dvh] flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         )
@@ -23,7 +23,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="flex h-[100dvh] bg-background">
+        <div className="flex min-h-[100dvh] bg-background">
             <Sidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />

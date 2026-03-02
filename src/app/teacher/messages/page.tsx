@@ -174,7 +174,7 @@ export default function TeacherMessagesPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
+                        <div className="space-y-2 max-h-[52vh] xl:max-h-[560px] overflow-y-auto pr-1">
                             {groupsLoading ? (
                                 <div className="flex items-center justify-center py-10 text-muted-foreground text-sm">
                                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -248,7 +248,7 @@ export default function TeacherMessagesPage() {
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="h-[430px] overflow-y-auto rounded-lg border bg-muted/20 p-3 space-y-3">
+                        <div className="h-[48vh] xl:h-[430px] overflow-y-auto rounded-lg border bg-muted/20 p-3 space-y-3">
                             {!effectiveSelectedClassId ? (
                                 <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
                                     Select a class group to view messages.

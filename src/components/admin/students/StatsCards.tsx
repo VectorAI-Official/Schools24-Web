@@ -21,7 +21,7 @@ interface StatsCardsProps {
 
 export function StatsCards({ stats }: StatsCardsProps) {
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0">
                 <CardContent className="p-4">
                     <div className="flex items-center gap-3">

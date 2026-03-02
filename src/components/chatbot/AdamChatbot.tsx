@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Send, X, Sparkles, RotateCcw, WifiOff, Paperclip, FileText } from 'lucide-react'
-import { useChat, type ChatAttachment } from '@/hooks/useChat'
+import { useChat, type ChatAttachment, type DataPayload } from '@/hooks/useChat'
 import { useAuth } from '@/contexts/AuthContext'
 
 // ─── Bot Avatar — Modern AI Character ────────────────────────────────
@@ -146,6 +146,104 @@ function BotAvatar({ size = 40, className = '', colors = AVATAR_COLORS.indigo }:
 }
 
 // ─── Types ───────────────────────────────────────────────────────────
+
+// ─── Data Result Renderer ────────────────────────────────────────────
+
+function formatCellValue(v: unknown): string {
+    if (v === null || v === undefined || v === '') return '—'
+    if (typeof v === 'number') return v.toLocaleString(undefined, { maximumFractionDigits: 2 })
+    return String(v)
+}
+
+function DataResultRenderer({ payload }: { payload: DataPayload }) {
+    const count = payload.rows?.length ?? 0
+    const cols = payload.columns ?? []
+
+    if (count === 0) {
+        return (
+            <div className="mt-1.5 mb-1 py-2 px-3 rounded-lg bg-muted/60 border border-border text-[12px] text-muted-foreground italic">
+                No records found.
+            </div>
+        )
+    }
+
+    // Very large result — summary only, nudge to the admin panel
+    if (count > 30) {
+        return (
+            <div className="mt-1.5 mb-1 py-2.5 px-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800/40">
+                <p className="text-[12px] font-semibold text-amber-800 dark:text-amber-300">{count} records found</p>
+                <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">{payload.summary}</p>
+                <p className="text-[11px] text-amber-600 dark:text-amber-500 mt-1">
+                    Too many to display here — visit the Admin panel for the full list.
+                </p>
+            </div>
+        )
+    }
+
+    // Small result (≤ 5 rows AND ≤ 4 columns) — card layout
+    if (count <= 5 && cols.length <= 4) {
+        return (
+            <div className="mt-1.5 mb-1 space-y-1.5">
+                {payload.rows.map((row, i) => (
+                    <div key={i} className="py-2 px-3 rounded-lg bg-muted/50 border border-border">
+                        {cols.map((col) => (
+                            <div key={col} className="flex justify-between items-baseline gap-2 min-w-0">
+                                <span className="text-[11px] text-muted-foreground shrink-0">{col}</span>
+                                <span className="text-[12px] font-medium text-foreground truncate text-right max-w-[60%]">
+                                    {formatCellValue(row[col])}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                ))}
+                <p className="text-[10px] text-muted-foreground px-0.5">{payload.summary}</p>
+            </div>
+        )
+    }
+
+    // Medium result — compact scrollable table
+    return (
+        <div className="mt-1.5 mb-1 rounded-lg border border-border overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="w-full text-[11px] border-collapse">
+                    <thead>
+                        <tr className="bg-muted/80">
+                            {cols.map((col) => (
+                                <th
+                                    key={col}
+                                    className="px-2.5 py-1.5 text-left font-semibold text-muted-foreground whitespace-nowrap border-b border-border"
+                                >
+                                    {col}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {payload.rows.map((row, i) => (
+                            <tr
+                                key={i}
+                                className={i % 2 === 0 ? 'bg-background' : 'bg-muted/25'}
+                            >
+                                {cols.map((col) => (
+                                    <td
+                                        key={col}
+                                        className="px-2.5 py-1.5 text-foreground whitespace-nowrap max-w-[140px] truncate"
+                                        title={formatCellValue(row[col])}
+                                    >
+                                        {formatCellValue(row[col])}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <div className="px-2.5 py-1.5 bg-muted/40 border-t border-border">
+                <p className="text-[10px] text-muted-foreground">{payload.summary}</p>
+            </div>
+        </div>
+    )
+}
 
 // ─── Component ───────────────────────────────────────────────────────
 export default function AdamChatbot() {
@@ -305,7 +403,9 @@ export default function AdamChatbot() {
             .replace(/\n/g, '<br/>')
             .replace(/• /g, '<span class="inline-block ml-1">• </span>')
 
-    const quickSuggestions = ['How can you help?', 'Homework help', 'My timetable', 'Leaderboard', 'What can you do?']
+    const quickSuggestions = userRole === 'admin'
+        ? ['Fees pending above ₹20,000', 'Fee collection stats', 'List all students', 'Students with overdue fees', 'What can you do?']
+        : ['How can you help?', 'Homework help', 'My timetable', 'Leaderboard', 'What can you do?']
 
     const canSend = !!(inputValue.trim() || pendingAttachment)
 
@@ -404,7 +504,7 @@ export default function AdamChatbot() {
                                 </div>
                             )}
                             <div className={`
-                                max-w-[80%] px-4 py-2.5 text-[13px] leading-relaxed
+                                ${msg.dataPayload ? 'max-w-[95%]' : 'max-w-[80%]'} px-4 py-2.5 text-[13px] leading-relaxed
                                 ${msg.id.startsWith('local-welcome') ? 'adam-welcome' : ''}
                                 ${msg.sender === 'user'
                                     ? `${theme.userBubble} text-white rounded-2xl rounded-tr-sm shadow-md`
@@ -419,6 +519,9 @@ export default function AdamChatbot() {
                                         <span className={`truncate max-w-[160px] ${msg.sender === 'user' ? 'text-white/90' : 'text-foreground/80'}`}>{msg.attachment.name}</span>
                                         <span className={`flex-shrink-0 ${msg.sender === 'user' ? 'text-white/50' : 'text-muted-foreground'}`}>{(msg.attachment.size / 1024).toFixed(1)} KB</span>
                                     </div>
+                                )}
+                                {msg.dataPayload && msg.sender === 'adam' && (
+                                    <DataResultRenderer payload={msg.dataPayload} />
                                 )}
                                 {msg.text && (
                                     <div dangerouslySetInnerHTML={{ __html: formatText(msg.text) }} />

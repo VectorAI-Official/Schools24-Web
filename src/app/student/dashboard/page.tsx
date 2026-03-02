@@ -207,7 +207,7 @@ export default function StudentDashboard() {
 
     return (
         <div className="rounded-xl p-3 sm:p-4 md:p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 w-full">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 md:gap-6 w-full">
                 {hasDataError && (
                     <div className="order-0 lg:col-span-12">
                         <Card className="border border-red-200 bg-red-50">
@@ -266,7 +266,7 @@ export default function StudentDashboard() {
                                     6 shortcuts
                                 </Badge>
                             </div>
-                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
                                 {quickActions.map((action) => (
                                     <button
                                         key={action.label}

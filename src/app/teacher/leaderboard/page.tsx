@@ -36,7 +36,7 @@ export default function TeacherLeaderboardPage() {
             </div>
 
             {/* Top 3 Teachers - At the top */}
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
                 {topTeachers.map((teacher, index) => (
                     <Card
                         key={teacher.rank}

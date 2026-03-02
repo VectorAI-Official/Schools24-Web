@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 export interface SchoolClass {
   id: string;
   name: string;
-  grade: number;
+  grade: number | null; // null for custom catalog classes that have no numeric grade
   section?: string | null;
   academic_year: string;
   room_number?: string | null;
@@ -20,7 +20,7 @@ interface ClassesResponse {
 
 interface CreateClassPayload {
   name: string;
-  grade: number;
+  grade?: number | null; // optional: omit for custom catalog classes
   section?: string | null;
   academic_year: string;
   room_number?: string | null;

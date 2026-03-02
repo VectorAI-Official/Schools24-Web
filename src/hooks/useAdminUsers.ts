@@ -12,6 +12,8 @@ export interface AdminUser {
     last_login?: string;
     avatar?: string;
     department?: string;
+    is_suspended?: boolean;
+    suspended_at?: string;
 }
 
 interface UsersResponse {
@@ -121,6 +123,44 @@ export function useDeleteUser() {
                 return;
             }
             toast.error('Failed to delete user', { description: error.message });
+        }
+    });
+}
+
+export function useSuspendUser() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, password }: { id: string; password: string }) =>
+            api.put(`/admin/users/${id}/suspend`, { password }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            toast.success('User suspended. They can no longer log in.');
+        },
+        onError: (error: any) => {
+            if (error.message === 'invalid_password') {
+                toast.error('Incorrect password', { description: 'Please verify your password and try again.' });
+            } else {
+                toast.error('Failed to suspend user', { description: error.message });
+            }
+        }
+    });
+}
+
+export function useUnsuspendUser() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, password }: { id: string; password: string }) =>
+            api.put(`/admin/users/${id}/unsuspend`, { password }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            toast.success('Suspension lifted. User can now log in again.');
+        },
+        onError: (error: any) => {
+            if (error.message === 'invalid_password') {
+                toast.error('Incorrect password', { description: 'Please verify your password and try again.' });
+            } else {
+                toast.error('Failed to lift suspension', { description: error.message });
+            }
         }
     });
 }

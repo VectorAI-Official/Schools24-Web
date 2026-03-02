@@ -814,7 +814,7 @@ export default function SuperAdminQuizSchedulerPage() {
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
-                          <div className="flex flex-col md:flex-row gap-4 mb-4">
+                          <div className="flex flex-col xl:flex-row gap-4 mb-4">
                             <div className="flex-1 space-y-2">
                               <Input value={q.question_text} onChange={(e) => updateQuestionText(qIdx, e.target.value)} placeholder="Type your question here..." className="font-medium bg-muted/50 border-border h-10" />
                             </div>
@@ -913,7 +913,7 @@ export default function SuperAdminQuizSchedulerPage() {
       <Card className="border border-border/60 shadow-sm bg-card/50 backdrop-blur-xl">
         <CardContent className="p-4 md:p-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="relative flex-1 w-full lg:max-w-md group">
+            <div className="relative flex-1 w-full xl:max-w-md group">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
               </div>
@@ -944,7 +944,7 @@ export default function SuperAdminQuizSchedulerPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
         {quizzesQuery.isLoading || classesQuery.isLoading || assignmentsQuery.isLoading || subjectsQuery.isLoading ? (
           <div className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-20 bg-card/30 rounded-2xl border border-border/50 backdrop-blur-sm">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-4" />
@@ -1036,7 +1036,7 @@ export default function SuperAdminQuizSchedulerPage() {
       )}
 
       <Dialog open={openEdit} onOpenChange={(v) => { setOpenEdit(v); if (!v) setEditQuiz(null); }}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border-border/60 bg-card/95 backdrop-blur-xl sm:rounded-2xl">
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto p-0 border-border/60 bg-card/95 backdrop-blur-xl sm:rounded-2xl">
           <DialogHeader className="p-6 pb-4 border-b border-border bg-muted/50">
             <DialogTitle className="text-xl font-bold">Edit Quiz Details</DialogTitle>
             <DialogDescription>Update the title and scheduling logic for this quiz.</DialogDescription>
@@ -1054,7 +1054,7 @@ export default function SuperAdminQuizSchedulerPage() {
               <input type="checkbox" checked={editIsAnytime} readOnly className="h-5 w-5 accent-amber-600 rounded-md cursor-pointer pointer-events-none" />
             </div>
             <div className={`transition-all duration-300 overflow-hidden ${editIsAnytime ? 'h-0 opacity-0 m-0' : 'h-auto opacity-100'}`}>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label className="text-xs text-slate-500 font-medium">Scheduled Date</Label>
                   <Input type="date" value={editScheduledDate} onChange={(e) => setEditScheduledDate(e.target.value)} disabled={editIsAnytime} className="bg-muted/50" />
@@ -1093,7 +1093,7 @@ export default function SuperAdminQuizSchedulerPage() {
       </Dialog>
 
       <Dialog open={!!deleteQuizId} onOpenChange={(v) => { if (!v) setDeleteQuizId(null); }}>
-        <DialogContent className="max-w-sm p-0 overflow-hidden border-border/60 bg-card/95 backdrop-blur-xl sm:rounded-2xl">
+        <DialogContent className="w-[95vw] max-w-sm max-h-[90vh] overflow-y-auto p-0 border-border/60 bg-card/95 backdrop-blur-xl sm:rounded-2xl">
           <div className="p-6 flex flex-col items-center text-center space-y-4">
             <div className="h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
               <Trash2 className="h-6 w-6 text-rose-600 dark:text-rose-400" />
@@ -1116,7 +1116,7 @@ export default function SuperAdminQuizSchedulerPage() {
       </Dialog>
 
       <Dialog open={openAddQ} onOpenChange={(v) => { setOpenAddQ(v); if (!v) { resetAddQ(); setAddQQuizId(null); } }}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-border/60 bg-card/95 backdrop-blur-xl sm:rounded-2xl">
+        <DialogContent className="w-[95vw] max-w-xl p-0 overflow-hidden border-border/60 bg-card/95 backdrop-blur-xl sm:rounded-2xl">
           <DialogHeader className="p-6 pb-4 border-b border-border bg-muted/50">
             <DialogTitle className="text-xl font-bold">Add Question to Quiz</DialogTitle>
             <DialogDescription>Quickly inject an additional question into your assessment.</DialogDescription>

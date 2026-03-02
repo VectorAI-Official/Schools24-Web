@@ -74,7 +74,7 @@ export default function StudentFeesPage() {
             </div>
 
             {/* Fee Summary Cards */}
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                 <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50 overflow-hidden">
                     <CardContent className="p-4 md:p-6 relative">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full -translate-y-12 translate-x-12" />
@@ -283,7 +283,7 @@ export default function StudentFeesPage() {
                     <CardContent className="p-4 md:p-8 relative">
                         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20" />
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16" />
-                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+                        <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-4 xl:gap-6">
                             <div className="text-center md:text-left">
                                 <h3 className="text-2xl font-bold mb-2">Complete Your Payment</h3>
                                 <p className="text-emerald-100">Pay the remaining {formatCurrency(pendingFees)} to avoid late fees</p>

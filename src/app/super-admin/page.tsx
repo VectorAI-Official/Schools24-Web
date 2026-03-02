@@ -201,8 +201,8 @@ function SchoolsSection() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between md:items-center items-stretch gap-4 rounded-xl border border-border/60 bg-card/50 backdrop-blur-xl p-4 md:p-5 shadow-sm">
-                <div className="relative w-full md:max-w-[400px]">
+            <div className="flex flex-col xl:flex-row justify-between xl:items-center items-stretch gap-4 rounded-xl border border-border/60 bg-card/50 backdrop-blur-xl p-4 md:p-5 shadow-sm">
+                <div className="relative w-full lg:max-w-[400px]">
                     <Search className="absolute left-3.5 top-3 h-4 w-4 text-indigo-500/70" />
                     <Input
                         placeholder="Search schools by name or contact email..."
@@ -243,7 +243,7 @@ function SchoolsSection() {
                                         <Label htmlFor="name">Registered Name</Label>
                                         <Input id="name" placeholder="e.g. Springfield High School" value={newSchool.name} onChange={(e) => setNewSchool({ ...newSchool, name: e.target.value })} className="bg-card focus-visible:ring-indigo-500/30" />
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <div className="grid gap-2">
                                             <Label htmlFor="contact">Primary Contact Email</Label>
                                             <Input id="contact" type="email" placeholder="admin@springfield.edu" value={newSchool.contact_email} onChange={(e) => setNewSchool({ ...newSchool, contact_email: e.target.value })} className="bg-card focus-visible:ring-indigo-500/30" />
@@ -603,7 +603,6 @@ function CatalogSection() {
     const [showClassesDialog, setShowClassesDialog] = useState(false)
     const [showSubjectsDialog, setShowSubjectsDialog] = useState(false)
     const [newClassName, setNewClassName] = useState("")
-    const [newClassSortOrder, setNewClassSortOrder] = useState("0")
     const [newSubjectName, setNewSubjectName] = useState("")
     const [newSubjectCode, setNewSubjectCode] = useState("")
     const [selectedClassId, setSelectedClassId] = useState<string>("")
@@ -657,7 +656,6 @@ function CatalogSection() {
         mutationFn: (payload: { name: string; sort_order: number }) => api.post<{ class: GlobalClass }>("/super-admin/catalog/classes", payload),
         onSuccess: async () => {
             setNewClassName("")
-            setNewClassSortOrder("0")
             await invalidateCatalog()
             toast.success("Class created")
         },
@@ -830,7 +828,7 @@ function CatalogSection() {
                 </Card>
             ) : null}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
                 {/* Classes Panel */}
                 <Card className="flex flex-col border-indigo-100 dark:border-indigo-900/50 shadow-sm bg-card overflow-hidden">
                     <CardHeader className="bg-indigo-50/50 dark:bg-indigo-950/20 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">
@@ -856,17 +854,13 @@ function CatalogSection() {
                                         className="pl-9 border-border focus-visible:ring-indigo-500 bg-muted/50"
                                     />
                                 </div>
-                                <div className="relative w-full sm:w-28">
-                                    <Input
-                                        type="number"
-                                        placeholder="Sort Order"
-                                        value={newClassSortOrder}
-                                        onChange={(e) => setNewClassSortOrder(e.target.value)}
-                                        className="border-border focus-visible:ring-indigo-500 bg-muted/50"
-                                    />
-                                </div>
                                 <Button
-                                    onClick={() => createClassMutation.mutate({ name: newClassName.trim(), sort_order: Number(newClassSortOrder || "0") })}
+                                    onClick={() => {
+                                        const nextSort = classes.length > 0
+                                            ? Math.max(...classes.map(c => c.sort_order)) + 1
+                                            : 1
+                                        createClassMutation.mutate({ name: newClassName.trim(), sort_order: nextSort })
+                                    }}
                                     disabled={!newClassName.trim() || isBusy}
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shrink-0 transition-all hover:shadow-md"
                                 >
@@ -1080,7 +1074,7 @@ function CatalogSection() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="p-5 rounded-xl bg-muted/50 border border-border">
-                        <div className="flex flex-col md:flex-row gap-4 md:items-center">
+                        <div className="flex flex-col xl:flex-row gap-4 xl:items-center">
                             <Label htmlFor="assignment-class-select" className="text-sm font-semibold text-slate-600 dark:text-slate-300 shrink-0">
                                 Target Class
                             </Label>
@@ -1177,7 +1171,7 @@ function CatalogSection() {
             </Card>
 
             <Dialog open={showClassesDialog} onOpenChange={setShowClassesDialog}>
-                <DialogContent className="w-[95vw] max-w-xl">
+                <DialogContent className="w-[95vw] max-w-xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>All Classes</DialogTitle>
                         <DialogDescription>Loaded from centralized DB catalog</DialogDescription>
@@ -1200,7 +1194,7 @@ function CatalogSection() {
             </Dialog>
 
             <Dialog open={showSubjectsDialog} onOpenChange={setShowSubjectsDialog}>
-                <DialogContent className="w-[95vw] max-w-xl">
+                <DialogContent className="w-[95vw] max-w-xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>All Subjects</DialogTitle>
                         <DialogDescription>Loaded from centralized DB catalog</DialogDescription>
@@ -1245,7 +1239,7 @@ function SuperAdminPageContent() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-[100dvh] flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         )
@@ -1254,7 +1248,7 @@ function SuperAdminPageContent() {
     if (!user || user.role !== "super_admin") return null
 
     return (
-        <div className="flex h-[100dvh] bg-background">
+        <div className="flex min-h-[100dvh] bg-background">
             <Sidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
                 <Header />
@@ -1277,7 +1271,7 @@ function SuperAdminPageContent() {
 
 export default function SuperAdminPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+        <Suspense fallback={<div className="min-h-[100dvh] flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
             <SuperAdminPageContent />
         </Suspense>
     )

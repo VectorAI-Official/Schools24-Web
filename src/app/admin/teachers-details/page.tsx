@@ -228,7 +228,7 @@ export default function TeachersDetailsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold">Teachers Details</h1>
                     <p className="text-muted-foreground">View and manage all teaching staff</p>
@@ -340,7 +340,7 @@ export default function TeachersDetailsPage() {
             {/* Teachers Table */}
             < Card >
                 <CardHeader>
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                         <div className="relative w-full md:flex-1 md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -501,7 +501,7 @@ export default function TeachersDetailsPage() {
                     </DialogHeader>
                     {selectedTeacher && (
                         <Tabs defaultValue="profile" className="w-full">
-                            <TabsList className="grid w-full grid-cols-1 md:grid-cols-3">
+                            <TabsList className="grid w-full grid-cols-1 lg:grid-cols-3">
                                 <TabsTrigger value="profile">Profile</TabsTrigger>
                                 <TabsTrigger value="academic">Academic</TabsTrigger>
                                 <TabsTrigger value="salary">Salary</TabsTrigger>
@@ -658,3 +658,4 @@ export default function TeachersDetailsPage() {
         </div >
     )
 }
+

@@ -357,7 +357,7 @@ export default function InventoryPage() {
 
             <Card>
                 <CardHeader>
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                         <div className="relative flex-1 max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -458,3 +458,4 @@ export default function InventoryPage() {
         </div>
     )
 }
+

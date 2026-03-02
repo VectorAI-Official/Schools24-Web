@@ -554,7 +554,7 @@ export default function HomeworkPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardContent className="p-4 md:p-6 text-center">
             <p className="text-xl md:text-3xl font-bold text-primary">{activeCount}</p>

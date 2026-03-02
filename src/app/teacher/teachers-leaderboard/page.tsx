@@ -23,7 +23,7 @@ export default function TeachersLeaderboardPage() {
             </div>
 
             {isLoading ? (
-                <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
+                <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
                     {[1, 2, 3].map((i) => (
                         <Card key={i} className="animate-pulse">
                             <CardContent className="p-6 flex flex-col items-center gap-3">
@@ -46,7 +46,7 @@ export default function TeachersLeaderboardPage() {
                 <>
                     {/* Top 3 */}
                     {top3.length > 0 && (
-                        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
+                        <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
                             {top3.map((teacher, index) => (
                                 <Card key={teacher.teacher_id} className={`card-hover ${index === 0 ? 'border-yellow-500 border-2' : ''}`}>
                                     <CardContent className="p-4 md:p-6 text-center">

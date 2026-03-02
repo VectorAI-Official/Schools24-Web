@@ -49,6 +49,7 @@ import {
   Trash2,
   Bot,
   TrendingUp,
+  Box,
 } from "lucide-react";
 
 interface NavItem {
@@ -175,6 +176,12 @@ const teacherNavItems: NavItem[] = [
     title: "Materials",
     href: "/teacher/materials",
     icon: <FileText className="h-5 w-5" />,
+    category: "Resources",
+  },
+  {
+    title: "3D Anatomy",
+    href: "/teacher/3d-models",
+    icon: <Box className="h-5 w-5" />,
     category: "Resources",
   },
   {
@@ -477,7 +484,7 @@ export function Sidebar() {
       <aside
         className={cn(
           "relative flex flex-col h-[100dvh] border-r transition-all duration-300 ease-in-out",
-          "bg-gradient-to-b from-background via-background to-background",
+          "bg-background",
           "shadow-xl",
           isMobile
             ? "fixed top-0 left-0 z-50 w-[270px] transform transition-transform duration-300 ease-in-out"
@@ -653,7 +660,7 @@ export function Sidebar() {
 
         {/* Collapse Button — hidden on mobile */}
         {!isMobile && (
-          <div className="relative border-t border-border/50 p-3 bg-transparent">
+          <div className="relative border-t border-border/50 p-3">
             <Button
               variant="ghost"
               size="sm"
@@ -677,7 +684,7 @@ export function Sidebar() {
         )}
         {/* Close button for mobile */}
         {isMobile && (
-          <div className="relative border-t border-border/50 p-3 bg-transparent">
+          <div className="relative border-t border-border/50 p-3">
             <Button
               variant="ghost"
               size="sm"

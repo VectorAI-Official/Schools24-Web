@@ -146,7 +146,7 @@ export default function LoginPage() {
 
                 window.location.assign(redirectPath)
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Login component error:', error)
         } finally {
             setIsLoading(false)
@@ -156,7 +156,7 @@ export default function LoginPage() {
 
     return (
         <div
-            className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden"
+            className="min-h-[100dvh] flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden"
             style={{
                 backgroundImage: "url('/assets/background.png')",
                 backgroundSize: 'cover',

@@ -130,7 +130,7 @@ export default function StudentPerformancePage() {
     })()
 
     return (
-        <div className="min-h-screen bg-background p-4 md:p-6">
+        <div className="min-h-[100dvh] bg-background p-4 md:p-6">
             <div className="w-full space-y-6">
 
                 {/* Header */}

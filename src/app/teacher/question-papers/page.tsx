@@ -353,7 +353,7 @@ export default function TeacherQuestionPapersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row xl:items-center xl:justify-between">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
                         Question Papers
@@ -655,4 +655,5 @@ export default function TeacherQuestionPapersPage() {
         </div>
     )
 }
+
 

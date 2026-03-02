@@ -1021,7 +1021,7 @@ export default function StudentQuizzesPage() {
                                         <Sparkles className="w-5 h-5 text-amber-500" />
                                         <h3 className="font-bold text-slate-700">Recommended Practice</h3>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                                         {recommendations.map(quiz => {
                                             const palette = getSubjectPalette(quiz.subject_name, subjects)
                                             const chName = quiz.chapter_name?.trim() || quiz.title

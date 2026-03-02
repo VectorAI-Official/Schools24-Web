@@ -89,6 +89,7 @@ interface AssessmentItem {
   assessment_type: string;
   class_name?: string;
   class_grades?: number[];
+  class_ids?: string[];
   class_labels?: string[];
   scheduled_date?: string;
   academic_year: string;
@@ -99,7 +100,7 @@ interface AssessmentItem {
 interface AssessmentFormState {
   name: string;
   assessment_type: string;
-  class_grades: number[];
+  class_ids: string[];
   scheduled_date: string;
   subject_marks: AssessmentSubjectMark[];
 }
@@ -127,7 +128,7 @@ interface ExamTimetableResponse {
 const emptyForm = (): AssessmentFormState => ({
   name: "",
   assessment_type: "FA-1",
-  class_grades: [],
+  class_ids: [],
   scheduled_date: "",
   subject_marks: [{ total_marks: 0, breakdowns: [] }],
 });
@@ -183,22 +184,30 @@ export default function ReportsPage() {
 
   const { data: classesData } = useClasses(selectedYear);
 
-  const classGradeOptions = useMemo(() => {
-    const byGrade = new Map<number, string>();
-    const sorted = [...(classesData?.classes || [])].sort(
-      (a, b) => a.grade - b.grade,
+  const classOptions = useMemo(() => {
+    // Deduplicate classes by name. Checking a name selects ALL class IDs with that name
+    // (covers sections like LKG-A, LKG-B which are the same "class" to the admin).
+    const byName = new Map<string, { label: string; ids: string[] }>();
+    const sorted = [...(classesData?.classes || [])].sort((a, b) =>
+      (a.name || "").localeCompare(b.name || ""),
     );
     sorted.forEach((item) => {
-      if (!byGrade.has(item.grade)) {
-        let label = `Class ${item.grade}`;
-        if (item.grade === -1) label = "LKG";
-        if (item.grade === 0) label = "UKG";
-        byGrade.set(item.grade, label);
+      const key = (item.name || "").trim();
+      if (!key) return;
+      const label =
+        item.section && !key.toLowerCase().endsWith(item.section.toLowerCase())
+          ? key
+          : key;
+      if (byName.has(key)) {
+        byName.get(key)!.ids.push(item.id);
+      } else {
+        byName.set(key, { label, ids: [item.id] });
       }
     });
-    return Array.from(byGrade.entries()).map(([grade, label]) => ({
-      grade,
+    return Array.from(byName.entries()).map(([name, { label, ids }]) => ({
+      name,
       label,
+      ids,
     }));
   }, [classesData?.classes]);
 
@@ -211,7 +220,13 @@ export default function ReportsPage() {
   });
   const assessments = assessmentsQuery.data?.assessments || [];
   const selectedSingleClassGrade =
-    form.class_grades.length === 1 ? form.class_grades[0] : null;
+    form.class_ids.length === 1
+      ? (() => {
+          const id = form.class_ids[0];
+          const cls = classesData?.classes?.find((c) => c.id === id);
+          return cls?.grade ?? null;
+        })()
+      : null;
 
   // Real chart data
   const { data: revenueChartResp } = useAdminRevenueChart('month')
@@ -378,7 +393,7 @@ export default function ReportsPage() {
     setForm({
       name: item.name || "",
       assessment_type: normalizeAssessmentType(item.assessment_type),
-      class_grades: item.class_grades || [],
+      class_ids: item.class_ids || [],
       scheduled_date: item.scheduled_date
         ? String(item.scheduled_date).slice(0, 10)
         : "",
@@ -400,7 +415,7 @@ export default function ReportsPage() {
     if (
       !form.name.trim() ||
       !form.assessment_type.trim() ||
-      form.class_grades.length === 0
+      form.class_ids.length === 0
     ) {
       toast.error("Missing required fields");
       return;
@@ -472,7 +487,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="card-hover cursor-pointer">
           <CardContent className="p-4 md:p-6 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500 text-white mx-auto mb-3">
@@ -788,12 +803,14 @@ export default function ReportsPage() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-2">
               <Label>Classes</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 rounded-md border p-3">
-                {classGradeOptions.map((item) => {
-                  const checked = form.class_grades.includes(item.grade);
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 rounded-md border p-3">
+                {classOptions.map((item) => {
+                  const checked = item.ids.some((id) =>
+                    form.class_ids.includes(id),
+                  );
                   return (
                     <label
-                      key={`class-grade-${item.grade}`}
+                      key={`class-name-${item.name}`}
                       className="flex items-center gap-2 text-sm"
                     >
                       <input
@@ -803,12 +820,15 @@ export default function ReportsPage() {
                           const isChecked = e.target.checked;
                           setForm((prev) => ({
                             ...prev,
-                            class_grades: isChecked
-                              ? [...prev.class_grades, item.grade].sort(
-                                  (a, b) => a - b,
-                                )
-                              : prev.class_grades.filter(
-                                  (grade) => grade !== item.grade,
+                            class_ids: isChecked
+                              ? [
+                                  ...prev.class_ids.filter(
+                                    (id) => !item.ids.includes(id),
+                                  ),
+                                  ...item.ids,
+                                ]
+                              : prev.class_ids.filter(
+                                  (id) => !item.ids.includes(id),
                                 ),
                           }));
                         }}
@@ -820,7 +840,7 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Assessment Name</Label>
                 <Input
@@ -853,7 +873,7 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Scheduled Date</Label>
                 <Input
@@ -878,7 +898,7 @@ export default function ReportsPage() {
                 };
                 return (
                   <div className="border rounded-md p-3 space-y-3">
-                    <div className="grid grid-cols-1 lg:grid-cols-[180px_auto] gap-3 items-end">
+                    <div className="grid grid-cols-1 xl:grid-cols-[180px_auto] gap-3 items-end">
                       <div className="grid gap-1">
                         <Label className="text-xs">Total Marks</Label>
                         <Input
@@ -934,7 +954,7 @@ export default function ReportsPage() {
                     {(row.breakdowns || []).map((breakdown, breakdownIdx) => (
                       <div
                         key={`breakdown-${breakdownIdx}`}
-                        className="grid grid-cols-1 lg:grid-cols-[1fr_140px_44px] gap-2 items-end"
+                        className="grid grid-cols-1 xl:grid-cols-[1fr_140px_44px] gap-2 items-end"
                       >
                         <div className="grid gap-1">
                           <Label className="text-xs">Breakdown Title</Label>
@@ -1066,7 +1086,7 @@ export default function ReportsPage() {
                   {(examTimetableQuery.data?.subjects || []).map((subject) => (
                     <div
                       key={`exam-subject-${subject.subject_id}`}
-                      className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-2 items-center"
+                      className="grid grid-cols-1 lg:grid-cols-[1fr_180px] gap-2 items-center"
                     >
                       <div className="text-sm">
                         <span className="font-medium">{subject.name}</span>{" "}

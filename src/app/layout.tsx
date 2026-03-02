@@ -4,7 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
-import { ConsoleWelcome } from "@/components/ConsoleWelcome";
+import { ConsoleWelcome } from "@/components/ConsoleWelcome"
+import { DevErrorSuppressor } from "@/components/DevErrorSuppressor";
 
 // Using system font stack to avoid Google Fonts network dependency during build
 const fontClassName = "font-sans";
@@ -56,6 +57,7 @@ export default function RootLayout({
           <QueryProvider>
             <AuthProvider>
               <ConsoleWelcome />
+              <DevErrorSuppressor />
               {children}
               <Toaster position="top-right" richColors />
             </AuthProvider>

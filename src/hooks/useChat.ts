@@ -48,6 +48,14 @@ export interface ChatAttachment {
     mimeType: string
 }
 
+// DataPayload mirrors the backend DataPayload struct — structured query results.
+export interface DataPayload {
+    columns: string[]
+    rows: Record<string, unknown>[]
+    summary: string
+    tool: string
+}
+
 export interface ChatMessage {
     id: string
     text: string
@@ -55,6 +63,7 @@ export interface ChatMessage {
     timestamp: Date
     sources?: string[]
     attachment?: ChatAttachment
+    dataPayload?: DataPayload   // set when the message was produced by a tool call
 }
 
 export type WsStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
@@ -84,12 +93,13 @@ function makeWelcome(): ChatMessage {
 // ─── Backend WSMessage shape ──────────────────────────────────────────────────
 
 interface WSMessage {
-    type: 'user' | 'bot' | 'error' | 'doc'
+    type: 'user' | 'bot' | 'error' | 'doc' | 'data'
     content: string
     sources?: string[]
     filename?: string
     mimeType?: string
-    fileData?: string  // base64
+    fileData?: string          // base64
+    data?: DataPayload         // present when type === 'data'
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
@@ -107,6 +117,9 @@ export function useChat(enabled = true): UseChatReturn {
     // backend (e.g. old binary) and should be silently dropped so the local
     // animated welcome remains the sole introductory message.
     const userHasSentRef = useRef(false)
+    // Holds the DataPayload from the latest 'data' WS frame so it can be
+    // attached to the very next 'bot' message that follows it.
+    const pendingDataRef = useRef<DataPayload | null>(null)
 
     // Incrementing generation — when flush() bumps this, every stale WS
     // callback sees its captured gen !== current gen and bails out.
@@ -119,6 +132,7 @@ export function useChat(enabled = true): UseChatReturn {
         if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); wsRef.current = null }
         retryCountRef.current = 0
         userHasSentRef.current = false
+        pendingDataRef.current = null
         setMessages([makeWelcome()])
         setStatus('disconnected')
         setIsTyping(false)
@@ -147,16 +161,30 @@ export function useChat(enabled = true): UseChatReturn {
             try {
                 const data = JSON.parse(event.data as string) as WSMessage
                 setIsTyping(false)
-                if (data.type === 'bot') {
+                if (data.type === 'data') {
+                    // Store the structured payload; it will be attached to the
+                    // next 'bot' message so the frontend can render it together.
+                    pendingDataRef.current = data.data ?? null
+                } else if (data.type === 'bot') {
                     // Drop any bot message that arrives before the user has typed
                     // anything — this suppresses backend auto-greetings from old
                     // binaries so the local welcome is the only intro shown.
                     if (!userHasSentRef.current) return
+                    const attachedData = pendingDataRef.current
+                    pendingDataRef.current = null
                     setMessages((prev) => [
                         ...prev,
-                        { id: `bot-${Date.now()}`, text: data.content, sender: 'adam', timestamp: new Date(), sources: data.sources },
+                        {
+                            id: `bot-${Date.now()}`,
+                            text: data.content,
+                            sender: 'adam',
+                            timestamp: new Date(),
+                            sources: data.sources,
+                            dataPayload: attachedData ?? undefined,
+                        },
                     ])
                 } else if (data.type === 'error') {
+                    pendingDataRef.current = null
                     setMessages((prev) => [...prev, { id: `err-${Date.now()}`, text: data.content || 'Something went wrong.', sender: 'error', timestamp: new Date() }])
                 }
             } catch { /* ignore malformed */ }

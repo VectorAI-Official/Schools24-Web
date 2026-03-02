@@ -76,7 +76,7 @@ import {
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
-import { useUsers, useUserStats, useCreateUser, useUpdateUser, useDeleteUser, AdminUser } from '@/hooks/useAdminUsers'
+import { useUsers, useUserStats, useCreateUser, useUpdateUser, useDeleteUser, useSuspendUser, useUnsuspendUser, AdminUser } from '@/hooks/useAdminUsers'
 import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, SchoolClass } from '@/hooks/useClasses'
 import { useAdminCatalogClasses } from '@/hooks/useAdminCatalogClasses'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
@@ -141,24 +141,13 @@ const getAcademicYears = () => {
     return years
 }
 
-const parseGradeFromClassName = (name: string): number | null => {
-    const normalized = name.trim().toUpperCase()
-    if (normalized === 'LKG') return -1
-    if (normalized === 'UKG') return 0
-    const match = name.match(/\d+/)
-    if (!match) return null
-    const parsed = parseInt(match[0], 10)
-    if (Number.isNaN(parsed) || parsed < 1) return null
-    return parsed
-}
-
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [roleFilter, setRoleFilter] = useState<string>('all')
     const [isClassDialogOpen, setIsClassDialogOpen] = useState(false)
     const [academicYear, setAcademicYear] = useState(getCurrentAcademicYear())
-    const [newGrade, setNewGrade] = useState<number | null>(null)
+    const [newClassName, setNewClassName] = useState<string | null>(null)
     const [editingSection, setEditingSection] = useState<{ id: string; value: string } | null>(null)
     const [isInchargeDialogOpen, setIsInchargeDialogOpen] = useState(false)
     const [selectedClassForIncharge, setSelectedClassForIncharge] = useState<SchoolClass | null>(null)
@@ -223,6 +212,8 @@ export default function UsersPage() {
     const createUser = useCreateUser()
     const updateUser = useUpdateUser()
     const deleteUser = useDeleteUser()
+    const suspendUser = useSuspendUser()
+    const unsuspendUser = useUnsuspendUser()
 
     const users = useMemo(() => {
         const allUsers = data?.pages.flatMap(page => page.users) || []
@@ -241,17 +232,6 @@ export default function UsersPage() {
     const classes = classesData?.classes || []
     const catalogClasses = catalogClassesData?.classes || []
 
-    const catalogClassNameByGrade = useMemo(() => {
-        const map = new Map<number, string>()
-        for (const item of catalogClasses) {
-            const grade = parseGradeFromClassName(item.name)
-            if (grade !== null && !map.has(grade)) {
-                map.set(grade, item.name)
-            }
-        }
-        return map
-    }, [catalogClasses])
-
     // Infinite Scroll Logic (Intersection Observer)
     const { ref: scrollRef, inView } = useIntersectionObserver({ threshold: 0.1 })
 
@@ -267,6 +247,10 @@ export default function UsersPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+    const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false)
+    const [suspendAction, setSuspendAction] = useState<'suspend' | 'unsuspend'>('suspend')
+    const [suspendPassword, setSuspendPassword] = useState('')
+    const [showSuspendPassword, setShowSuspendPassword] = useState(false)
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
     const [newUser, setNewUser] = useState<{
         name: string;
@@ -405,6 +389,20 @@ export default function UsersPage() {
         })
     }
 
+    const handleSuspendAction = () => {
+        if (!selectedUser || !suspendPassword) return
+        const mutate = suspendAction === 'suspend' ? suspendUser : unsuspendUser
+        mutate.mutate(
+            { id: selectedUser.id, password: suspendPassword },
+            {
+                onSuccess: () => {
+                    setIsSuspendDialogOpen(false)
+                    setSuspendPassword('')
+                },
+            }
+        )
+    }
+
     const getRoleIcon = (role: string) => {
         switch (role) {
             case 'admin':
@@ -452,40 +450,33 @@ export default function UsersPage() {
 
     const academicYears = useMemo(() => getAcademicYears(), [])
 
-    const classesByGrade = useMemo(() => {
-        const map = new Map<number, SchoolClass[]>()
+    const classesByName = useMemo(() => {
+        const map = new Map<string, SchoolClass[]>()
         for (const cls of classes) {
-            const list = map.get(cls.grade) || []
+            const list = map.get(cls.name) || []
             list.push(cls)
-            map.set(cls.grade, list)
+            map.set(cls.name, list)
         }
-        for (const [grade, list] of map.entries()) {
+        for (const [name, list] of map.entries()) {
             list.sort((a, b) => sectionToNumber(a.section) - sectionToNumber(b.section))
-            map.set(grade, list)
+            map.set(name, list)
         }
         return map
     }, [classes])
 
-    const availableGrades = useMemo(() => {
-        const all = Array.from(
-            new Set(
-                catalogClasses
-                    .map((item) => parseGradeFromClassName(item.name))
-                    .filter((grade): grade is number => grade !== null)
-            )
-        ).sort((a, b) => a - b)
-        const existing = new Set(classes.map(c => c.grade))
-        return all.filter(g => !existing.has(g))
+    const availableNames = useMemo(() => {
+        const existing = new Set(classes.map(c => c.name))
+        return catalogClasses
+            .map(item => item.name)
+            .filter(name => !existing.has(name))
     }, [catalogClasses, classes])
 
-    const handleAddSection = (grade: number) => {
-        const gradeClasses = classesByGrade.get(grade) || []
-        const existingLabels = gradeClasses.map(c => c.section || '')
+    const handleAddSection = (name: string) => {
+        const nameClasses = classesByName.get(name) || []
+        const existingLabels = nameClasses.map(c => c.section || '')
         const nextLabel = getNextSectionLabel(existingLabels)
-        const className = catalogClassNameByGrade.get(grade) || `Class ${grade}`
         createClass.mutate({
-            name: className,
-            grade,
+            name,
             section: nextLabel,
             academic_year: academicYear,
         })
@@ -495,10 +486,10 @@ export default function UsersPage() {
         deleteClass.mutate(cls.id)
     }
 
-    const handleShorten = (grade: number) => {
-        const gradeClasses = classesByGrade.get(grade) || []
-        if (gradeClasses.length === 0) return
-        const last = gradeClasses[gradeClasses.length - 1]
+    const handleShorten = (name: string) => {
+        const nameClasses = classesByName.get(name) || []
+        if (nameClasses.length === 0) return
+        const last = nameClasses[nameClasses.length - 1]
         deleteClass.mutate(last.id)
     }
 
@@ -517,10 +508,10 @@ export default function UsersPage() {
         })
     }
 
-    const handleAddGrade = () => {
-        if (!newGrade) return
-        handleAddSection(newGrade)
-        setNewGrade(null)
+    const handleAddClass = () => {
+        if (newClassName === null) return
+        handleAddSection(newClassName)
+        setNewClassName(null)
     }
 
     const openInchargeDialog = (cls: SchoolClass) => {
@@ -559,7 +550,7 @@ export default function UsersPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-3">
                         <h1 className="text-xl md:text-3xl font-bold">User Management</h1>
@@ -656,7 +647,7 @@ export default function UsersPage() {
             {/* Users Table */}
             <Card>
                 <CardHeader>
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                         <div className="relative flex-1 min-w-0 md:max-w-sm">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -732,7 +723,14 @@ export default function UsersPage() {
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-medium">{user.full_name}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-medium">{user.full_name}</p>
+                                                            {user.is_suspended && (
+                                                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-orange-400 text-orange-600 bg-orange-50 dark:bg-orange-500/10 dark:text-orange-400">
+                                                                    Suspended
+                                                                </Badge>
+                                                            )}
+                                                        </div>
                                                         <p className="text-sm text-muted-foreground">{user.email}</p>
                                                     </div>
                                                 </div>
@@ -783,6 +781,23 @@ export default function UsersPage() {
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem
+                                                            onClick={() => {
+                                                                setSelectedUser(user)
+                                                                setSuspendAction(user.is_suspended ? 'unsuspend' : 'suspend')
+                                                                setSuspendPassword('')
+                                                                setShowSuspendPassword(false)
+                                                                setIsSuspendDialogOpen(true)
+                                                            }}
+                                                            className={user.is_suspended ? 'text-green-600' : 'text-orange-600'}
+                                                        >
+                                                            {user.is_suspended ? (
+                                                                <><Unlock className="mr-2 h-4 w-4" />Remove Suspend</>
+                                                            ) : (
+                                                                <><Lock className="mr-2 h-4 w-4" />Suspend User</>
+                                                            )}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
                                                             className="text-destructive"
                                                             onClick={() => {
                                                                 setSelectedUser(user)
@@ -826,7 +841,7 @@ export default function UsersPage() {
                         </DialogDescription>
                     </DialogHeader>
 
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                             <div className="flex flex-wrap items-center gap-2">
                                 <Label htmlFor="academic-year">Academic Year</Label>
                                 <Select value={academicYear} onValueChange={setAcademicYear}>
@@ -843,26 +858,26 @@ export default function UsersPage() {
 
                         <div className="flex flex-wrap items-center gap-2">
                             <Select
-                                value={newGrade ? newGrade.toString() : ''}
-                                onValueChange={(value) => setNewGrade(parseInt(value, 10))}
+                                value={newClassName ?? ''}
+                                onValueChange={(value) => setNewClassName(value)}
                             >
                                 <SelectTrigger className="w-full sm:w-[140px]">
                                     <SelectValue placeholder="Add Class" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {availableGrades.length === 0 && (
-                                        <SelectItem value="none" disabled>No grades left</SelectItem>
+                                    {availableNames.length === 0 && (
+                                        <SelectItem value="none" disabled>No classes left</SelectItem>
                                     )}
-                                    {availableGrades.map(grade => (
-                                        <SelectItem key={grade} value={grade.toString()}>
-                                            {catalogClassNameByGrade.get(grade) || `Class ${grade}`}
+                                    {availableNames.map(name => (
+                                        <SelectItem key={name} value={name}>
+                                            {name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <Button
-                                onClick={handleAddGrade}
-                                disabled={!newGrade || createClass.isPending}
+                                onClick={handleAddClass}
+                                disabled={newClassName === null || createClass.isPending}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add Class
@@ -880,27 +895,27 @@ export default function UsersPage() {
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Loading classes...
                                 </div>
-                            ) : classesByGrade.size === 0 ? (
+                            ) : classesByName.size === 0 ? (
                                 <div className="rounded-lg border border-dashed p-4 md:p-8 text-center text-muted-foreground">
                                     No classes found for this academic year. Add a class to get started.
                                 </div>
                             ) : (
-                                Array.from(classesByGrade.entries())
-                                    .sort((a, b) => a[0] - b[0])
-                                    .map(([grade, gradeClasses]) => (
-                                        <div key={grade} className="rounded-lg border p-4">
-                                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                                Array.from(classesByName.entries())
+                                    .sort((a, b) => a[0].localeCompare(b[0]))
+                                    .map(([name, nameClasses]) => (
+                                        <div key={name} className="rounded-lg border p-4">
+                                            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
                                                 <div>
                                                     <p className="text-sm text-muted-foreground">Class</p>
                                                     <p className="text-lg font-semibold">
-                                                        {gradeClasses[0]?.name || catalogClassNameByGrade.get(grade) || `Class ${grade}`}
+                                                        {name}
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => handleAddSection(grade)}
+                                                        onClick={() => handleAddSection(name)}
                                                         disabled={createClass.isPending}
                                                     >
                                                         <Plus className="mr-2 h-4 w-4" />
@@ -909,7 +924,7 @@ export default function UsersPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => handleShorten(grade)}
+                                                        onClick={() => handleShorten(name)}
                                                         disabled={deleteClass.isPending}
                                                     >
                                                         <Minus className="mr-2 h-4 w-4" />
@@ -919,7 +934,7 @@ export default function UsersPage() {
                                             </div>
 
                                             <div className="mt-4 flex flex-wrap gap-2">
-                                                {gradeClasses.map((cls) => (
+                                                {nameClasses.map((cls) => (
                                                     <div key={cls.id} className="flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 text-sm">
                                                         {editingSection?.id === cls.id ? (
                                                             <>
@@ -1247,6 +1262,74 @@ export default function UsersPage() {
                 </AlertDialogContent>
             </AlertDialog>
 
+            {/* Suspend / Unsuspend Confirmation */}
+            <Dialog
+                open={isSuspendDialogOpen}
+                onOpenChange={(open) => {
+                    setIsSuspendDialogOpen(open)
+                    if (!open) { setSuspendPassword(''); setShowSuspendPassword(false) }
+                }}
+            >
+                <DialogContent className="w-[95vw] sm:max-w-[420px] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className={suspendAction === 'suspend' ? 'text-orange-600' : 'text-green-600'}>
+                            {suspendAction === 'suspend' ? 'Suspend User' : 'Remove Suspension'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {suspendAction === 'suspend' ? (
+                                <>
+                                    <span className="font-semibold">{selectedUser?.full_name}</span> will be unable to log in.
+                                    Their materials, documents, and quizzes are fully preserved and can be restored at any time.
+                                </>
+                            ) : (
+                                <>Remove the suspension from <span className="font-semibold">{selectedUser?.full_name}</span>. They will be able to log in again immediately.</>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3 py-2">
+                        <Label htmlFor="suspend-password">Your password to confirm</Label>
+                        <div className="relative">
+                            <Input
+                                id="suspend-password"
+                                type={showSuspendPassword ? 'text' : 'password'}
+                                placeholder="Enter your password"
+                                value={suspendPassword}
+                                onChange={(e) => setSuspendPassword(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && suspendPassword && handleSuspendAction()}
+                            />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                                onClick={() => setShowSuspendPassword(v => !v)}
+                            >
+                                {showSuspendPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                        </div>
+                    </div>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                            onClick={() => setIsSuspendDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            disabled={!suspendPassword || suspendUser.isPending || unsuspendUser.isPending}
+                            onClick={handleSuspendAction}
+                            className={`w-full sm:w-auto ${suspendAction === 'suspend' ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                        >
+                            {(suspendUser.isPending || unsuspendUser.isPending) && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            {suspendAction === 'suspend' ? 'Suspend' : 'Remove Suspension'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Add User Dialog */}
             <Dialog
                 open={isAddDialogOpen}
@@ -1343,3 +1426,4 @@ export default function UsersPage() {
         </div>
     )
 }
+

@@ -140,7 +140,7 @@ export default function StudentTimetablePage() {
                             className="h-full grid"
                             style={{
                                 gridTemplateColumns: `minmax(96px, 120px) repeat(${periodsConfig.length}, minmax(170px, 1fr))`,
-                                gridTemplateRows: `minmax(56px, 56px) repeat(${dayConfigs.length}, minmax(96px, 1fr))`,
+                            gridTemplateRows: `minmax(56px, 56px) repeat(${dayConfigs.length}, minmax(112px, 1fr))`,
                                 minWidth: `${96 + periodsConfig.length * 170}px`
                             }}
                         >

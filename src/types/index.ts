@@ -75,7 +75,6 @@ export interface Staff {
     phone: string;
     employeeId: string;
     staffType: 'teaching' | 'non-teaching';
-    department: string;
     designation: string;
     subjects?: string[];
     classes?: string[];

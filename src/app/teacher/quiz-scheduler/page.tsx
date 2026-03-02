@@ -1206,7 +1206,7 @@ export default function QuizSchedulerPage() {
 
       {/* ── Edit Quiz Dialog ── */}
       <Dialog open={openEdit} onOpenChange={(v) => { setOpenEdit(v); if (!v) setEditQuiz(null); }}>
-        <DialogContent className="w-[95vw] max-w-md">
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Quiz</DialogTitle>
             <DialogDescription>Update the quiz details below.</DialogDescription>
@@ -1266,7 +1266,7 @@ export default function QuizSchedulerPage() {
 
       {/* ── Delete Confirm Dialog ── */}
       <Dialog open={!!deleteQuizId} onOpenChange={(v) => { if (!v) setDeleteQuizId(null); }}>
-        <DialogContent className="w-[95vw] max-w-sm">
+        <DialogContent className="w-[95vw] max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Delete Quiz?</DialogTitle>
             <DialogDescription>This will permanently delete the quiz and all its questions. This action cannot be undone.</DialogDescription>

@@ -436,7 +436,7 @@ export default function StudentsTimetablePage() {
                         <span className="hidden sm:inline">Subjects</span>
                     </Button>
                     <Select value={effectiveSelectedClassId} onValueChange={setSelectedClassId}>
-                        <SelectTrigger className="w-full sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs">
+                    <SelectTrigger className="w-full sm:w-[140px] md:w-[180px] h-7 sm:h-8 text-xs">
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent>
@@ -479,13 +479,13 @@ export default function StudentsTimetablePage() {
 
             {/* Timetable Card */}
             <Card className="border-0 shadow-lg flex-1 flex flex-col overflow-hidden min-h-0">
-                <CardContent className="flex-1 p-0 overflow-x-auto overflow-y-hidden">
+                <CardContent className="flex-1 p-0 overflow-auto">
                     <div
                         className="h-full grid"
                         style={{
-                            gridTemplateColumns: `minmax(96px, 120px) repeat(${periodsConfig.length}, minmax(170px, 1fr))`,
-                            gridTemplateRows: `minmax(56px, 56px) repeat(${dayConfigs.length}, minmax(96px, 1fr))`,
-                            minWidth: `${96 + periodsConfig.length * 170}px`
+                            gridTemplateColumns: `minmax(112px, 136px) repeat(${periodsConfig.length}, minmax(220px, 1fr))`,
+                            gridTemplateRows: `minmax(68px, 68px) repeat(${dayConfigs.length}, minmax(132px, 1fr))`,
+                            minWidth: `${112 + periodsConfig.length * 220}px`
                         }}
                     >
                         {/* Header Row */}
@@ -670,7 +670,7 @@ export default function StudentsTimetablePage() {
 
                         <div className="border rounded-lg p-4 space-y-3">
                             <Label className="text-sm font-medium">Active Days (max 7)</Label>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                                 {tempConfig.days.map((day) => (
                                     <label key={day.day_of_week} className="flex items-center gap-2 text-sm">
                                         <input

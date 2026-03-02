@@ -268,7 +268,7 @@ export function QuestionUploaderForm() {
             <div className="space-y-6 lg:space-y-8">
                 <Card className="border border-border/60 shadow-sm overflow-hidden bg-card/50 backdrop-blur-xl">
                     <CardHeader className="bg-gradient-to-r from-rose-500/10 via-red-500/5 to-orange-500/10 dark:from-rose-500/20 dark:via-red-500/10 dark:to-orange-500/20 pb-8">
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                        <div className="flex flex-col xl:flex-row items-start xl:items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-600 shadow-lg shadow-rose-500/30">
                                 <Upload className="h-7 w-7 text-white" />
                             </div>
@@ -387,7 +387,7 @@ export function QuestionUploaderForm() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                                 <div className="grid gap-2">
                                     <Label className="text-slate-700 dark:text-slate-300 font-medium">Academic Class</Label>
                                     <Select value={classId} onValueChange={(value) => {
@@ -673,7 +673,7 @@ function SuperAdminQuestionDocumentsList() {
     return (
             <Card className="border border-border/60 shadow-sm bg-card/50 backdrop-blur-xl mt-8">
                 <CardHeader className="border-b border-border pb-5">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                     <div>
                         <CardTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                             <Layers3 className="h-5 w-5 text-indigo-500" /> Digital Archive
@@ -857,7 +857,7 @@ export default function SuperAdminQuestionGeneratorPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-[100dvh] flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         )
@@ -869,7 +869,7 @@ export default function SuperAdminQuestionGeneratorPage() {
 
     if (userRole !== "super_admin") {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-[100dvh] flex items-center justify-center">
                 <p className="text-muted-foreground">Access denied.</p>
             </div>
         )
@@ -877,4 +877,5 @@ export default function SuperAdminQuestionGeneratorPage() {
 
     return null
 }
+
 

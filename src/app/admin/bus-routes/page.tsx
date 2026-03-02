@@ -279,7 +279,7 @@ export default function BusRoutesPage() {
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
                         Bus Routes Management
@@ -524,7 +524,7 @@ export default function BusRoutesPage() {
             {/* Search and Filters */}
             <Card className="border-0 shadow-lg">
                 <CardContent className="p-4">
-                    <div className="flex flex-col lg:flex-row gap-4">
+                    <div className="flex flex-col xl:flex-row gap-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -729,7 +729,7 @@ export default function BusRoutesPage() {
             {/* Summary Footer */}
             <Card className="border-0 shadow-lg bg-gradient-to-r from-indigo-50 via-violet-50 to-purple-50 dark:from-indigo-950/30 dark:via-violet-950/30 dark:to-purple-950/30">
                 <CardContent className="p-4 md:p-6">
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                    <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500 text-white">
                                 <Navigation className="h-5 w-5" />
@@ -930,3 +930,4 @@ export default function BusRoutesPage() {
         </div>
     )
 }
+

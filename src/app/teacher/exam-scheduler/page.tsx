@@ -57,7 +57,7 @@ export default function ExamSchedulerPage() {
                                 <div className="grid gap-2"><Label>Subject</Label><Select><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent>{SUBJECTS_LIST.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
                                 <div className="grid gap-2"><Label>Class</Label><Select><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent><SelectItem value="10-A">10-A</SelectItem><SelectItem value="10-B">10-B</SelectItem></SelectContent></Select></div>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                 <div className="grid gap-2"><Label>Date</Label><Input type="date" /></div>
                                 <div className="grid gap-2"><Label>Time</Label><Input type="time" /></div>
                                 <div className="grid gap-2"><Label>Duration (mins)</Label><Input type="number" placeholder="180" /></div>
@@ -69,7 +69,7 @@ export default function ExamSchedulerPage() {
             </div>
 
             {isLoading ? (
-                <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                     {[1, 2, 3].map((i) => (
                         <Card key={i} className="animate-pulse">
                             <CardHeader><div className="h-4 bg-muted rounded w-3/4" /><div className="h-3 bg-muted rounded w-1/2 mt-2" /></CardHeader>
@@ -86,7 +86,7 @@ export default function ExamSchedulerPage() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                     {exams.map((exam) => (
                         <Card key={exam.id} className="card-hover">
                             <CardHeader>

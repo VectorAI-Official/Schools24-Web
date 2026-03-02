@@ -118,7 +118,7 @@ export default function TeacherStudentsTimetablePage() {
                 </div>
                 <div className="flex items-center gap-1 flex-wrap w-full sm:w-auto">
                     <Select value={effectiveSelectedClassId} onValueChange={setSelectedClassId}>
-                        <SelectTrigger className="w-full sm:w-[100px] md:w-[120px] h-7 sm:h-8 text-xs" disabled={!hasClasses}>
+                        <SelectTrigger className="w-full sm:w-[140px] md:w-[180px] h-7 sm:h-8 text-xs" disabled={!hasClasses}>
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent>
@@ -156,13 +156,13 @@ export default function TeacherStudentsTimetablePage() {
 
             {/* Timetable Card */}
             <Card className="border-0 shadow-lg flex-1 flex flex-col overflow-hidden min-h-0" style={{ opacity: hasClasses ? 1 : 0.5 }}>
-                <CardContent className="flex-1 p-0 overflow-x-auto overflow-y-hidden">
+                <CardContent className="flex-1 p-0 overflow-auto">
                     <div
                         className="h-full grid"
                         style={{
-                            gridTemplateColumns: `minmax(96px, 120px) repeat(${periodsConfig.length}, minmax(170px, 1fr))`,
-                            gridTemplateRows: `minmax(56px, 56px) repeat(${dayConfigs.length}, minmax(96px, 1fr))`,
-                            minWidth: `${96 + periodsConfig.length * 170}px`
+                            gridTemplateColumns: `minmax(112px, 136px) repeat(${periodsConfig.length}, minmax(220px, 1fr))`,
+                            gridTemplateRows: `minmax(68px, 68px) repeat(${dayConfigs.length}, minmax(132px, 1fr))`,
+                            minWidth: `${112 + periodsConfig.length * 220}px`
                         }}
                     >
                         {/* Header Row */}
