@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -63,7 +63,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 // ---------------------------------------------------------------------------
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
+  { value: '__all', label: 'All Statuses' },
   { value: 'open', label: 'Open' },
   { value: 'in_progress', label: 'In Progress' },
   { value: 'resolved', label: 'Resolved' },
@@ -71,7 +71,7 @@ const STATUS_OPTIONS = [
 ]
 
 const CATEGORY_OPTIONS = [
-  { value: '', label: 'All Categories' },
+  { value: '__all', label: 'All Categories' },
   { value: 'general', label: 'General' },
   { value: 'technical', label: 'Technical' },
   { value: 'billing', label: 'Billing' },
@@ -397,23 +397,23 @@ export function SAHelpCenterSection() {
                   className="pl-9"
                 />
               </div>
-              <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1) }}>
+              <Select value={status || '__all'} onValueChange={(v) => { setStatus(v === '__all' ? '' : v); setPage(1) }}>
                 <SelectTrigger className="w-full sm:w-44">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
                   {STATUS_OPTIONS.map((o) => (
-                    <SelectItem key={o.value || '__all_status'} value={o.value}>{o.label}</SelectItem>
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={category} onValueChange={(v) => { setCategory(v); setPage(1) }}>
+              <Select value={category || '__all'} onValueChange={(v) => { setCategory(v === '__all' ? '' : v); setPage(1) }}>
                 <SelectTrigger className="w-full sm:w-44">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
                   {CATEGORY_OPTIONS.map((o) => (
-                    <SelectItem key={o.value || '__all_cat'} value={o.value}>{o.label}</SelectItem>
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -548,13 +548,17 @@ export function SAHelpCenterSection() {
 export default function SuperAdminHelpCenterPage() {
   return (
     <div className="flex h-[100dvh] bg-background">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-auto p-4 md:p-6">
-          <SAHelpCenterSection />
-        </main>
-      </div>
+      <Suspense fallback={<div className="w-20 border-r border-border/60 bg-card" />}>
+        <Sidebar />
+      </Suspense>
+      <Suspense fallback={<div className="flex-1" />}>
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-auto p-4 md:p-6">
+            <SAHelpCenterSection />
+          </main>
+        </div>
+      </Suspense>
     </div>
   )
 }
