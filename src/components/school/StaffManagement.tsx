@@ -541,7 +541,6 @@ export function StaffManagement({ schoolId, enabled = true }: StaffManagementPro
                                     <p className="text-muted-foreground">{selectedStaff.email}</p>
                                     <div className="flex items-center gap-2 mt-2">
                                         <Badge>{selectedStaff.designation}</Badge>
-                                        <Badge variant="outline">{selectedStaff.department}</Badge>
                                     </div>
                                 </div>
                             </div>

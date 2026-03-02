@@ -32,7 +32,7 @@ import { Info } from 'lucide-react'
 export interface ClassOption {
     id: string
     name: string
-    grade: number
+    grade: number | null
     section?: string | null
 }
 
