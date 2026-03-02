@@ -31,7 +31,7 @@ import { useClasses } from '@/hooks/useClasses'
 import { sortSchoolClasses } from '@/lib/classOrdering'
 import { useTeachers } from '@/hooks/useAdminTeachers'
 import { useClassSubjects, useCreateSubject, useUpdateSubject, useDeleteSubject, type CreateSubjectRequest } from '@/hooks/useClassSubjects'
-import { useSubjects } from '@/hooks/useSubjects'
+import { useAdminCatalogSubjects } from '@/hooks/useAdminCatalogSubjects'
 import {
     useAdminTimetableConfig,
     useUpdateTimetableConfig,
@@ -101,8 +101,8 @@ export default function StudentsTimetablePage() {
     const teachers = useMemo(() => teachersData?.pages.flatMap(page => page.teachers) || [], [teachersData])
     const { data: classSubjectsData } = useClassSubjects(effectiveSelectedClassId, { enabled: canLoad && !!effectiveSelectedClassId })
     const classSubjects = useMemo(() => classSubjectsData?.subjects || EMPTY_SUBJECTS, [classSubjectsData?.subjects])
-    const { data: allSubjectsData } = useSubjects({ enabled: canLoad, schoolId })
-    const allSubjects = useMemo(() => allSubjectsData?.subjects || EMPTY_SUBJECTS, [allSubjectsData?.subjects])
+    const { data: catalogSubjectsData } = useAdminCatalogSubjects({ enabled: canLoad })
+    const allSubjects = useMemo(() => catalogSubjectsData?.subjects || EMPTY_SUBJECTS, [catalogSubjectsData?.subjects])
     const createSubject = useCreateSubject(effectiveSelectedClassId)
     const updateSubject = useUpdateSubject(effectiveSelectedClassId)
     const deleteSubject = useDeleteSubject(effectiveSelectedClassId)

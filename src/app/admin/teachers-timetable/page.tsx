@@ -13,7 +13,7 @@ import { Download, Printer, Calendar, Edit, Trash2, Save, User, MapPin, AlertTri
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTeachers } from '@/hooks/useAdminTeachers'
-import { useSubjects } from '@/hooks/useSubjects'
+import { useAdminCatalogSubjects } from '@/hooks/useAdminCatalogSubjects'
 import { formatSchoolClassLabel, sortSchoolClasses } from '@/lib/classOrdering'
 import { useClasses } from '@/hooks/useClasses'
 import {
@@ -84,7 +84,7 @@ export default function TeachersTimetablePage() {
     const timetableEntries = timetableData?.timetable || []
     const conflicts = timetableData?.conflicts || []
 
-    const { data: subjectsData } = useSubjects({ enabled: canLoad, schoolId })
+    const { data: subjectsData } = useAdminCatalogSubjects({ enabled: canLoad })
     const subjects = subjectsData?.subjects || []
     const { data: classesData } = useClasses(academicYear)
     const classOptions = useMemo(() => sortSchoolClasses(classesData?.classes || []), [classesData?.classes])
