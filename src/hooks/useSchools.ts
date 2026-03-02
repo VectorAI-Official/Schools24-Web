@@ -167,6 +167,7 @@ export function useCreateUser() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
+            queryClient.invalidateQueries({ queryKey: ['school-users-infinite'] });
             queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('User created successfully');
         },
@@ -197,6 +198,7 @@ export function useUpdateUser() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
+            queryClient.invalidateQueries({ queryKey: ['school-users-infinite'] });
             queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('User updated successfully');
         },
@@ -217,12 +219,14 @@ export function useDeleteUser() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-users'] });
+            queryClient.invalidateQueries({ queryKey: ['school-users-infinite'] });
             queryClient.invalidateQueries({ queryKey: ['school'] });
             toast.success('User deleted successfully');
         },
         onError: (error: any) => {
             if (error.message === 'user_not_found') {
                 queryClient.invalidateQueries({ queryKey: ['school-users'] });
+                queryClient.invalidateQueries({ queryKey: ['school-users-infinite'] });
                 queryClient.invalidateQueries({ queryKey: ['school'] });
                 return;
             }
