@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -16,9 +17,10 @@ import {
     DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Bell, Search, Moon, Sun, LogOut, Settings, Monitor, Check, School, Menu } from 'lucide-react'
+import { Bell, Search, Moon, Sun, LogOut, Settings, Monitor, Check, School, Menu, LifeBuoy } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { getInitials } from '@/lib/utils'
+import { useUnreadTicketCount } from '@/hooks/useSupport'
 
 const ROLE_PILL: Record<string, { grad: string; icon: string; border: string }> = {
     student:     { grad: 'from-orange-500/45 via-amber-400/40 to-orange-400/45 dark:from-orange-500/55 dark:via-amber-400/50 dark:to-orange-400/55',   icon: 'bg-orange-500/20 text-orange-600 dark:bg-orange-500/30 dark:text-orange-400',   border: 'border-orange-300/50 dark:border-orange-400/20' },
@@ -28,9 +30,23 @@ const ROLE_PILL: Record<string, { grad: string; icon: string; border: string }> 
 }
 
 export function Header() {
+    const router = useRouter()
     const { user, logout } = useAuth()
     const { theme, setTheme } = useTheme()
     const rolePill = ROLE_PILL[user?.role ?? ''] ?? ROLE_PILL.admin
+
+    // Unread ticket count — only fetched for super_admin
+    const { data: unreadData } = useUnreadTicketCount(user?.role === 'super_admin')
+    const unreadCount = user?.role === 'super_admin' ? (unreadData?.count ?? 0) : 0
+
+    // Role → help center path
+    const helpCenterPath = user?.role === 'super_admin'
+        ? '/super-admin/help-center'
+        : user?.role === 'admin'
+        ? '/admin/help-center'
+        : user?.role === 'teacher'
+        ? '/teacher/help-center'
+        : '/student/help-center'
 
     const toggleMobileSidebar = () => {
         window.dispatchEvent(new Event('toggle-mobile-sidebar'))
@@ -73,6 +89,23 @@ export function Header() {
 
             {/* Right Side: Role Badge & Profile */}
             <div className="flex items-center gap-2 sm:gap-4">
+                {/* Notification bell — super admin only, shows open ticket count */}
+                {user?.role === 'super_admin' && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="relative h-9 w-9 rounded-xl"
+                        onClick={() => router.push('/super-admin/help-center')}
+                        aria-label="Support tickets"
+                    >
+                        <Bell className="h-4.5 w-4.5" />
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
+                    </Button>
+                )}
                 {/* Role Badge */}
                 {user?.role && (
                     <div className={`
@@ -135,6 +168,11 @@ export function Header() {
                                 </DropdownMenuSubContent>
                             </DropdownMenuPortal>
                         </DropdownMenuSub>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => router.push(helpCenterPath)}>
+                            <LifeBuoy className="mr-2 h-4 w-4" />
+                            <span>Help Center</span>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={logout} className="text-destructive">
                             <LogOut className="mr-2 h-4 w-4" />

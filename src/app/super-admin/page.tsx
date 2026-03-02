@@ -33,6 +33,7 @@ import { SuperAdminMaterialsForm } from "@/app/super-admin/materials/page"
 import SuperAdminQuizSchedulerPage from "@/app/super-admin/quiz-scheduler/page"
 import { SuperAdminSettingsPanel } from "@/app/super-admin/settings/page"
 import { SuperAdminTrashPanel } from "@/app/super-admin/trash/page"
+import { SAHelpCenterSection } from "@/app/super-admin/help-center/page"
 import { UserGrowthSection } from "@/app/super-admin/users/page"
 import { useAuth } from "@/contexts/AuthContext"
 import { useDebounce } from "@/hooks/useDebounce"
@@ -41,10 +42,10 @@ import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { Eye, EyeOff, Loader2, Mail, MapPin, MoreVertical, Plus, School as SchoolIcon, Search, Trash2, Edit, Layers3, BookOpenCheck, Check, X, Shield, Sparkles, CheckCircle2, Save, ArrowRight, ArrowUp, ArrowDown } from "lucide-react"
 
-type SuperAdminTab = "schools" | "catalog" | "question-uploader" | "quiz-scheduler" | "materials" | "settings" | "trash" | "users"
+type SuperAdminTab = "schools" | "catalog" | "question-uploader" | "quiz-scheduler" | "materials" | "settings" | "trash" | "users" | "help-center"
 
 function getTabFromSearch(raw: string | null): SuperAdminTab {
-    if (raw === "catalog" || raw === "question-uploader" || raw === "quiz-scheduler" || raw === "materials" || raw === "settings" || raw === "trash" || raw === "users") return raw
+    if (raw === "catalog" || raw === "question-uploader" || raw === "quiz-scheduler" || raw === "materials" || raw === "settings" || raw === "trash" || raw === "users" || raw === "help-center") return raw
     return "schools"
 }
 
@@ -1300,6 +1301,7 @@ function SuperAdminPageContent() {
                         {tab === "settings" && <SuperAdminSettingsPanel embedded />}
                         {tab === "trash" && <SuperAdminTrashPanel embedded />}
                         {tab === "users" && <UserGrowthSection />}
+                        {tab === "help-center" && <SAHelpCenterSection />}
                     </div>
                 </main>
             </div>

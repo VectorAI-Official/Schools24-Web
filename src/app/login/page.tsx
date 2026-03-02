@@ -205,148 +205,148 @@ export default function LoginPage() {
             <div className="w-full max-w-xl relative z-10">
                 <div className="w-full">
                     {/* Login Card */}
-                        <Card className="shadow-2xl border-2 border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-800 relative overflow-hidden animate-scale-in max-w-xl mx-auto backdrop-blur-sm">
-                            <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${currentRole.gradient} transition-all duration-700`}>
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
-                            </div>
-
-                            <div className={`absolute inset-0 bg-gradient-to-br ${currentRole.gradient} opacity-5 transition-opacity duration-700`} />
-
-                            <CardHeader className="relative pb-6 pt-8 px-6 md:px-8">
-                                <div className="mb-2 min-h-[80px]">
-                                    <CardTitle
-                                        key={currentRole.role}
-                                        className="text-3xl md:text-4xl mb-3 font-bold text-slate-900 dark:text-white tracking-tight animate-fade-in"
-                                    >
-                                        Welcome
-                                    </CardTitle>
-                                    <CardDescription
-                                        key={`${currentRole.role}-desc`}
-                                        className="text-base text-slate-600 dark:text-slate-400 font-medium animate-fade-in"
-                                    >
-                                        {currentRole.tagline}. Sign in to continue.
-                                    </CardDescription>
-                                </div>
-                            </CardHeader>
-
-                            <CardContent className="relative space-y-5 px-6 md:px-8 pb-8">
-                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                                    <div className="space-y-3 animate-slide-in-left" style={{ animationDelay: '0.1s' }}>
-                                        <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                                            <Mail className="h-4 w-4" />
-                                            Email Address
-                                        </Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="email"
-                                                type="email"
-                                                placeholder="your.email@schools24.com"
-                                                {...register('email')}
-                                                className={`h-11 text-base bg-white dark:bg-slate-700 border-2 rounded-xl transition-all duration-300 shadow-sm focus:shadow-md ${errors.email
-                                                    ? 'border-red-500 focus-visible:ring-4 focus-visible:ring-red-500/20 focus-visible:border-red-500'
-                                                    : 'border-slate-300 dark:border-slate-600 focus-visible:ring-4 focus-visible:ring-blue-500/30 focus-visible:border-blue-500 hover:border-slate-400 dark:hover:border-slate-500'
-                                                    }`}
-                                            />
-                                        </div>
-                                        {errors.email && (
-                                            <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2 font-medium animate-slide-in-left">
-                                                <span className="text-xs">⚠</span> {errors.email.message}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-3 animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
-                                        <div className="flex items-center justify-between">
-                                            <Label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                                                <Lock className="h-4 w-4" />
-                                                Password
-                                            </Label>
-                                            <Link href="#" className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                                                Forgot password?
-                                            </Link>
-                                        </div>
-                                        <div className="relative">
-                                            <Input
-                                                id="password"
-                                                type={showPassword ? 'text' : 'password'}
-                                                placeholder="Enter your password"
-                                                {...register('password')}
-                                                className={`h-11 pr-12 text-base bg-white dark:bg-slate-700 border-2 rounded-xl transition-all duration-300 shadow-sm focus:shadow-md ${errors.password
-                                                    ? 'border-red-500 focus-visible:ring-4 focus-visible:ring-red-500/20 focus-visible:border-red-500'
-                                                    : 'border-slate-300 dark:border-slate-600 focus-visible:ring-4 focus-visible:ring-blue-500/30 focus-visible:border-blue-500 hover:border-slate-400 dark:hover:border-slate-500'
-                                                    }`}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all hover:scale-110"
-                                            >
-                                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                            </button>
-                                        </div>
-                                        {errors.password && (
-                                            <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2 font-medium animate-slide-in-right">
-                                                <span className="text-xs">⚠</span> {errors.password.message}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center justify-between pt-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                                        <label className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={rememberMe}
-                                                onChange={(e) => setRememberMe(e.target.checked)}
-                                                className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-4 focus:ring-blue-500/30 cursor-pointer transition-all hover:scale-110"
-                                            />
-                                            <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-medium">
-                                                Remember me for 30 days
-                                            </span>
-                                        </label>
-                                    </div>
-
-                                    <Button
-                                        type="submit"
-                                        className={`relative w-full h-12 bg-gradient-to-r ${currentRole.gradient} hover:opacity-95 border-0 text-white text-base font-bold shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 overflow-hidden group mt-6 rounded-xl`}
-                                        disabled={isLoading}
-                                    >
-                                        <span className="relative z-10 flex items-center justify-center gap-3">
-                                            {isLoading ? (
-                                                <>
-                                                    <Loader2 className="h-6 w-6 animate-spin" />
-                                                    <span>Signing in...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span>Sign In</span>
-                                                    <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
-                                                </>
-                                            )}
-                                        </span>
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                                    </Button>
-                                </form>
-                            </CardContent>
-                        </Card>
-
-                        {/* Footer */}
-                        <div className="text-center mt-8 space-y-3 animate-fade-in" style={{ animationDelay: '0.7s' }}>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-                                By signing in, you agree to our{' '}
-                                <Link href="#" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-4 transition-colors font-semibold">
-                                    Terms of Service
-                                </Link>
-                                {' '}and{' '}
-                                <Link href="#" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-4 transition-colors font-semibold">
-                                    Privacy Policy
-                                </Link>
-                            </p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                                © 2026 schools24. All rights reserved.
-                            </p>
+                    <Card className="shadow-2xl border-2 border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-800 relative overflow-hidden animate-scale-in max-w-xl mx-auto backdrop-blur-sm">
+                        <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${currentRole.gradient} transition-all duration-700`}>
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
                         </div>
+
+                        <div className={`absolute inset-0 bg-gradient-to-br ${currentRole.gradient} opacity-5 transition-opacity duration-700`} />
+
+                        <CardHeader className="relative pb-6 pt-8 px-6 md:px-8">
+                            <div className="mb-2 min-h-[80px]">
+                                <CardTitle
+                                    key={currentRole.role}
+                                    className="text-3xl md:text-4xl mb-3 font-bold text-slate-900 dark:text-white tracking-tight animate-fade-in"
+                                >
+                                    Welcome
+                                </CardTitle>
+                                <CardDescription
+                                    key={`${currentRole.role}-desc`}
+                                    className="text-base text-slate-600 dark:text-slate-400 font-medium animate-fade-in"
+                                >
+                                    {currentRole.tagline}. Sign in to continue.
+                                </CardDescription>
+                            </div>
+                        </CardHeader>
+
+                        <CardContent className="relative space-y-5 px-6 md:px-8 pb-8">
+                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                                <div className="space-y-3 animate-slide-in-left" style={{ animationDelay: '0.1s' }}>
+                                    <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                        <Mail className="h-4 w-4" />
+                                        Email Address
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="your.email@schools24.com"
+                                            {...register('email')}
+                                            className={`h-11 text-base bg-white dark:bg-slate-700 border-2 rounded-xl transition-all duration-300 shadow-sm focus:shadow-md ${errors.email
+                                                ? 'border-red-500 focus-visible:ring-4 focus-visible:ring-red-500/20 focus-visible:border-red-500'
+                                                : 'border-slate-300 dark:border-slate-600 focus-visible:ring-4 focus-visible:ring-blue-500/30 focus-visible:border-blue-500 hover:border-slate-400 dark:hover:border-slate-500'
+                                                }`}
+                                        />
+                                    </div>
+                                    {errors.email && (
+                                        <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2 font-medium animate-slide-in-left">
+                                            <span className="text-xs">⚠</span> {errors.email.message}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-3 animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                            <Lock className="h-4 w-4" />
+                                            Password
+                                        </Label>
+                                        <Link href="#" className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                            Forgot password?
+                                        </Link>
+                                    </div>
+                                    <div className="relative">
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder="Enter your password"
+                                            {...register('password')}
+                                            className={`h-11 pr-12 text-base bg-white dark:bg-slate-700 border-2 rounded-xl transition-all duration-300 shadow-sm focus:shadow-md ${errors.password
+                                                ? 'border-red-500 focus-visible:ring-4 focus-visible:ring-red-500/20 focus-visible:border-red-500'
+                                                : 'border-slate-300 dark:border-slate-600 focus-visible:ring-4 focus-visible:ring-blue-500/30 focus-visible:border-blue-500 hover:border-slate-400 dark:hover:border-slate-500'
+                                                }`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all hover:scale-110"
+                                        >
+                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                        </button>
+                                    </div>
+                                    {errors.password && (
+                                        <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2 font-medium animate-slide-in-right">
+                                            <span className="text-xs">⚠</span> {errors.password.message}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between pt-2 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                                    <label className="flex items-center gap-3 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={rememberMe}
+                                            onChange={(e) => setRememberMe(e.target.checked)}
+                                            className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-4 focus:ring-blue-500/30 cursor-pointer transition-all hover:scale-110"
+                                        />
+                                        <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors font-medium">
+                                            Remember me for 30 days
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    className={`relative w-full h-12 bg-gradient-to-r ${currentRole.gradient} hover:opacity-95 border-0 text-white text-base font-bold shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 overflow-hidden group mt-6 rounded-xl`}
+                                    disabled={isLoading}
+                                >
+                                    <span className="relative z-10 flex items-center justify-center gap-3">
+                                        {isLoading ? (
+                                            <>
+                                                <Loader2 className="h-6 w-6 animate-spin" />
+                                                <span>Signing in...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Sign In</span>
+                                                <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </span>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+
+                    {/* Footer */}
+                    <div className="text-center mt-8 space-y-3 animate-fade-in" style={{ animationDelay: '0.7s' }}>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                            By signing in, you agree to our{' '}
+                            <Link href="#" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-4 transition-colors font-semibold">
+                                Terms of Service
+                            </Link>
+                            {' '}and{' '}
+                            <Link href="#" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-4 transition-colors font-semibold">
+                                Privacy Policy
+                            </Link>
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                            © 2026 schools24. All rights reserved.
+                        </p>
                     </div>
                 </div>
+            </div>
         </div>
     )
 }

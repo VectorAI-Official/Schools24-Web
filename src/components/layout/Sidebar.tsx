@@ -370,6 +370,12 @@ const superAdminNavItems: NavItem[] = [
     icon: <Trash2 className="h-5 w-5" />,
     category: "Management",
   },
+  {
+    title: "Help Center",
+    href: "/super-admin?tab=help-center",
+    icon: <HelpCircle className="h-5 w-5" />,
+    category: "Management",
+  },
 ];
 
 export function Sidebar() {
