@@ -656,15 +656,15 @@ export default function UsersPage() {
     const getRoleBadgeClass = (role: string): string => {
         switch (role) {
             case 'admin':
-                return 'bg-violet-500 hover:bg-violet-600 text-white border-transparent'
+                return '!bg-violet-500 hover:!bg-violet-600 !text-white !border-transparent'
             case 'teacher':
-                return 'bg-green-500 hover:bg-green-600 text-white border-transparent'
+                return '!bg-green-500 hover:!bg-green-600 !text-white !border-transparent'
             case 'student':
-                return 'bg-orange-500 hover:bg-orange-600 text-white border-transparent'
+                return '!bg-orange-500 hover:!bg-orange-600 !text-white !border-transparent'
             case 'staff':
-                return 'bg-blue-500 hover:bg-blue-600 text-white border-transparent'
+                return '!bg-blue-500 hover:!bg-blue-600 !text-white !border-transparent'
             default:
-                return 'bg-secondary text-secondary-foreground border-transparent'
+                return '!bg-secondary !text-secondary-foreground !border-transparent'
         }
     }
 
