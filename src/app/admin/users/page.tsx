@@ -465,6 +465,7 @@ export default function UsersPage() {
                 emergency_contact: editStudentForm.emergencyContact || undefined,
                 transport_mode: editStudentForm.transportMode || undefined,
                 bus_route_id: editStudentForm.busRouteId || undefined,
+                academic_year: editStudentForm.academicYear || undefined,
             })
         }
 
@@ -1473,6 +1474,12 @@ export default function UsersPage() {
                                 <>
                                     <Separator className="my-1" />
                                     <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Student Profile</p>
+
+                                    {/* Academic Info */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Academic Info</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="grid gap-1">
                                             <Label>Admission No.</Label>
@@ -1492,6 +1499,18 @@ export default function UsersPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+                                        <div className="grid gap-1">
+                                            <Label>Academic Year</Label>
+                                            <Input value={editStudentForm.academicYear} onChange={e => setEditStudentForm(f => ({ ...f, academicYear: e.target.value }))} placeholder="e.g. 2025-2026" />
+                                        </div>
+                                    </div>
+
+                                    {/* Personal Details */}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Personal Details</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
                                         <div className="grid gap-1">
                                             <Label>Gender</Label>
                                             <Select value={editStudentForm.gender || '__none__'} onValueChange={v => setEditStudentForm(f => ({ ...f, gender: v === '__none__' ? '' : v }))}>
@@ -1516,6 +1535,14 @@ export default function UsersPage() {
                                             <Label>Address</Label>
                                             <Input value={editStudentForm.address} onChange={e => setEditStudentForm(f => ({ ...f, address: e.target.value }))} />
                                         </div>
+                                    </div>
+
+                                    {/* Parent & Contact */}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Parent &amp; Contact</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
                                         <div className="grid gap-1">
                                             <Label>Parent / Guardian</Label>
                                             <Input value={editStudentForm.parentName} onChange={e => setEditStudentForm(f => ({ ...f, parentName: e.target.value }))} />
@@ -1532,6 +1559,14 @@ export default function UsersPage() {
                                             <Label>Emergency Contact</Label>
                                             <Input value={editStudentForm.emergencyContact} onChange={e => setEditStudentForm(f => ({ ...f, emergencyContact: e.target.value }))} />
                                         </div>
+                                    </div>
+
+                                    {/* Transport */}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Transport</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
                                         <div className="grid gap-1">
                                             <Label>Transport Mode</Label>
                                             <Select value={editStudentForm.transportMode || '__none__'} onValueChange={v => setEditStudentForm(f => ({ ...f, transportMode: v === '__none__' ? '' : v }))}>
@@ -1563,6 +1598,12 @@ export default function UsersPage() {
                                 <>
                                     <Separator className="my-1" />
                                     <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Teacher Profile</p>
+
+                                    {/* Professional Info */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Professional Info</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="grid gap-1">
                                             <Label>Employee ID</Label>
@@ -1585,10 +1626,6 @@ export default function UsersPage() {
                                             <Input type="date" value={editTeacherForm.hireDate} onChange={e => setEditTeacherForm(f => ({ ...f, hireDate: e.target.value }))} />
                                         </div>
                                         <div className="grid gap-1">
-                                            <Label>Salary</Label>
-                                            <Input type="number" min={0} value={editTeacherForm.salary} onChange={e => setEditTeacherForm(f => ({ ...f, salary: e.target.value }))} />
-                                        </div>
-                                        <div className="grid gap-1">
                                             <Label>Status</Label>
                                             <Select value={editTeacherForm.status || '__none__'} onValueChange={v => setEditTeacherForm(f => ({ ...f, status: v === '__none__' ? '' : v }))}>
                                                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
@@ -1600,13 +1637,33 @@ export default function UsersPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="col-span-2 grid gap-1">
+                                    </div>
+
+                                    {/* Qualifications */}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Qualifications</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
+                                    <div className="grid gap-3">
+                                        <div className="grid gap-1">
                                             <Label>Qualifications <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
                                             <Input value={editTeacherForm.qualificationsStr} onChange={e => setEditTeacherForm(f => ({ ...f, qualificationsStr: e.target.value }))} placeholder="B.Ed, M.Sc" />
                                         </div>
-                                        <div className="col-span-2 grid gap-1">
+                                        <div className="grid gap-1">
                                             <Label>Subjects Taught <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
                                             <Input value={editTeacherForm.subjectsStr} onChange={e => setEditTeacherForm(f => ({ ...f, subjectsStr: e.target.value }))} placeholder="Math, Science" />
+                                        </div>
+                                    </div>
+
+                                    {/* Personal & Salary */}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Personal &amp; Salary</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid gap-1">
+                                            <Label>Salary</Label>
+                                            <Input type="number" min={0} value={editTeacherForm.salary} onChange={e => setEditTeacherForm(f => ({ ...f, salary: e.target.value }))} />
                                         </div>
                                     </div>
                                 </>
