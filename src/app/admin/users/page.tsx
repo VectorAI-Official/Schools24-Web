@@ -80,8 +80,9 @@ import { useUsers, useUserStats, useCreateUser, useUpdateUser, useDeleteUser, us
 import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, SchoolClass } from '@/hooks/useClasses'
 import { useAdminCatalogClasses } from '@/hooks/useAdminCatalogClasses'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { Separator } from '@/components/ui/separator'
 // import { useDebounce } from '@/hooks/useDebounce'
 // I will just use simple useEffect debounce or just separate state for debounced search.
 import { useEffect } from 'react'
@@ -118,6 +119,50 @@ const getNextSectionLabel = (existingLabels: string[]) => {
         if (value > max) max = value
     }
     return max === 0 ? 'A' : numberToSection(max + 1)
+}
+
+// ─── Profile interfaces ──────────────────────────────────────────────────────
+interface StudentProfile {
+    id: string
+    user_id: string
+    admission_number?: string
+    roll_number?: string
+    class_id?: string
+    class_name?: string
+    section?: string
+    gender?: string
+    date_of_birth?: string
+    blood_group?: string
+    address?: string
+    parent_name?: string
+    parent_email?: string
+    parent_phone?: string
+    emergency_contact?: string
+    admission_date?: string
+    academic_year?: string
+    bus_route_id?: string
+    transport_mode?: string
+}
+
+interface TeacherProfileDetail {
+    id: string
+    userId: string
+    employeeId?: string
+    department?: string
+    designation?: string
+    qualifications?: string[]
+    subjects?: string[]
+    experience?: number
+    joinDate?: string
+    salary?: number
+    status?: string
+    classes?: string[]
+}
+
+interface BusRoute {
+    id: string
+    route_name: string
+    description?: string
 }
 
 const getCurrentAcademicYear = () => {
@@ -190,6 +235,56 @@ export default function UsersPage() {
     const updateClass = useUpdateClass()
     const deleteClass = useDeleteClass()
 
+    // ─── Profile queries ──────────────────────────────────────────────────────
+    const { data: studentProfileData } = useQuery({
+        queryKey: ['admin-student-profile', selectedUser?.id],
+        enabled: !!(selectedUser?.role === 'student' && (isViewDialogOpen || isEditDialogOpen)),
+        queryFn: async () => {
+            const res = await api.get<{ student: StudentProfile | null }>(`/admin/students/by-user/${selectedUser!.id}`)
+            return res.student
+        },
+        staleTime: 60 * 1000,
+    })
+
+    const { data: teacherProfileData } = useQuery({
+        queryKey: ['admin-teacher-profile', selectedUser?.id],
+        enabled: !!(selectedUser?.role === 'teacher' && (isViewDialogOpen || isEditDialogOpen)),
+        queryFn: async () => {
+            const res = await api.get<{ teacher: TeacherProfileDetail | null }>(`/admin/teachers/by-user/${selectedUser!.id}`)
+            return res.teacher
+        },
+        staleTime: 60 * 1000,
+    })
+
+    const { data: busRoutesData = [] } = useQuery({
+        queryKey: ['admin-bus-routes'],
+        enabled: !!(selectedUser?.role === 'student' && isEditDialogOpen),
+        queryFn: async () => {
+            const res = await api.get<{ bus_routes: BusRoute[] }>('/admin/bus-routes')
+            return res.bus_routes || []
+        },
+        staleTime: 5 * 60 * 1000,
+    })
+
+    // ─── Profile mutations ────────────────────────────────────────────────────
+    const updateStudentProfile = useMutation({
+        mutationFn: async (payload: { id: string } & Record<string, unknown>) => {
+            const { id, ...body } = payload
+            return api.put(`/admin/students/${id}`, body)
+        },
+        onSuccess: () => toast.success('Student profile updated'),
+        onError: (e: Error) => toast.error('Failed to update student profile', { description: e.message }),
+    })
+
+    const updateTeacherProfile = useMutation({
+        mutationFn: async (payload: { id: string } & Record<string, unknown>) => {
+            const { id, ...body } = payload
+            return api.put(`/admin/teachers/${id}`, body)
+        },
+        onSuccess: () => toast.success('Teacher profile updated'),
+        onError: (e: Error) => toast.error('Failed to update teacher profile', { description: e.message }),
+    })
+
     const { data: classInchargeTeachers = [], isLoading: isClassInchargeTeachersLoading } = useQuery({
         queryKey: ['class-incharge-teachers', debouncedTeacherSearch, isInchargeDialogOpen],
         enabled: isInchargeDialogOpen,
@@ -240,6 +335,48 @@ export default function UsersPage() {
             fetchNextPage()
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+    // Sync student profile → edit form when edit dialog opens
+    useEffect(() => {
+        if (isEditDialogOpen && selectedUser?.role === 'student' && studentProfileData) {
+            setEditStudentForm({
+                profileId: studentProfileData.id,
+                admissionNumber: studentProfileData.admission_number || '',
+                rollNumber: studentProfileData.roll_number || '',
+                classId: studentProfileData.class_id || '',
+                gender: studentProfileData.gender || '',
+                dateOfBirth: studentProfileData.date_of_birth?.slice(0, 10) || '',
+                bloodGroup: studentProfileData.blood_group || '',
+                address: studentProfileData.address || '',
+                parentName: studentProfileData.parent_name || '',
+                parentEmail: studentProfileData.parent_email || '',
+                parentPhone: studentProfileData.parent_phone || '',
+                emergencyContact: studentProfileData.emergency_contact || '',
+                admissionDate: studentProfileData.admission_date?.slice(0, 10) || '',
+                academicYear: studentProfileData.academic_year || '',
+                busRouteId: studentProfileData.bus_route_id || '',
+                transportMode: studentProfileData.transport_mode || '',
+            })
+        }
+    }, [isEditDialogOpen, selectedUser?.role, studentProfileData])
+
+    // Sync teacher profile → edit form when edit dialog opens
+    useEffect(() => {
+        if (isEditDialogOpen && selectedUser?.role === 'teacher' && teacherProfileData) {
+            setEditTeacherForm({
+                profileId: teacherProfileData.id,
+                employeeId: teacherProfileData.employeeId || '',
+                department: teacherProfileData.department || '',
+                designation: teacherProfileData.designation || '',
+                qualificationsStr: (teacherProfileData.qualifications || []).join(', '),
+                subjectsStr: (teacherProfileData.subjects || []).join(', '),
+                experience: teacherProfileData.experience ? String(teacherProfileData.experience) : '',
+                hireDate: teacherProfileData.joinDate?.slice(0, 10) || '',
+                salary: teacherProfileData.salary ? String(teacherProfileData.salary) : '',
+                status: teacherProfileData.status || '',
+            })
+        }
+    }, [isEditDialogOpen, selectedUser?.role, teacherProfileData])
     const filteredUsers = users
     const fetchTriggerIndex = filteredUsers.length > 0 ? Math.max(0, Math.floor(filteredUsers.length * 0.8) - 1) : -1
 
@@ -252,6 +389,16 @@ export default function UsersPage() {
     const [suspendPassword, setSuspendPassword] = useState('')
     const [showSuspendPassword, setShowSuspendPassword] = useState(false)
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
+    const [editStudentForm, setEditStudentForm] = useState({
+        profileId: '', admissionNumber: '', rollNumber: '', classId: '',
+        gender: '', dateOfBirth: '', bloodGroup: '', address: '',
+        parentName: '', parentEmail: '', parentPhone: '', emergencyContact: '',
+        admissionDate: '', academicYear: '', busRouteId: '', transportMode: ''
+    })
+    const [editTeacherForm, setEditTeacherForm] = useState({
+        profileId: '', employeeId: '', department: '', designation: '',
+        qualificationsStr: '', subjectsStr: '', experience: '', hireDate: '', salary: '', status: ''
+    })
     const [newUser, setNewUser] = useState<{
         name: string;
         email: string;
@@ -1122,6 +1269,61 @@ export default function UsersPage() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Student profile section */}
+                            {selectedUser.role === 'student' && studentProfileData && (
+                                <>
+                                    <Separator />
+                                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Student Profile</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { label: 'Admission No.', value: studentProfileData.admission_number },
+                                            { label: 'Roll No.', value: studentProfileData.roll_number },
+                                            { label: 'Class', value: studentProfileData.class_name },
+                                            { label: 'Gender', value: studentProfileData.gender },
+                                            { label: 'Date of Birth', value: studentProfileData.date_of_birth?.slice(0, 10) },
+                                            { label: 'Blood Group', value: studentProfileData.blood_group },
+                                            { label: 'Academic Year', value: studentProfileData.academic_year },
+                                            { label: 'Transport Mode', value: studentProfileData.transport_mode },
+                                            { label: 'Address', value: studentProfileData.address },
+                                            { label: 'Parent / Guardian', value: studentProfileData.parent_name },
+                                            { label: 'Parent Email', value: studentProfileData.parent_email },
+                                            { label: 'Parent Phone', value: studentProfileData.parent_phone },
+                                        ].map(({ label, value }) => (
+                                            <div key={label} className="p-3 rounded-lg bg-muted">
+                                                <p className="text-xs text-muted-foreground">{label}</p>
+                                                <p className="text-sm font-medium break-words">{value || '—'}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Teacher profile section */}
+                            {selectedUser.role === 'teacher' && teacherProfileData && (
+                                <>
+                                    <Separator />
+                                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Teacher Profile</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { label: 'Employee ID', value: teacherProfileData.employeeId },
+                                            { label: 'Department', value: teacherProfileData.department },
+                                            { label: 'Designation', value: teacherProfileData.designation },
+                                            { label: 'Experience (yrs)', value: teacherProfileData.experience != null ? String(teacherProfileData.experience) : undefined },
+                                            { label: 'Hire Date', value: teacherProfileData.joinDate?.slice(0, 10) },
+                                            { label: 'Status', value: teacherProfileData.status },
+                                            { label: 'Subjects', value: (teacherProfileData.subjects || []).join(', ') || undefined },
+                                            { label: 'Classes', value: (teacherProfileData.classes || []).join(', ') || undefined },
+                                            { label: 'Qualifications', value: (teacherProfileData.qualifications || []).join(', ') || undefined },
+                                        ].map(({ label, value }) => (
+                                            <div key={label} className="p-3 rounded-lg bg-muted">
+                                                <p className="text-xs text-muted-foreground">{label}</p>
+                                                <p className="text-sm font-medium break-words">{value || '—'}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
                     <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -1228,6 +1430,196 @@ export default function UsersPage() {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* ── Student profile edit section ── */}
+                            {selectedUser.role === 'student' && (
+                                <>
+                                    <Separator className="my-1" />
+                                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Student Profile</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid gap-1">
+                                            <Label>Admission No.</Label>
+                                            <Input value={editStudentForm.admissionNumber} onChange={e => setEditStudentForm(f => ({ ...f, admissionNumber: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Roll No.</Label>
+                                            <Input value={editStudentForm.rollNumber} onChange={e => setEditStudentForm(f => ({ ...f, rollNumber: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Class</Label>
+                                            <Select value={editStudentForm.classId || '__none__'} onValueChange={v => setEditStudentForm(f => ({ ...f, classId: v === '__none__' ? '' : v }))}>
+                                                <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="__none__">None</SelectItem>
+                                                    {classes.map(cls => <SelectItem key={cls.id} value={cls.id}>{cls.name}{cls.section ? ` - ${cls.section}` : ''}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Gender</Label>
+                                            <Select value={editStudentForm.gender || '__none__'} onValueChange={v => setEditStudentForm(f => ({ ...f, gender: v === '__none__' ? '' : v }))}>
+                                                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="__none__">None</SelectItem>
+                                                    <SelectItem value="male">Male</SelectItem>
+                                                    <SelectItem value="female">Female</SelectItem>
+                                                    <SelectItem value="other">Other</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Date of Birth</Label>
+                                            <Input type="date" value={editStudentForm.dateOfBirth} onChange={e => setEditStudentForm(f => ({ ...f, dateOfBirth: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Blood Group</Label>
+                                            <Input value={editStudentForm.bloodGroup} onChange={e => setEditStudentForm(f => ({ ...f, bloodGroup: e.target.value }))} placeholder="e.g. A+" />
+                                        </div>
+                                        <div className="col-span-2 grid gap-1">
+                                            <Label>Address</Label>
+                                            <Input value={editStudentForm.address} onChange={e => setEditStudentForm(f => ({ ...f, address: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Parent / Guardian</Label>
+                                            <Input value={editStudentForm.parentName} onChange={e => setEditStudentForm(f => ({ ...f, parentName: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Parent Email</Label>
+                                            <Input type="email" value={editStudentForm.parentEmail} onChange={e => setEditStudentForm(f => ({ ...f, parentEmail: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Parent Phone</Label>
+                                            <Input value={editStudentForm.parentPhone} onChange={e => setEditStudentForm(f => ({ ...f, parentPhone: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Emergency Contact</Label>
+                                            <Input value={editStudentForm.emergencyContact} onChange={e => setEditStudentForm(f => ({ ...f, emergencyContact: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Transport Mode</Label>
+                                            <Select value={editStudentForm.transportMode || '__none__'} onValueChange={v => setEditStudentForm(f => ({ ...f, transportMode: v === '__none__' ? '' : v }))}>
+                                                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="__none__">None</SelectItem>
+                                                    <SelectItem value="school_bus">School Bus</SelectItem>
+                                                    <SelectItem value="private">Private</SelectItem>
+                                                    <SelectItem value="walking">Walking</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Bus Route</Label>
+                                            <Select value={editStudentForm.busRouteId || '__none__'} onValueChange={v => setEditStudentForm(f => ({ ...f, busRouteId: v === '__none__' ? '' : v }))}>
+                                                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="__none__">None</SelectItem>
+                                                    {busRoutesData.map((r: BusRoute) => <SelectItem key={r.id} value={r.id}>{r.route_name}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    {editStudentForm.profileId && (
+                                        <Button
+                                            variant="secondary"
+                                            className="w-full"
+                                            disabled={updateStudentProfile.isPending}
+                                            onClick={() => updateStudentProfile.mutate({
+                                                id: editStudentForm.profileId,
+                                                admission_number: editStudentForm.admissionNumber || undefined,
+                                                roll_number: editStudentForm.rollNumber || undefined,
+                                                class_id: editStudentForm.classId || undefined,
+                                                gender: editStudentForm.gender || undefined,
+                                                date_of_birth: editStudentForm.dateOfBirth || undefined,
+                                                blood_group: editStudentForm.bloodGroup || undefined,
+                                                address: editStudentForm.address || undefined,
+                                                parent_name: editStudentForm.parentName || undefined,
+                                                parent_email: editStudentForm.parentEmail || undefined,
+                                                parent_phone: editStudentForm.parentPhone || undefined,
+                                                emergency_contact: editStudentForm.emergencyContact || undefined,
+                                                transport_mode: editStudentForm.transportMode || undefined,
+                                                bus_route_id: editStudentForm.busRouteId || undefined,
+                                            })}
+                                        >
+                                            {updateStudentProfile.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving Profile...</> : 'Save Student Profile'}
+                                        </Button>
+                                    )}
+                                </>
+                            )}
+
+                            {/* ── Teacher profile edit section ── */}
+                            {selectedUser.role === 'teacher' && (
+                                <>
+                                    <Separator className="my-1" />
+                                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Teacher Profile</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid gap-1">
+                                            <Label>Employee ID</Label>
+                                            <Input value={editTeacherForm.employeeId} onChange={e => setEditTeacherForm(f => ({ ...f, employeeId: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Department</Label>
+                                            <Input value={editTeacherForm.department} onChange={e => setEditTeacherForm(f => ({ ...f, department: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Designation</Label>
+                                            <Input value={editTeacherForm.designation} onChange={e => setEditTeacherForm(f => ({ ...f, designation: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Experience (yrs)</Label>
+                                            <Input type="number" min={0} value={editTeacherForm.experience} onChange={e => setEditTeacherForm(f => ({ ...f, experience: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Hire Date</Label>
+                                            <Input type="date" value={editTeacherForm.hireDate} onChange={e => setEditTeacherForm(f => ({ ...f, hireDate: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Salary</Label>
+                                            <Input type="number" min={0} value={editTeacherForm.salary} onChange={e => setEditTeacherForm(f => ({ ...f, salary: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Status</Label>
+                                            <Select value={editTeacherForm.status || '__none__'} onValueChange={v => setEditTeacherForm(f => ({ ...f, status: v === '__none__' ? '' : v }))}>
+                                                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="__none__">None</SelectItem>
+                                                    <SelectItem value="active">Active</SelectItem>
+                                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                                    <SelectItem value="on_leave">On Leave</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="col-span-2 grid gap-1">
+                                            <Label>Qualifications <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
+                                            <Input value={editTeacherForm.qualificationsStr} onChange={e => setEditTeacherForm(f => ({ ...f, qualificationsStr: e.target.value }))} placeholder="B.Ed, M.Sc" />
+                                        </div>
+                                        <div className="col-span-2 grid gap-1">
+                                            <Label>Subjects Taught <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
+                                            <Input value={editTeacherForm.subjectsStr} onChange={e => setEditTeacherForm(f => ({ ...f, subjectsStr: e.target.value }))} placeholder="Math, Science" />
+                                        </div>
+                                    </div>
+                                    {editTeacherForm.profileId && (
+                                        <Button
+                                            variant="secondary"
+                                            className="w-full"
+                                            disabled={updateTeacherProfile.isPending}
+                                            onClick={() => updateTeacherProfile.mutate({
+                                                id: editTeacherForm.profileId,
+                                                employee_id: editTeacherForm.employeeId || undefined,
+                                                department: editTeacherForm.department || undefined,
+                                                designation: editTeacherForm.designation || undefined,
+                                                experience_years: editTeacherForm.experience ? parseInt(editTeacherForm.experience) : undefined,
+                                                hire_date: editTeacherForm.hireDate || undefined,
+                                                salary: editTeacherForm.salary ? parseFloat(editTeacherForm.salary) : undefined,
+                                                status: editTeacherForm.status || undefined,
+                                                qualifications: editTeacherForm.qualificationsStr ? editTeacherForm.qualificationsStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+                                                subjects_taught: editTeacherForm.subjectsStr ? editTeacherForm.subjectsStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+                                            })}
+                                        >
+                                            {updateTeacherProfile.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving Profile...</> : 'Save Teacher Profile'}
+                                        </Button>
+                                    )}
+                                </>
+                            )}
                         </div>
                     )}
                     <DialogFooter className="flex-col sm:flex-row gap-2">
