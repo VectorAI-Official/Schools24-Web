@@ -936,15 +936,16 @@ export default function UsersPage() {
                                                     <span className="text-muted-foreground">-</span>
                                                 )}
                                             </TableCell>
+                                            <TableCell>{user.phone || '-'}</TableCell>
+                                            <TableCell>{user.department || '-'}</TableCell>
                                             <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    <span>{user.phone || '-'}</span>
+                                                <div className="flex items-center justify-end gap-1">
                                                     {(!user.phone || (user.role === 'teacher' && !user.department)) && (
                                                         <div className="group relative">
                                                             <div className="h-5 w-5 rounded-full bg-destructive/10 flex items-center justify-center cursor-help">
                                                                 <AlertTriangle className="h-3 w-3 text-destructive" />
                                                             </div>
-                                                            <div className="absolute bottom-full left-0 mb-2 hidden w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md group-hover:block border z-50">
+                                                            <div className="absolute bottom-full right-0 mb-2 hidden w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md group-hover:block border z-50">
                                                                 <p className="font-semibold mb-1 text-destructive">Missing Info:</p>
                                                                 <ul className="list-disc pl-3 space-y-0.5">
                                                                     {!user.phone && <li>Phone</li>}
@@ -953,11 +954,7 @@ export default function UsersPage() {
                                                             </div>
                                                         </div>
                                                     )}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>{user.department || '-'}</TableCell>
-                                            <TableCell className="text-right">
-                                                <DropdownMenu>
+                                                    <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" size="icon">
                                                             <MoreHorizontal className="h-4 w-4" />
@@ -1013,6 +1010,7 @@ export default function UsersPage() {
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))
