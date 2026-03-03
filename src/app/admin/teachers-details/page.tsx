@@ -71,6 +71,7 @@ import {
     CheckCircle2,
     Clock,
     Briefcase,
+    AlertTriangle,
 } from 'lucide-react'
 import { Teacher } from '@/types'
 import { getInitials, formatCurrency } from '@/lib/utils'
@@ -416,7 +417,28 @@ export default function TeachersDetailsPage() {
                                                     </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="font-mono">{teacher.employeeId}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-mono">{teacher.employeeId}</span>
+                                                    {(teacher.employeeId === 'N/A' || !teacher.phone || !teacher.subjects?.length || !teacher.salary || !teacher.qualification) && (
+                                                        <div className="group relative">
+                                                            <div className="h-5 w-5 rounded-full bg-destructive/10 flex items-center justify-center cursor-help">
+                                                                <AlertTriangle className="h-3 w-3 text-destructive" />
+                                                            </div>
+                                                            <div className="absolute bottom-full left-0 mb-2 hidden w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md group-hover:block border z-50">
+                                                                <p className="font-semibold mb-1 text-destructive">Missing Info:</p>
+                                                                <ul className="list-disc pl-3 space-y-0.5">
+                                                                    {teacher.employeeId === 'N/A' && <li>Employee ID</li>}
+                                                                    {!teacher.phone && <li>Phone</li>}
+                                                                    {!teacher.subjects?.length && <li>Subjects</li>}
+                                                                    {!teacher.salary && <li>Salary</li>}
+                                                                    {!teacher.qualification && <li>Qualification</li>}
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </TableCell>
                                             <TableCell>
                                                 <Badge variant="outline" className="font-medium">
                                                     {teacher.department}

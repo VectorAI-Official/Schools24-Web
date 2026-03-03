@@ -72,7 +72,8 @@ import {
     Check,
     X,
     Minus,
-    EyeOff
+    EyeOff,
+    AlertTriangle,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -935,7 +936,25 @@ export default function UsersPage() {
                                                     <span className="text-muted-foreground">-</span>
                                                 )}
                                             </TableCell>
-                                            <TableCell>{user.phone || '-'}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <span>{user.phone || '-'}</span>
+                                                    {(!user.phone || (user.role === 'teacher' && !user.department)) && (
+                                                        <div className="group relative">
+                                                            <div className="h-5 w-5 rounded-full bg-destructive/10 flex items-center justify-center cursor-help">
+                                                                <AlertTriangle className="h-3 w-3 text-destructive" />
+                                                            </div>
+                                                            <div className="absolute bottom-full left-0 mb-2 hidden w-48 rounded bg-popover p-2 text-xs text-popover-foreground shadow-md group-hover:block border z-50">
+                                                                <p className="font-semibold mb-1 text-destructive">Missing Info:</p>
+                                                                <ul className="list-disc pl-3 space-y-0.5">
+                                                                    {!user.phone && <li>Phone</li>}
+                                                                    {user.role === 'teacher' && !user.department && <li>Department</li>}
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </TableCell>
                                             <TableCell>{user.department || '-'}</TableCell>
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
