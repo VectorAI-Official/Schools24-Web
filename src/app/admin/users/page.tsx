@@ -303,7 +303,7 @@ export default function UsersPage() {
 
         return uniqueUsers.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', undefined, { sensitivity: 'base' }))
     }, [data, staffData])
-    const totalUsersCount = data?.pages[0]?.total || 0
+    const totalUsersCount = (data?.pages[0]?.total || 0) + (roleFilter === 'all' || roleFilter === 'staff' ? (staffData?.pages[0]?.total || 0) : 0)
     const classes = classesData?.classes || []
     const catalogClasses = catalogClassesData?.classes || []
 
