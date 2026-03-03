@@ -1779,6 +1779,8 @@ export default function UsersPage() {
                             )}
 
                             {selectedUser.role === 'teacher' && (
+                                <>
+                                    <Separator className="my-1" />
                                     <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Teacher Profile</p>
 
                                     {/* Professional Info */}
