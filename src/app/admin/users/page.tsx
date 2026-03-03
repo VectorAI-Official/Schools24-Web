@@ -940,7 +940,7 @@ export default function UsersPage() {
                                             <TableCell>{user.department || '-'}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-1">
-                                                    {(!user.phone || (user.role === 'teacher' && !user.department)) && (
+                                                    {(!user.phone || (user.role === 'teacher' && (!user.department || user.department === 'General'))) && (
                                                         <div className="group relative">
                                                             <div className="h-5 w-5 rounded-full bg-destructive/10 flex items-center justify-center cursor-help">
                                                                 <AlertTriangle className="h-3 w-3 text-destructive" />
@@ -949,7 +949,7 @@ export default function UsersPage() {
                                                                 <p className="font-semibold mb-1 text-destructive">Missing Info:</p>
                                                                 <ul className="list-disc pl-3 space-y-0.5">
                                                                     {!user.phone && <li>Phone</li>}
-                                                                    {user.role === 'teacher' && !user.department && <li>Department</li>}
+                                                                    {user.role === 'teacher' && (!user.department || user.department === 'General') && <li>Department</li>}
                                                                 </ul>
                                                             </div>
                                                         </div>

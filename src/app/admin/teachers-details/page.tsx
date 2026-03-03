@@ -441,7 +441,7 @@ export default function TeachersDetailsPage() {
                                             <TableCell>{renderStars(teacher.rating)}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-1">
-                                                    {(teacher.employeeId === 'N/A' || !teacher.phone || !teacher.subjects?.length || !teacher.salary || !teacher.qualification) && (
+                                                    {(teacher.employeeId === 'N/A' || !teacher.phone || teacher.department === 'General' || !teacher.subjects?.length || !teacher.salary || !teacher.qualification) && (
                                                         <div className="group relative">
                                                             <div className="h-5 w-5 rounded-full bg-destructive/10 flex items-center justify-center cursor-help">
                                                                 <AlertTriangle className="h-3 w-3 text-destructive" />
@@ -451,6 +451,7 @@ export default function TeachersDetailsPage() {
                                                                 <ul className="list-disc pl-3 space-y-0.5">
                                                                     {teacher.employeeId === 'N/A' && <li>Employee ID</li>}
                                                                     {!teacher.phone && <li>Phone</li>}
+                                                                    {teacher.department === 'General' && <li>Department</li>}
                                                                     {!teacher.subjects?.length && <li>Subjects</li>}
                                                                     {!teacher.salary && <li>Salary</li>}
                                                                     {!teacher.qualification && <li>Qualification</li>}
