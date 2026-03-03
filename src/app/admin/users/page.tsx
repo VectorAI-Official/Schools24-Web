@@ -235,56 +235,6 @@ export default function UsersPage() {
     const updateClass = useUpdateClass()
     const deleteClass = useDeleteClass()
 
-    // ─── Profile queries ──────────────────────────────────────────────────────
-    const { data: studentProfileData } = useQuery({
-        queryKey: ['admin-student-profile', selectedUser?.id],
-        enabled: !!(selectedUser?.role === 'student' && (isViewDialogOpen || isEditDialogOpen)),
-        queryFn: async () => {
-            const res = await api.get<{ student: StudentProfile | null }>(`/admin/students/by-user/${selectedUser!.id}`)
-            return res.student
-        },
-        staleTime: 60 * 1000,
-    })
-
-    const { data: teacherProfileData } = useQuery({
-        queryKey: ['admin-teacher-profile', selectedUser?.id],
-        enabled: !!(selectedUser?.role === 'teacher' && (isViewDialogOpen || isEditDialogOpen)),
-        queryFn: async () => {
-            const res = await api.get<{ teacher: TeacherProfileDetail | null }>(`/admin/teachers/by-user/${selectedUser!.id}`)
-            return res.teacher
-        },
-        staleTime: 60 * 1000,
-    })
-
-    const { data: busRoutesData = [] } = useQuery({
-        queryKey: ['admin-bus-routes'],
-        enabled: !!(selectedUser?.role === 'student' && isEditDialogOpen),
-        queryFn: async () => {
-            const res = await api.get<{ bus_routes: BusRoute[] }>('/admin/bus-routes')
-            return res.bus_routes || []
-        },
-        staleTime: 5 * 60 * 1000,
-    })
-
-    // ─── Profile mutations ────────────────────────────────────────────────────
-    const updateStudentProfile = useMutation({
-        mutationFn: async (payload: { id: string } & Record<string, unknown>) => {
-            const { id, ...body } = payload
-            return api.put(`/admin/students/${id}`, body)
-        },
-        onSuccess: () => toast.success('Student profile updated'),
-        onError: (e: Error) => toast.error('Failed to update student profile', { description: e.message }),
-    })
-
-    const updateTeacherProfile = useMutation({
-        mutationFn: async (payload: { id: string } & Record<string, unknown>) => {
-            const { id, ...body } = payload
-            return api.put(`/admin/teachers/${id}`, body)
-        },
-        onSuccess: () => toast.success('Teacher profile updated'),
-        onError: (e: Error) => toast.error('Failed to update teacher profile', { description: e.message }),
-    })
-
     const { data: classInchargeTeachers = [], isLoading: isClassInchargeTeachersLoading } = useQuery({
         queryKey: ['class-incharge-teachers', debouncedTeacherSearch, isInchargeDialogOpen],
         enabled: isInchargeDialogOpen,
@@ -336,6 +286,79 @@ export default function UsersPage() {
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
+    const filteredUsers = users
+    const fetchTriggerIndex = filteredUsers.length > 0 ? Math.max(0, Math.floor(filteredUsers.length * 0.8) - 1) : -1
+
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+    const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false)
+    const [suspendAction, setSuspendAction] = useState<'suspend' | 'unsuspend'>('suspend')
+    const [suspendPassword, setSuspendPassword] = useState('')
+    const [showSuspendPassword, setShowSuspendPassword] = useState(false)
+    const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
+    const [editStudentForm, setEditStudentForm] = useState({
+        profileId: '', admissionNumber: '', rollNumber: '', classId: '',
+        gender: '', dateOfBirth: '', bloodGroup: '', address: '',
+        parentName: '', parentEmail: '', parentPhone: '', emergencyContact: '',
+        admissionDate: '', academicYear: '', busRouteId: '', transportMode: ''
+    })
+    const [editTeacherForm, setEditTeacherForm] = useState({
+        profileId: '', employeeId: '', department: '', designation: '',
+        qualificationsStr: '', subjectsStr: '', experience: '', hireDate: '', salary: '', status: ''
+    })
+
+    // ─── Profile queries (after selectedUser + dialog state are declared) ─────
+    const { data: studentProfileData } = useQuery({
+        queryKey: ['admin-student-profile', selectedUser?.id],
+        enabled: !!(selectedUser?.role === 'student' && (isViewDialogOpen || isEditDialogOpen)),
+        queryFn: async () => {
+            const res = await api.get<{ student: StudentProfile | null }>(`/admin/students/by-user/${selectedUser!.id}`)
+            return res.student
+        },
+        staleTime: 60 * 1000,
+    })
+
+    const { data: teacherProfileData } = useQuery({
+        queryKey: ['admin-teacher-profile', selectedUser?.id],
+        enabled: !!(selectedUser?.role === 'teacher' && (isViewDialogOpen || isEditDialogOpen)),
+        queryFn: async () => {
+            const res = await api.get<{ teacher: TeacherProfileDetail | null }>(`/admin/teachers/by-user/${selectedUser!.id}`)
+            return res.teacher
+        },
+        staleTime: 60 * 1000,
+    })
+
+    const { data: busRoutesData = [] } = useQuery({
+        queryKey: ['admin-bus-routes'],
+        enabled: !!(selectedUser?.role === 'student' && isEditDialogOpen),
+        queryFn: async () => {
+            const res = await api.get<{ bus_routes: BusRoute[] }>('/admin/bus-routes')
+            return res.bus_routes || []
+        },
+        staleTime: 5 * 60 * 1000,
+    })
+
+    // ─── Profile mutations ────────────────────────────────────────────────────
+    const updateStudentProfile = useMutation({
+        mutationFn: async (payload: { id: string } & Record<string, unknown>) => {
+            const { id, ...body } = payload
+            return api.put(`/admin/students/${id}`, body)
+        },
+        onSuccess: () => toast.success('Student profile updated'),
+        onError: (e: Error) => toast.error('Failed to update student profile', { description: e.message }),
+    })
+
+    const updateTeacherProfile = useMutation({
+        mutationFn: async (payload: { id: string } & Record<string, unknown>) => {
+            const { id, ...body } = payload
+            return api.put(`/admin/teachers/${id}`, body)
+        },
+        onSuccess: () => toast.success('Teacher profile updated'),
+        onError: (e: Error) => toast.error('Failed to update teacher profile', { description: e.message }),
+    })
+
     // Sync student profile → edit form when edit dialog opens
     useEffect(() => {
         if (isEditDialogOpen && selectedUser?.role === 'student' && studentProfileData) {
@@ -377,28 +400,7 @@ export default function UsersPage() {
             })
         }
     }, [isEditDialogOpen, selectedUser?.role, teacherProfileData])
-    const filteredUsers = users
-    const fetchTriggerIndex = filteredUsers.length > 0 ? Math.max(0, Math.floor(filteredUsers.length * 0.8) - 1) : -1
 
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-    const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
-    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-    const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false)
-    const [suspendAction, setSuspendAction] = useState<'suspend' | 'unsuspend'>('suspend')
-    const [suspendPassword, setSuspendPassword] = useState('')
-    const [showSuspendPassword, setShowSuspendPassword] = useState(false)
-    const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
-    const [editStudentForm, setEditStudentForm] = useState({
-        profileId: '', admissionNumber: '', rollNumber: '', classId: '',
-        gender: '', dateOfBirth: '', bloodGroup: '', address: '',
-        parentName: '', parentEmail: '', parentPhone: '', emergencyContact: '',
-        admissionDate: '', academicYear: '', busRouteId: '', transportMode: ''
-    })
-    const [editTeacherForm, setEditTeacherForm] = useState({
-        profileId: '', employeeId: '', department: '', designation: '',
-        qualificationsStr: '', subjectsStr: '', experience: '', hireDate: '', salary: '', status: ''
-    })
     const [newUser, setNewUser] = useState<{
         name: string;
         email: string;
