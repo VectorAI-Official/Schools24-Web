@@ -448,6 +448,41 @@ export default function UsersPage() {
             return
         }
 
+        // Fire profile mutation alongside the user update (fire-and-forget)
+        if (selectedUser.role === 'student' && editStudentForm.profileId) {
+            updateStudentProfile.mutate({
+                id: editStudentForm.profileId,
+                admission_number: editStudentForm.admissionNumber || undefined,
+                roll_number: editStudentForm.rollNumber || undefined,
+                class_id: editStudentForm.classId || undefined,
+                gender: editStudentForm.gender || undefined,
+                date_of_birth: editStudentForm.dateOfBirth || undefined,
+                blood_group: editStudentForm.bloodGroup || undefined,
+                address: editStudentForm.address || undefined,
+                parent_name: editStudentForm.parentName || undefined,
+                parent_email: editStudentForm.parentEmail || undefined,
+                parent_phone: editStudentForm.parentPhone || undefined,
+                emergency_contact: editStudentForm.emergencyContact || undefined,
+                transport_mode: editStudentForm.transportMode || undefined,
+                bus_route_id: editStudentForm.busRouteId || undefined,
+            })
+        }
+
+        if (selectedUser.role === 'teacher' && editTeacherForm.profileId) {
+            updateTeacherProfile.mutate({
+                id: editTeacherForm.profileId,
+                employee_id: editTeacherForm.employeeId || undefined,
+                department: editTeacherForm.department || undefined,
+                designation: editTeacherForm.designation || undefined,
+                experience_years: editTeacherForm.experience ? parseInt(editTeacherForm.experience) : undefined,
+                hire_date: editTeacherForm.hireDate || undefined,
+                salary: editTeacherForm.salary ? parseFloat(editTeacherForm.salary) : undefined,
+                status: editTeacherForm.status || undefined,
+                qualifications: editTeacherForm.qualificationsStr ? editTeacherForm.qualificationsStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+                subjects_taught: editTeacherForm.subjectsStr ? editTeacherForm.subjectsStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+            })
+        }
+
         updateUser.mutate({
             id: selectedUser.id,
             full_name: selectedUser.full_name,
@@ -1520,31 +1555,6 @@ export default function UsersPage() {
                                             </Select>
                                         </div>
                                     </div>
-                                    {editStudentForm.profileId && (
-                                        <Button
-                                            variant="secondary"
-                                            className="w-full"
-                                            disabled={updateStudentProfile.isPending}
-                                            onClick={() => updateStudentProfile.mutate({
-                                                id: editStudentForm.profileId,
-                                                admission_number: editStudentForm.admissionNumber || undefined,
-                                                roll_number: editStudentForm.rollNumber || undefined,
-                                                class_id: editStudentForm.classId || undefined,
-                                                gender: editStudentForm.gender || undefined,
-                                                date_of_birth: editStudentForm.dateOfBirth || undefined,
-                                                blood_group: editStudentForm.bloodGroup || undefined,
-                                                address: editStudentForm.address || undefined,
-                                                parent_name: editStudentForm.parentName || undefined,
-                                                parent_email: editStudentForm.parentEmail || undefined,
-                                                parent_phone: editStudentForm.parentPhone || undefined,
-                                                emergency_contact: editStudentForm.emergencyContact || undefined,
-                                                transport_mode: editStudentForm.transportMode || undefined,
-                                                bus_route_id: editStudentForm.busRouteId || undefined,
-                                            })}
-                                        >
-                                            {updateStudentProfile.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving Profile...</> : 'Save Student Profile'}
-                                        </Button>
-                                    )}
                                 </>
                             )}
 
@@ -1599,27 +1609,6 @@ export default function UsersPage() {
                                             <Input value={editTeacherForm.subjectsStr} onChange={e => setEditTeacherForm(f => ({ ...f, subjectsStr: e.target.value }))} placeholder="Math, Science" />
                                         </div>
                                     </div>
-                                    {editTeacherForm.profileId && (
-                                        <Button
-                                            variant="secondary"
-                                            className="w-full"
-                                            disabled={updateTeacherProfile.isPending}
-                                            onClick={() => updateTeacherProfile.mutate({
-                                                id: editTeacherForm.profileId,
-                                                employee_id: editTeacherForm.employeeId || undefined,
-                                                department: editTeacherForm.department || undefined,
-                                                designation: editTeacherForm.designation || undefined,
-                                                experience_years: editTeacherForm.experience ? parseInt(editTeacherForm.experience) : undefined,
-                                                hire_date: editTeacherForm.hireDate || undefined,
-                                                salary: editTeacherForm.salary ? parseFloat(editTeacherForm.salary) : undefined,
-                                                status: editTeacherForm.status || undefined,
-                                                qualifications: editTeacherForm.qualificationsStr ? editTeacherForm.qualificationsStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-                                                subjects_taught: editTeacherForm.subjectsStr ? editTeacherForm.subjectsStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-                                            })}
-                                        >
-                                            {updateTeacherProfile.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving Profile...</> : 'Save Teacher Profile'}
-                                        </Button>
-                                    )}
                                 </>
                             )}
                         </div>
@@ -1628,7 +1617,9 @@ export default function UsersPage() {
                         <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button className="w-full sm:w-auto" onClick={handleEditUser}>Save Changes</Button>
+                        <Button className="w-full sm:w-auto" onClick={handleEditUser} disabled={updateUser.isPending || updateStudentProfile.isPending || updateTeacherProfile.isPending}>
+                            {(updateUser.isPending || updateStudentProfile.isPending || updateTeacherProfile.isPending) ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : 'Save Changes'}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
