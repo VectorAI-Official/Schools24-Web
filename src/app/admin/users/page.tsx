@@ -78,7 +78,7 @@ import {
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useUsers, useUserStats, useCreateUser, useUpdateUser, useDeleteUser, useSuspendUser, useUnsuspendUser, AdminUser } from '@/hooks/useAdminUsers'
-import { useStaff, useCreateStaff } from '@/hooks/useAdminStaff'
+import { useStaff, useCreateStaff, useUpdateStaff } from '@/hooks/useAdminStaff'
 import { Staff } from '@/types'
 import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, SchoolClass } from '@/hooks/useClasses'
 import { useAdminCatalogClasses } from '@/hooks/useAdminCatalogClasses'
@@ -342,6 +342,10 @@ export default function UsersPage() {
         profileId: '', employeeId: '', department: '', designation: '',
         qualificationsStr: '', subjectsStr: '', experience: '', hireDate: '', salary: '', status: ''
     })
+    const [editStaffForm, setEditStaffForm] = useState({
+        designation: '', qualification: '', experience: '', salary: '',
+        address: '', dateOfBirth: '', emergencyContact: '', bloodGroup: '',
+    })
 
     // ─── Profile queries (after selectedUser + dialog state are declared) ─────
     const { data: studentProfileData } = useQuery({
@@ -393,6 +397,8 @@ export default function UsersPage() {
         onError: (e: Error) => toast.error('Failed to update teacher profile', { description: e.message }),
     })
 
+    const updateStaff = useUpdateStaff()
+
     // Sync student profile → edit form when edit dialog opens
     useEffect(() => {
         if (isEditDialogOpen && selectedUser?.role === 'student' && studentProfileData) {
@@ -434,6 +440,26 @@ export default function UsersPage() {
             })
         }
     }, [isEditDialogOpen, selectedUser?.role, teacherProfileData])
+
+    // Sync staff data → edit form when edit dialog opens
+    useEffect(() => {
+        if (isEditDialogOpen && selectedUser?.role === 'staff') {
+            const allStaff = staffData?.pages.flatMap(p => p.staff) || []
+            const s = allStaff.find(s => s.id === selectedUser.id)
+            if (s) {
+                setEditStaffForm({
+                    designation: s.designation || '',
+                    qualification: s.qualification || '',
+                    experience: s.experience != null ? String(s.experience) : '',
+                    salary: s.salary != null ? String(s.salary) : '',
+                    address: s.address || '',
+                    dateOfBirth: s.dateOfBirth?.slice(0, 10) || '',
+                    emergencyContact: s.emergencyContact || '',
+                    bloodGroup: s.bloodGroup || '',
+                })
+            }
+        }
+    }, [isEditDialogOpen, selectedUser?.role, selectedUser?.id, staffData])
 
     const [newUser, setNewUser] = useState<{
         name: string;
@@ -520,6 +546,31 @@ export default function UsersPage() {
                 qualifications: editTeacherForm.qualificationsStr ? editTeacherForm.qualificationsStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
                 subjects_taught: editTeacherForm.subjectsStr ? editTeacherForm.subjectsStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
             })
+        }
+
+        if (selectedUser.role === 'staff') {
+            updateStaff.mutate({
+                id: selectedUser.id,
+                data: {
+                    full_name: selectedUser.full_name,
+                    phone: selectedUser.phone || '',
+                    designation: editStaffForm.designation,
+                    qualification: editStaffForm.qualification,
+                    experience: editStaffForm.experience ? parseInt(editStaffForm.experience) : 0,
+                    salary: editStaffForm.salary ? parseFloat(editStaffForm.salary) : 0,
+                    address: editStaffForm.address,
+                    dateOfBirth: editStaffForm.dateOfBirth,
+                    emergencyContact: editStaffForm.emergencyContact,
+                    bloodGroup: editStaffForm.bloodGroup,
+                },
+            }, {
+                onSuccess: () => {
+                    setIsEditDialogOpen(false)
+                    setEditPassword('')
+                    setShowEditPassword(false)
+                }
+            })
+            return
         }
 
         updateUser.mutate({
@@ -1672,9 +1723,62 @@ export default function UsersPage() {
                             )}
 
                             {/* ── Teacher profile edit section ── */}
-                            {selectedUser.role === 'teacher' && (
+                            {selectedUser.role === 'staff' && (
                                 <>
                                     <Separator className="my-1" />
+                                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Staff Profile</p>
+
+                                    {/* Job Details */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Job Details</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid gap-1 col-span-2">
+                                            <Label>Designation</Label>
+                                            <Input value={editStaffForm.designation} onChange={e => setEditStaffForm(f => ({ ...f, designation: e.target.value }))} placeholder="e.g. Librarian, Driver" />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Qualification</Label>
+                                            <Input value={editStaffForm.qualification} onChange={e => setEditStaffForm(f => ({ ...f, qualification: e.target.value }))} placeholder="e.g. B.Com" />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Experience (yrs)</Label>
+                                            <Input type="number" min={0} value={editStaffForm.experience} onChange={e => setEditStaffForm(f => ({ ...f, experience: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Salary</Label>
+                                            <Input type="number" min={0} value={editStaffForm.salary} onChange={e => setEditStaffForm(f => ({ ...f, salary: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Blood Group</Label>
+                                            <Input value={editStaffForm.bloodGroup} onChange={e => setEditStaffForm(f => ({ ...f, bloodGroup: e.target.value }))} placeholder="e.g. O+" />
+                                        </div>
+                                    </div>
+
+                                    {/* Personal */}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Personal</span>
+                                        <div className="flex-1 h-px bg-border" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid gap-1">
+                                            <Label>Date of Birth</Label>
+                                            <Input type="date" value={editStaffForm.dateOfBirth} onChange={e => setEditStaffForm(f => ({ ...f, dateOfBirth: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1">
+                                            <Label>Emergency Contact</Label>
+                                            <Input value={editStaffForm.emergencyContact} onChange={e => setEditStaffForm(f => ({ ...f, emergencyContact: e.target.value }))} />
+                                        </div>
+                                        <div className="grid gap-1 col-span-2">
+                                            <Label>Address</Label>
+                                            <Input value={editStaffForm.address} onChange={e => setEditStaffForm(f => ({ ...f, address: e.target.value }))} />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {selectedUser.role === 'teacher' && (
                                     <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Teacher Profile</p>
 
                                     {/* Professional Info */}
@@ -1752,8 +1856,8 @@ export default function UsersPage() {
                         <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button className="w-full sm:w-auto" onClick={handleEditUser} disabled={updateUser.isPending || updateStudentProfile.isPending || updateTeacherProfile.isPending}>
-                            {(updateUser.isPending || updateStudentProfile.isPending || updateTeacherProfile.isPending) ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : 'Save Changes'}
+                        <Button className="w-full sm:w-auto" onClick={handleEditUser} disabled={updateUser.isPending || updateStudentProfile.isPending || updateTeacherProfile.isPending || updateStaff.isPending}>
+                            {(updateUser.isPending || updateStudentProfile.isPending || updateTeacherProfile.isPending || updateStaff.isPending) ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : 'Save Changes'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
