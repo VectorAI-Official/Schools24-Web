@@ -653,18 +653,18 @@ export default function UsersPage() {
         }
     }
 
-    const getRoleBadgeVariant = (role: string): "default" | "success" | "warning" | "secondary" => {
+    const getRoleBadgeClass = (role: string): string => {
         switch (role) {
             case 'admin':
-                return 'default'
+                return 'bg-violet-500 hover:bg-violet-600 text-white border-transparent'
             case 'teacher':
-                return 'success'
+                return 'bg-green-500 hover:bg-green-600 text-white border-transparent'
             case 'student':
-                return 'warning'
+                return 'bg-orange-500 hover:bg-orange-600 text-white border-transparent'
             case 'staff':
-                return 'secondary'
+                return 'bg-blue-500 hover:bg-blue-600 text-white border-transparent'
             default:
-                return 'secondary'
+                return 'bg-secondary text-secondary-foreground border-transparent'
         }
     }
 
@@ -976,7 +976,7 @@ export default function UsersPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant={getRoleBadgeVariant(user.role)} className="gap-1">
+                                                <Badge variant="outline" className={`gap-1 ${getRoleBadgeClass(user.role)}`}>
                                                     {getRoleIcon(user.role)}
                                                     <span className="capitalize">{user.role}</span>
                                                 </Badge>
@@ -1367,7 +1367,7 @@ export default function UsersPage() {
                                 <div>
                                     <h3 className="text-xl font-bold">{selectedUser.full_name}</h3>
                                     <p className="text-muted-foreground">{selectedUser.email}</p>
-                                    <Badge variant={getRoleBadgeVariant(selectedUser.role)} className="mt-2 gap-1">
+                                    <Badge variant="outline" className={`mt-2 gap-1 ${getRoleBadgeClass(selectedUser.role)}`}>
                                         {getRoleIcon(selectedUser.role)}
                                         <span className="capitalize">{selectedUser.role}</span>
                                     </Badge>
