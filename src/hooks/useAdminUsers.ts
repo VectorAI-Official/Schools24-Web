@@ -12,8 +12,13 @@ export interface AdminUser {
     last_login?: string;
     avatar?: string;
     department?: string;
+    designation?: string;
     is_suspended?: boolean;
     suspended_at?: string;
+    class_name?: string;
+    roll_number?: string;
+    parent_name?: string;
+    parent_phone?: string;
 }
 
 interface UsersResponse {
@@ -49,7 +54,7 @@ interface UpdateUserParams {
     password?: string;
 }
 
-export function useUsers(role: string = 'all', search: string = '', pageSize: number = 20) {
+export function useUsers(role: string = 'all', search: string = '', pageSize: number = 20, enabled: boolean = true) {
     return useInfiniteQuery({
         queryKey: ['users', role, search, pageSize],
         queryFn: async ({ pageParam = 1 }) => {
@@ -66,6 +71,7 @@ export function useUsers(role: string = 'all', search: string = '', pageSize: nu
             const nextPage = allPages.length + 1;
             return nextPage <= totalPages ? nextPage : undefined;
         },
+        enabled,
         staleTime: 30_000,
         refetchInterval: 30_000,
     });

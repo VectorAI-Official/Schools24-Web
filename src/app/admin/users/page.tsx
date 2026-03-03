@@ -78,6 +78,8 @@ import {
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useUsers, useUserStats, useCreateUser, useUpdateUser, useDeleteUser, useSuspendUser, useUnsuspendUser, AdminUser } from '@/hooks/useAdminUsers'
+import { useStaff } from '@/hooks/useAdminStaff'
+import { Staff } from '@/types'
 import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, SchoolClass } from '@/hooks/useClasses'
 import { useAdminCatalogClasses } from '@/hooks/useAdminCatalogClasses'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
@@ -226,7 +228,15 @@ export default function UsersPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage
-    } = useUsers(roleFilter, debouncedSearch, pageSize)
+    } = useUsers(roleFilter, debouncedSearch, pageSize, roleFilter !== 'staff')
+
+    const {
+        data: staffData,
+        isLoading: isStaffLoading,
+        fetchNextPage: fetchNextStaffPage,
+        hasNextPage: hasNextStaffPage,
+        isFetchingNextPage: isFetchingNextStaffPage,
+    } = useStaff(debouncedSearch, pageSize, undefined, undefined, { enabled: roleFilter === 'all' || roleFilter === 'staff' })
 
     const { data: statsData, isLoading: statsLoading } = useUserStats()
 
@@ -263,6 +273,7 @@ export default function UsersPage() {
 
     const users = useMemo(() => {
         const allUsers = data?.pages.flatMap(page => page.users) || []
+        const allStaff = staffData?.pages.flatMap(page => page.staff) || []
         const seen = new Set<string>()
         const uniqueUsers: AdminUser[] = []
 
@@ -272,8 +283,25 @@ export default function UsersPage() {
             uniqueUsers.push(user)
         }
 
+        for (const s of allStaff) {
+            if (!s?.id || seen.has(s.id)) continue
+            seen.add(s.id)
+            uniqueUsers.push({
+                id: s.id,
+                email: s.email,
+                full_name: s.name,
+                role: 'staff',
+                phone: s.phone || undefined,
+                avatar: s.avatar || undefined,
+                department: s.designation,
+                designation: s.designation,
+                is_suspended: false,
+                created_at: s.joinDate || '',
+            })
+        }
+
         return uniqueUsers.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', undefined, { sensitivity: 'base' }))
-    }, [data])
+    }, [data, staffData])
     const totalUsersCount = data?.pages[0]?.total || 0
     const classes = classesData?.classes || []
     const catalogClasses = catalogClassesData?.classes || []
@@ -285,9 +313,13 @@ export default function UsersPage() {
         if (inView && hasNextPage && !isFetchingNextPage) {
             fetchNextPage()
         }
-    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+        if (inView && hasNextStaffPage && !isFetchingNextStaffPage) {
+            fetchNextStaffPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, hasNextStaffPage, isFetchingNextStaffPage, fetchNextStaffPage])
 
     const filteredUsers = users
+    const isAnyLoading = isLoading || isStaffLoading
     const fetchTriggerIndex = filteredUsers.length > 0 ? Math.max(0, Math.floor(filteredUsers.length * 0.8) - 1) : -1
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -597,6 +629,8 @@ export default function UsersPage() {
                 return <BookOpen className="h-4 w-4" />
             case 'student':
                 return <GraduationCap className="h-4 w-4" />
+            case 'staff':
+                return <Briefcase className="h-4 w-4" />
             default:
                 return <Users className="h-4 w-4" />
         }
@@ -610,6 +644,8 @@ export default function UsersPage() {
                 return 'success'
             case 'student':
                 return 'warning'
+            case 'staff':
+                return 'secondary'
             default:
                 return 'secondary'
         }
@@ -854,6 +890,7 @@ export default function UsersPage() {
                                     <SelectItem value="admin">Admin</SelectItem>
                                     <SelectItem value="teacher">Teacher</SelectItem>
                                     <SelectItem value="student">Student</SelectItem>
+                                    <SelectItem value="staff">Staff</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Button
@@ -885,7 +922,7 @@ export default function UsersPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {isLoading ? (
+                                {isAnyLoading ? (
                                     <TableRow>
                                         <TableCell colSpan={6} className="h-24 text-center">
                                             <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
@@ -940,7 +977,7 @@ export default function UsersPage() {
                                             <TableCell>{user.department || '-'}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-1">
-                                                    {(!user.phone || (user.role === 'teacher' && (!user.department || user.department === 'General'))) && (
+                                                    {(!user.phone || (user.role === 'teacher' && (!user.department || user.department === 'General')) || (user.role === 'student' && (!user.class_name || !user.roll_number || !user.parent_name || !user.parent_phone)) || (user.role === 'staff' && !user.designation)) && (
                                                         <div className="group relative">
                                                             <div className="h-5 w-5 rounded-full bg-destructive/10 flex items-center justify-center cursor-help">
                                                                 <AlertTriangle className="h-3 w-3 text-destructive" />
@@ -950,6 +987,11 @@ export default function UsersPage() {
                                                                 <ul className="list-disc pl-3 space-y-0.5">
                                                                     {!user.phone && <li>Phone</li>}
                                                                     {user.role === 'teacher' && (!user.department || user.department === 'General') && <li>Department</li>}
+                                                                    {user.role === 'student' && !user.class_name && <li>Class</li>}
+                                                                    {user.role === 'student' && !user.roll_number && <li>Roll Number</li>}
+                                                                    {user.role === 'student' && !user.parent_name && <li>Parent Name</li>}
+                                                                    {user.role === 'student' && !user.parent_phone && <li>Parent Phone</li>}
+                                                                    {user.role === 'staff' && !user.designation && <li>Designation</li>}
                                                                 </ul>
                                                             </div>
                                                         </div>
@@ -980,6 +1022,7 @@ export default function UsersPage() {
                                                             <Edit className="mr-2 h-4 w-4" />
                                                             Edit
                                                         </DropdownMenuItem>
+                                                        {user.role !== 'staff' && (<>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem
                                                             onClick={() => {
@@ -1008,6 +1051,7 @@ export default function UsersPage() {
                                                             <Trash2 className="mr-2 h-4 w-4" />
                                                             Delete
                                                         </DropdownMenuItem>
+                                                        </>)}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                                 </div>
