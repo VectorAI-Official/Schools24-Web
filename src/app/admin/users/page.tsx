@@ -78,7 +78,7 @@ import {
 import { getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useUsers, useUserStats, useCreateUser, useUpdateUser, useDeleteUser, useSuspendUser, useUnsuspendUser, AdminUser } from '@/hooks/useAdminUsers'
-import { useStaff } from '@/hooks/useAdminStaff'
+import { useStaff, useCreateStaff } from '@/hooks/useAdminStaff'
 import { Staff } from '@/types'
 import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, SchoolClass } from '@/hooks/useClasses'
 import { useAdminCatalogClasses } from '@/hooks/useAdminCatalogClasses'
@@ -266,6 +266,7 @@ export default function UsersPage() {
 
     // Mutations
     const createUser = useCreateUser()
+    const createStaff = useCreateStaff()
     const updateUser = useUpdateUser()
     const deleteUser = useDeleteUser()
     const suspendUser = useSuspendUser()
@@ -441,13 +442,17 @@ export default function UsersPage() {
         phone: string;
         department: string;
         password: string;
+        designation: string;
+        qualification: string;
     }>({
         name: '',
         email: '',
         role: 'student',
         phone: '',
         department: '',
-        password: ''
+        password: '',
+        designation: '',
+        qualification: '',
     })
     const [editPassword, setEditPassword] = useState('')
     const [showAddPassword, setShowAddPassword] = useState(false)
@@ -570,6 +575,29 @@ export default function UsersPage() {
             // Fall through — let creation proceed
         }
 
+        const resetForm = () => {
+            setIsAddDialogOpen(false)
+            setNewUser({ name: '', email: '', role: 'student', phone: '', department: '', password: '', designation: '', qualification: '' })
+            setShowAddPassword(false)
+        }
+
+        if (newUser.role === 'staff') {
+            if (!newUser.designation.trim()) {
+                toast.error('Missing fields', { description: 'Designation is required for staff' })
+                return
+            }
+            createStaff.mutate({
+                full_name: trimmedName,
+                email: trimmedEmail,
+                password: trimmedPassword,
+                phone: newUser.phone.trim(),
+                designation: newUser.designation.trim(),
+                qualification: newUser.qualification.trim(),
+                staffType: 'non-teaching',
+            }, { onSuccess: resetForm })
+            return
+        }
+
         createUser.mutate({
             full_name: trimmedName,
             email: trimmedEmail,
@@ -578,18 +606,7 @@ export default function UsersPage() {
             department: newUser.department.trim(),
             password: trimmedPassword,
         }, {
-            onSuccess: () => {
-                setIsAddDialogOpen(false)
-                setNewUser({
-                    name: '',
-                    email: '',
-                    role: 'student',
-                    phone: '',
-                    department: '',
-                    password: ''
-                })
-                setShowAddPassword(false)
-            }
+            onSuccess: resetForm
         })
     }
 
@@ -1881,9 +1898,44 @@ export default function UsersPage() {
                                     <SelectItem value="admin">Admin</SelectItem>
                                     <SelectItem value="teacher">Teacher</SelectItem>
                                     <SelectItem value="student">Student</SelectItem>
+                                    <SelectItem value="staff">Staff</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
+                        {newUser.role === 'staff' ? (
+                            <>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="add-designation">Designation <span className="text-destructive">*</span></Label>
+                                    <Input
+                                        id="add-designation"
+                                        value={newUser.designation}
+                                        onChange={(e) => setNewUser({ ...newUser, designation: e.target.value })}
+                                        placeholder="e.g. Librarian, Driver, Security"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="add-qualification">Qualification</Label>
+                                    <Input
+                                        id="add-qualification"
+                                        value={newUser.qualification}
+                                        onChange={(e) => setNewUser({ ...newUser, qualification: e.target.value })}
+                                        placeholder="e.g. B.Com, ITI"
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            newUser.role !== 'student' && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="add-dept">Department</Label>
+                                    <Input
+                                        id="add-dept"
+                                        value={newUser.department}
+                                        onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
+                                        placeholder="e.g. Mathematics"
+                                    />
+                                </div>
+                            )
+                        )}
                         <div className="grid gap-2">
                             <Label htmlFor="add-phone">Phone Number</Label>
                             <Input
