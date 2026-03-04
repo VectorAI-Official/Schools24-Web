@@ -90,6 +90,7 @@ export interface Staff {
     emergencyContact?: string;
     bloodGroup?: string;
     status?: 'active' | 'on-leave' | 'inactive';
+    is_suspended?: boolean;
 }
 
 

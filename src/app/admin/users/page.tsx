@@ -311,7 +311,7 @@ export default function UsersPage() {
                 department: s.designation,
                 designation: s.designation,
                 salary: s.salary,
-                is_suspended: false,
+                is_suspended: s.is_suspended || false,
                 created_at: s.joinDate || '',
             })
         }
@@ -1110,7 +1110,7 @@ export default function UsersPage() {
                                     </TableRow>
                                 ) : (
                                     filteredUsers.map((user, index) => (
-                                        <TableRow key={user.id} className={`hover:bg-muted/50 ${user.is_suspended && user.role !== 'student' ? 'bg-red-50/60 dark:bg-red-950/20 hover:bg-red-100/60 dark:hover:bg-red-950/30' : ''}`} ref={index === fetchTriggerIndex ? scrollRef : undefined}>
+                                        <TableRow key={user.id} className={`hover:bg-muted/50 ${user.is_suspended ? 'bg-red-50/60 dark:bg-red-950/20 hover:bg-red-100/60 dark:hover:bg-red-950/30' : ''}`} ref={index === fetchTriggerIndex ? scrollRef : undefined}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
@@ -1199,7 +1199,6 @@ export default function UsersPage() {
                                                             <Edit className="mr-2 h-4 w-4" />
                                                             Edit
                                                         </DropdownMenuItem>
-                                                        {user.role !== 'staff' && (<>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem
                                                             onClick={() => {
@@ -1212,9 +1211,9 @@ export default function UsersPage() {
                                                             className={user.is_suspended ? 'text-green-600' : 'text-orange-600'}
                                                         >
                                                             {user.is_suspended ? (
-                                                                <><Unlock className="mr-2 h-4 w-4" />Remove Suspend</>
+                                                                <><Unlock className="mr-2 h-4 w-4" />Unsuspend</>
                                                             ) : (
-                                                                <><Lock className="mr-2 h-4 w-4" />Suspend User</>
+                                                                <><Lock className="mr-2 h-4 w-4" />Suspend</>
                                                             )}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
@@ -1228,7 +1227,6 @@ export default function UsersPage() {
                                                             <Trash2 className="mr-2 h-4 w-4" />
                                                             Delete
                                                         </DropdownMenuItem>
-                                                        </>)}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                                 </div>

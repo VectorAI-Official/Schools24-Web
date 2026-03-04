@@ -19,6 +19,7 @@ export interface AdminUser {
     roll_number?: string;
     parent_name?: string;
     parent_phone?: string;
+    salary?: number;
 }
 
 interface UsersResponse {
@@ -72,7 +73,7 @@ export function useUsers(role: string = 'all', search: string = '', pageSize: nu
             return nextPage <= totalPages ? nextPage : undefined;
         },
         enabled,
-        staleTime: 30_000,
+        staleTime: 0,
         refetchInterval: 30_000,
     });
 }
@@ -140,6 +141,7 @@ export function useSuspendUser() {
             api.put(`/admin/users/${id}/suspend`, { password }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['staff'] });
             toast.success('User suspended. They can no longer log in.');
         },
         onError: (error: any) => {
@@ -159,6 +161,7 @@ export function useUnsuspendUser() {
             api.put(`/admin/users/${id}/unsuspend`, { password }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['staff'] });
             toast.success('Suspension lifted. User can now log in again.');
         },
         onError: (error: any) => {
