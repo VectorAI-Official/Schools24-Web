@@ -1242,7 +1242,7 @@ export default function UsersPage() {
                     </div>
                     <div className="flex items-center justify-between mt-4">
                         <p className="text-sm text-muted-foreground">
-                            Showing {users.length} of {totalUsersCount} users
+                            Showing {filteredUsers.length} of {totalUsersCount} users
                         </p>
                         {isAnyFetchingNextPage && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
