@@ -83,7 +83,7 @@ import { Staff } from '@/types'
 import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, SchoolClass } from '@/hooks/useClasses'
 import { useAdminCatalogClasses } from '@/hooks/useAdminCatalogClasses'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { Separator } from '@/components/ui/separator'
 // import { useDebounce } from '@/hooks/useDebounce'
@@ -193,6 +193,10 @@ export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [roleFilter, setRoleFilter] = useState<string>('all')
+    const [departmentFilter, setDepartmentFilter] = useState<string>('all')
+    const [designationFilter, setDesignationFilter] = useState<string>('all')
+    const [classFilter, setClassFilter] = useState<string>('all')
+    const [statusFilter, setStatusFilter] = useState<string>('all')
     const [isClassDialogOpen, setIsClassDialogOpen] = useState(false)
     const [academicYear, setAcademicYear] = useState(getCurrentAcademicYear())
     const [newClassName, setNewClassName] = useState<string | null>(null)
@@ -220,10 +224,18 @@ export default function UsersPage() {
         return () => clearTimeout(timer)
     }, [teacherSearch])
 
+    // Reset role-specific sub-filters whenever the role changes
+    useEffect(() => {
+        setDepartmentFilter('all')
+        setDesignationFilter('all')
+        setClassFilter('all')
+        setStatusFilter('all')
+    }, [roleFilter])
+
     // Queries
     const {
         data,
-        isLoading,
+        isLoading: isUsersLoading,
         isError,
         fetchNextPage,
         hasNextPage,
@@ -265,6 +277,7 @@ export default function UsersPage() {
     })
 
     // Mutations
+    const queryClient = useQueryClient()
     const createUser = useCreateUser()
     const createStaff = useCreateStaff()
     const updateUser = useUpdateUser()
@@ -280,6 +293,7 @@ export default function UsersPage() {
 
         for (const user of allUsers) {
             if (!user?.id || seen.has(user.id)) continue
+            if (user.role === 'staff') continue // staff come from allStaff with salary data
             seen.add(user.id)
             uniqueUsers.push(user)
         }
@@ -296,6 +310,7 @@ export default function UsersPage() {
                 avatar: s.avatar || undefined,
                 department: s.designation,
                 designation: s.designation,
+                salary: s.salary,
                 is_suspended: false,
                 created_at: s.joinDate || '',
             })
@@ -309,18 +324,46 @@ export default function UsersPage() {
 
     // Infinite Scroll Logic (Intersection Observer)
     const { ref: scrollRef, inView } = useIntersectionObserver({ threshold: 0.1 })
+    const shouldUseUsersQuery = roleFilter !== 'staff'
+    const shouldUseStaffQuery = roleFilter === 'all' || roleFilter === 'staff'
 
     useEffect(() => {
-        if (inView && hasNextPage && !isFetchingNextPage) {
+        if (inView && shouldUseUsersQuery && hasNextPage && !isFetchingNextPage) {
             fetchNextPage()
         }
-        if (inView && hasNextStaffPage && !isFetchingNextStaffPage) {
+        if (inView && shouldUseStaffQuery && hasNextStaffPage && !isFetchingNextStaffPage) {
             fetchNextStaffPage()
         }
-    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, hasNextStaffPage, isFetchingNextStaffPage, fetchNextStaffPage])
+    }, [inView, shouldUseUsersQuery, hasNextPage, isFetchingNextPage, fetchNextPage, shouldUseStaffQuery, hasNextStaffPage, isFetchingNextStaffPage, fetchNextStaffPage])
 
-    const filteredUsers = users
-    const isAnyLoading = isLoading || isStaffLoading
+    // Derived filter option lists (built from already-loaded data, no extra requests)
+    const teacherDepartments = useMemo(() =>
+        [...new Set(users.filter(u => u.role === 'teacher').map(u => u.department).filter((d): d is string => !!d))].sort(),
+        [users])
+    const staffDesignations = useMemo(() =>
+        [...new Set(users.filter(u => u.role === 'staff').map(u => u.designation || u.department).filter((d): d is string => !!d))].sort(),
+        [users])
+    const studentClasses = useMemo(() =>
+        [...new Set(users.filter(u => u.role === 'student').map(u => u.class_name).filter((c): c is string => !!c))].sort(),
+        [users])
+    const filteredUsers = useMemo(() => {
+        let list = roleFilter !== 'all' ? users.filter(u => u.role === roleFilter) : users
+        if (roleFilter === 'teacher' && departmentFilter !== 'all')
+            list = list.filter(u => u.department === departmentFilter)
+        if (roleFilter === 'staff' && designationFilter !== 'all')
+            list = list.filter(u => (u.designation || u.department) === designationFilter)
+        if (roleFilter === 'student') {
+            if (classFilter !== 'all') list = list.filter(u => u.class_name === classFilter)
+            if (statusFilter !== 'all') list = list.filter(u => statusFilter === 'suspended' ? !!u.is_suspended : !u.is_suspended)
+        }
+        return list
+    }, [users, roleFilter, departmentFilter, designationFilter, classFilter, statusFilter])
+    const isUsersInitialLoading = shouldUseUsersQuery && isUsersLoading && !data
+    const isStaffInitialLoading = shouldUseStaffQuery && isStaffLoading && !staffData
+    const isAnyLoading = isUsersInitialLoading || isStaffInitialLoading
+    const isAnyFetchingNextPage =
+        (shouldUseUsersQuery && isFetchingNextPage) ||
+        (shouldUseStaffQuery && isFetchingNextStaffPage)
     const fetchTriggerIndex = filteredUsers.length > 0 ? Math.max(0, Math.floor(filteredUsers.length * 0.8) - 1) : -1
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -393,7 +436,11 @@ export default function UsersPage() {
             const { id, ...body } = payload
             return api.put(`/admin/teachers/${id}`, body)
         },
-        onSuccess: () => toast.success('Teacher profile updated'),
+        onSuccess: () => {
+            toast.success('Teacher profile updated')
+            queryClient.invalidateQueries({ queryKey: ['users'] })
+            queryClient.refetchQueries({ queryKey: ['users'] })
+        },
         onError: (e: Error) => toast.error('Failed to update teacher profile', { description: e.message }),
     })
 
@@ -947,9 +994,9 @@ export default function UsersPage() {
                                 className="pl-10"
                             />
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                        <div className="flex flex-wrap gap-3 w-full md:w-auto">
                             <Select value={roleFilter} onValueChange={setRoleFilter}>
-                                <SelectTrigger className="w-full sm:w-[180px]">
+                                <SelectTrigger className="w-full sm:w-[160px]">
                                     <Filter className="mr-2 h-4 w-4" />
                                     <SelectValue placeholder="Role" />
                                 </SelectTrigger>
@@ -961,6 +1008,61 @@ export default function UsersPage() {
                                     <SelectItem value="staff">Staff</SelectItem>
                                 </SelectContent>
                             </Select>
+
+                            {roleFilter === 'teacher' && (
+                                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                                    <SelectTrigger className="w-full sm:w-[180px]">
+                                        <SelectValue placeholder="All Departments" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Departments</SelectItem>
+                                        {teacherDepartments.map(d => (
+                                            <SelectItem key={d} value={d}>{d}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+
+                            {roleFilter === 'staff' && (
+                                <Select value={designationFilter} onValueChange={setDesignationFilter}>
+                                    <SelectTrigger className="w-full sm:w-[180px]">
+                                        <SelectValue placeholder="All Designations" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Designations</SelectItem>
+                                        {staffDesignations.map(d => (
+                                            <SelectItem key={d} value={d}>{d}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+
+                            {roleFilter === 'student' && (
+                                <>
+                                    <Select value={classFilter} onValueChange={setClassFilter}>
+                                        <SelectTrigger className="w-full sm:w-[150px]">
+                                            <SelectValue placeholder="All Classes" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Classes</SelectItem>
+                                            {studentClasses.map(c => (
+                                                <SelectItem key={c} value={c}>{c}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                        <SelectTrigger className="w-full sm:w-[140px]">
+                                            <SelectValue placeholder="All Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Status</SelectItem>
+                                            <SelectItem value="active">Active</SelectItem>
+                                            <SelectItem value="suspended">Suspended</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </>
+                            )}
+
                             <Button
                                 variant="outline"
                                 size="icon"
@@ -968,6 +1070,10 @@ export default function UsersPage() {
                                 onClick={() => {
                                     setSearchQuery('')
                                     setRoleFilter('all')
+                                    setDepartmentFilter('all')
+                                    setDesignationFilter('all')
+                                    setClassFilter('all')
+                                    setStatusFilter('all')
                                 }}
                             >
                                 <RefreshCw className="h-4 w-4" />
@@ -983,9 +1089,9 @@ export default function UsersPage() {
                                 <TableRow>
                                     <TableHead>User</TableHead>
                                     <TableHead>Role</TableHead>
-                                    <TableHead>Rating</TableHead>
                                     <TableHead>Phone</TableHead>
-                                    <TableHead>Department</TableHead>
+                                    <TableHead>Info</TableHead>
+                                    <TableHead>Salary</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -1004,7 +1110,7 @@ export default function UsersPage() {
                                     </TableRow>
                                 ) : (
                                     filteredUsers.map((user, index) => (
-                                        <TableRow key={user.id} className="hover:bg-muted/50" ref={index === fetchTriggerIndex ? scrollRef : undefined}>
+                                        <TableRow key={user.id} className={`hover:bg-muted/50 ${user.is_suspended && user.role !== 'student' ? 'bg-red-50/60 dark:bg-red-950/20 hover:bg-red-100/60 dark:hover:bg-red-950/30' : ''}`} ref={index === fetchTriggerIndex ? scrollRef : undefined}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
@@ -1032,17 +1138,20 @@ export default function UsersPage() {
                                                     <span className="capitalize">{user.role}</span>
                                                 </Badge>
                                             </TableCell>
+                                            <TableCell>{user.phone || <span className="text-muted-foreground">-</span>}</TableCell>
                                             <TableCell>
-                                                {user.role === 'teacher' ? (
-                                                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">
-                                                        {((user as AdminUser & { rating?: string | number }).rating ?? '0.0')} ★
-                                                    </Badge>
-                                                ) : (
-                                                    <span className="text-muted-foreground">-</span>
-                                                )}
+                                                <span className="text-sm text-muted-foreground">
+                                                    {user.role === 'student' && user.class_name ? user.class_name
+                                                        : user.role === 'teacher' && user.department && user.department !== 'General' ? user.department
+                                                        : user.role === 'staff' && user.designation ? user.designation
+                                                        : '-'}
+                                                </span>
                                             </TableCell>
-                                            <TableCell>{user.phone || '-'}</TableCell>
-                                            <TableCell>{user.department || '-'}</TableCell>
+                                            <TableCell>
+                                                {user.role !== 'student' && user.salary != null && user.salary > 0
+                                                    ? <span className="text-sm font-medium">₹{user.salary.toLocaleString()}</span>
+                                                    : <span className="text-muted-foreground">-</span>}
+                                            </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-1">
                                                     {(!user.phone || (user.role === 'teacher' && (!user.department || user.department === 'General')) || (user.role === 'student' && (!user.class_name || !user.roll_number || !user.parent_name || !user.parent_phone)) || (user.role === 'staff' && !user.designation)) && (
@@ -1135,7 +1244,7 @@ export default function UsersPage() {
                         <p className="text-sm text-muted-foreground">
                             Showing {users.length} of {totalUsersCount} users
                         </p>
-                        {isFetchingNextPage && (
+                        {isAnyFetchingNextPage && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Loader2 className="h-4 w-4 animate-spin" />
                                 Loading more...
