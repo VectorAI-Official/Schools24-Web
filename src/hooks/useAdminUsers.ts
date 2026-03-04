@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 export interface AdminUser {
     id: string;
+    user_id?: string; // for staff: the actual user UUID (non_teaching_staff.user_id)
     email: string;
     full_name: string;
     role: 'super_admin' | 'admin' | 'teacher' | 'student' | 'staff';

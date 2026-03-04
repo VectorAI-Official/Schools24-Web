@@ -303,6 +303,7 @@ export default function UsersPage() {
             seen.add(s.id)
             uniqueUsers.push({
                 id: s.id,
+                user_id: s.userId,
                 email: s.email,
                 full_name: s.name,
                 role: 'staff',
@@ -725,8 +726,10 @@ export default function UsersPage() {
     const handleSuspendAction = () => {
         if (!selectedUser || !suspendPassword) return
         const mutate = suspendAction === 'suspend' ? suspendUser : unsuspendUser
+        // For staff, user_id is the actual user UUID; for others, id is the user UUID
+        const targetId = selectedUser.user_id || selectedUser.id
         mutate.mutate(
-            { id: selectedUser.id, password: suspendPassword },
+            { id: targetId, password: suspendPassword },
             {
                 onSuccess: () => {
                     setIsSuspendDialogOpen(false)

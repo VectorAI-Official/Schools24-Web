@@ -70,6 +70,7 @@ export interface Teacher {
 
 export interface Staff {
     id: string;
+    userId?: string; // actual user UUID, used for suspend/unsuspend
     name: string;
     email: string;
     phone: string;
